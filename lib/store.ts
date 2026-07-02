@@ -1,143 +1,310 @@
-// Couche de persistance sur fichiers JSON (data/*.json).
-// Le jour où une vraie BDD est choisie, seul ce fichier est à réécrire :
-// le reste du site (front + admin) ne dépend que de ces fonctions.
-import { promises as fs } from "node:fs";
-import path from "node:path";
-import { randomUUID } from "node:crypto";
+// Couche de persistance branchée sur PocketBase (collections : products,
+// orders, newsletter, settings — règles null, accès superuser uniquement).
+// Tout le site passe par ces fonctions, exécutées côté serveur seulement.
 import type { Order, OrderStatus, Product, Settings } from "./types";
 
-const DATA_DIR = path.join(process.cwd(), "data");
+const PB_URL = (process.env.POCKETBASE_URL ?? "").replace(/\/$/, "");
+const PB_EMAIL = process.env.POCKETBASE_ADMIN_EMAIL ?? "";
+const PB_PASSWORD = process.env.POCKETBASE_ADMIN_PASSWORD ?? "";
 
-async function readJson<T>(file: string, fallback: T): Promise<T> {
-  try {
-    const raw = await fs.readFile(path.join(DATA_DIR, file), "utf-8");
-    return JSON.parse(raw) as T;
-  } catch {
-    return fallback;
+// ─── Client HTTP avec cache de token ────────────────────────
+
+let cachedToken: { value: string; expiresAt: number } | null = null;
+
+async function getToken(): Promise<string> {
+  if (cachedToken && Date.now() < cachedToken.expiresAt) return cachedToken.value;
+
+  const res = await fetch(`${PB_URL}/api/collections/_superusers/auth-with-password`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ identity: PB_EMAIL, password: PB_PASSWORD }),
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    throw new Error(`PocketBase : échec d'authentification (${res.status})`);
   }
+  const data = await res.json();
+  // Le token superuser vit bien plus longtemps ; on le renouvelle toutes les 6 h.
+  cachedToken = { value: data.token, expiresAt: Date.now() + 6 * 60 * 60 * 1000 };
+  return data.token;
 }
 
-async function writeJson(file: string, value: unknown) {
-  await fs.mkdir(DATA_DIR, { recursive: true });
-  const target = path.join(DATA_DIR, file);
-  const tmp = `${target}.${randomUUID()}.tmp`;
-  await fs.writeFile(tmp, JSON.stringify(value, null, 2), "utf-8");
-  await fs.rename(tmp, target);
+async function pb<T = unknown>(
+  path: string,
+  init?: { method?: string; body?: unknown }
+): Promise<T> {
+  const doFetch = async (token: string) =>
+    fetch(`${PB_URL}/api${path}`, {
+      method: init?.method ?? "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: token,
+      },
+      body: init?.body !== undefined ? JSON.stringify(init.body) : undefined,
+      cache: "no-store",
+    });
+
+  let res = await doFetch(await getToken());
+  if (res.status === 401) {
+    cachedToken = null; // token expiré → on se ré-authentifie une fois
+    res = await doFetch(await getToken());
+  }
+  if (!res.ok) {
+    const detail = await res.text().catch(() => "");
+    throw new Error(`PocketBase ${init?.method ?? "GET"} ${path} → ${res.status} ${detail}`);
+  }
+  return res.status === 204 ? (null as T) : ((await res.json()) as T);
+}
+
+function escapeFilter(value: string): string {
+  return value.replace(/'/g, "\\'");
+}
+
+function toIso(pbDate: string): string {
+  return pbDate ? new Date(pbDate).toISOString() : new Date(0).toISOString();
+}
+
+interface ListResult<T> {
+  items: T[];
+  totalItems: number;
 }
 
 // ─── Produits ───────────────────────────────────────────────
 
+interface PbProduct {
+  id: string;
+  name: string;
+  slug: string;
+  tagline: string;
+  description: string;
+  priceCents: number;
+  compareAtCents: number;
+  category: Product["category"];
+  images: string[] | null;
+  colors: Product["colors"] | null;
+  stock: number;
+  featured: boolean;
+  active: boolean;
+  isNew: boolean;
+  created: string;
+  updated: string;
+}
+
+function mapProduct(r: PbProduct): Product {
+  return {
+    id: r.id,
+    name: r.name,
+    slug: r.slug,
+    tagline: r.tagline ?? "",
+    description: r.description ?? "",
+    priceCents: r.priceCents ?? 0,
+    compareAtCents: r.compareAtCents > 0 ? r.compareAtCents : null,
+    category: r.category,
+    images: r.images ?? [],
+    colors: r.colors ?? [],
+    stock: r.stock ?? 0,
+    featured: Boolean(r.featured),
+    active: Boolean(r.active),
+    isNew: Boolean(r.isNew),
+    createdAt: toIso(r.created),
+    updatedAt: toIso(r.updated),
+  };
+}
+
+function productPayload(p: Partial<Omit<Product, "id" | "createdAt" | "updatedAt">>) {
+  const { compareAtCents, ...rest } = p;
+  return compareAtCents !== undefined
+    ? { ...rest, compareAtCents: compareAtCents ?? 0 }
+    : rest;
+}
+
 export async function getProducts(opts?: {
   includeInactive?: boolean;
 }): Promise<Product[]> {
-  const products = await readJson<Product[]>("products.json", []);
-  return opts?.includeInactive ? products : products.filter((p) => p.active);
+  const filter = opts?.includeInactive ? "" : `&filter=${encodeURIComponent("active=true")}`;
+  const res = await pb<ListResult<PbProduct>>(
+    `/collections/products/records?perPage=500&sort=-created${filter}`
+  );
+  return res.items.map(mapProduct);
 }
 
 export async function getProductBySlug(slug: string): Promise<Product | null> {
-  const products = await getProducts({ includeInactive: true });
-  return products.find((p) => p.slug === slug) ?? null;
+  const res = await pb<ListResult<PbProduct>>(
+    `/collections/products/records?perPage=1&filter=${encodeURIComponent(
+      `slug='${escapeFilter(slug)}'`
+    )}`
+  );
+  return res.items[0] ? mapProduct(res.items[0]) : null;
 }
 
 export async function getProductById(id: string): Promise<Product | null> {
-  const products = await getProducts({ includeInactive: true });
-  return products.find((p) => p.id === id) ?? null;
+  try {
+    return mapProduct(await pb<PbProduct>(`/collections/products/records/${id}`));
+  } catch {
+    return null;
+  }
 }
 
 export async function createProduct(
   input: Omit<Product, "id" | "createdAt" | "updatedAt">
 ): Promise<Product> {
-  const products = await getProducts({ includeInactive: true });
-  const now = new Date().toISOString();
-  const product: Product = { ...input, id: randomUUID(), createdAt: now, updatedAt: now };
-  products.push(product);
-  await writeJson("products.json", products);
-  return product;
+  const record = await pb<PbProduct>(`/collections/products/records`, {
+    method: "POST",
+    body: productPayload(input),
+  });
+  return mapProduct(record);
 }
 
 export async function updateProduct(
   id: string,
   patch: Partial<Omit<Product, "id" | "createdAt">>
 ): Promise<Product | null> {
-  const products = await getProducts({ includeInactive: true });
-  const idx = products.findIndex((p) => p.id === id);
-  if (idx === -1) return null;
-  products[idx] = { ...products[idx], ...patch, updatedAt: new Date().toISOString() };
-  await writeJson("products.json", products);
-  return products[idx];
+  try {
+    const record = await pb<PbProduct>(`/collections/products/records/${id}`, {
+      method: "PATCH",
+      body: productPayload(patch),
+    });
+    return mapProduct(record);
+  } catch {
+    return null;
+  }
 }
 
 export async function deleteProduct(id: string): Promise<void> {
-  const products = await getProducts({ includeInactive: true });
-  await writeJson(
-    "products.json",
-    products.filter((p) => p.id !== id)
-  );
+  await pb(`/collections/products/records/${id}`, { method: "DELETE" });
 }
 
 export async function decrementStock(items: { productId: string; quantity: number }[]) {
-  const products = await getProducts({ includeInactive: true });
   for (const item of items) {
-    const p = products.find((x) => x.id === item.productId);
-    if (p) p.stock = Math.max(0, p.stock - item.quantity);
+    const product = await getProductById(item.productId);
+    if (!product) continue;
+    await pb(`/collections/products/records/${item.productId}`, {
+      method: "PATCH",
+      body: { stock: Math.max(0, product.stock - item.quantity) },
+    });
   }
-  await writeJson("products.json", products);
 }
 
 // ─── Commandes ──────────────────────────────────────────────
 
+interface PbOrder {
+  id: string;
+  number: number;
+  email: string;
+  name: string;
+  phone: string;
+  addressLine1: string;
+  addressLine2: string;
+  city: string;
+  postalCode: string;
+  country: string;
+  subtotalCents: number;
+  shippingCents: number;
+  totalCents: number;
+  status: OrderStatus;
+  stripeSessionId: string;
+  note: string;
+  items: Order["items"] | null;
+  created: string;
+  updated: string;
+}
+
+function mapOrder(r: PbOrder): Order {
+  return {
+    id: r.id,
+    number: r.number,
+    email: r.email ?? "",
+    name: r.name ?? "",
+    phone: r.phone ?? "",
+    addressLine1: r.addressLine1 ?? "",
+    addressLine2: r.addressLine2 ?? "",
+    city: r.city ?? "",
+    postalCode: r.postalCode ?? "",
+    country: r.country ?? "FR",
+    subtotalCents: r.subtotalCents ?? 0,
+    shippingCents: r.shippingCents ?? 0,
+    totalCents: r.totalCents ?? 0,
+    status: r.status ?? "pending",
+    stripeSessionId: r.stripeSessionId || null,
+    note: r.note ?? "",
+    items: r.items ?? [],
+    createdAt: toIso(r.created),
+    updatedAt: toIso(r.updated),
+  };
+}
+
 export async function getOrders(): Promise<Order[]> {
-  const orders = await readJson<Order[]>("orders.json", []);
-  return orders.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const res = await pb<ListResult<PbOrder>>(
+    `/collections/orders/records?perPage=500&sort=-created`
+  );
+  return res.items.map(mapOrder);
 }
 
 export async function getOrderById(id: string): Promise<Order | null> {
-  const orders = await getOrders();
-  return orders.find((o) => o.id === id) ?? null;
+  try {
+    return mapOrder(await pb<PbOrder>(`/collections/orders/records/${id}`));
+  } catch {
+    return null;
+  }
 }
 
 export async function getOrderByStripeSession(sessionId: string): Promise<Order | null> {
-  const orders = await getOrders();
-  return orders.find((o) => o.stripeSessionId === sessionId) ?? null;
+  const res = await pb<ListResult<PbOrder>>(
+    `/collections/orders/records?perPage=1&filter=${encodeURIComponent(
+      `stripeSessionId='${escapeFilter(sessionId)}'`
+    )}`
+  );
+  return res.items[0] ? mapOrder(res.items[0]) : null;
 }
 
 export async function createOrder(
   input: Omit<Order, "id" | "number" | "createdAt" | "updatedAt">
 ): Promise<Order> {
-  const orders = await readJson<Order[]>("orders.json", []);
-  const now = new Date().toISOString();
-  const number = orders.reduce((max, o) => Math.max(max, o.number), 1000) + 1;
-  const order: Order = { ...input, id: randomUUID(), number, createdAt: now, updatedAt: now };
-  orders.push(order);
-  await writeJson("orders.json", orders);
-  return order;
+  const last = await pb<ListResult<PbOrder>>(
+    `/collections/orders/records?perPage=1&sort=-number`
+  );
+  const number = (last.items[0]?.number ?? 1000) + 1;
+  const record = await pb<PbOrder>(`/collections/orders/records`, {
+    method: "POST",
+    body: { ...input, number, stripeSessionId: input.stripeSessionId ?? "" },
+  });
+  return mapOrder(record);
 }
 
 export async function updateOrderStatus(
   id: string,
   status: OrderStatus
 ): Promise<Order | null> {
-  const orders = await readJson<Order[]>("orders.json", []);
-  const order = orders.find((o) => o.id === id);
-  if (!order) return null;
-  order.status = status;
-  order.updatedAt = new Date().toISOString();
-  await writeJson("orders.json", orders);
-  return order;
+  try {
+    const record = await pb<PbOrder>(`/collections/orders/records/${id}`, {
+      method: "PATCH",
+      body: { status },
+    });
+    return mapOrder(record);
+  } catch {
+    return null;
+  }
 }
 
 // ─── Newsletter ─────────────────────────────────────────────
 
 export async function getSubscribers(): Promise<{ email: string; createdAt: string }[]> {
-  return readJson("newsletter.json", []);
+  const res = await pb<ListResult<{ email: string; created: string }>>(
+    `/collections/newsletter/records?perPage=500&sort=created`
+  );
+  return res.items.map((r) => ({ email: r.email, createdAt: toIso(r.created) }));
 }
 
 export async function addSubscriber(email: string): Promise<boolean> {
-  const subs = await getSubscribers();
-  if (subs.some((s) => s.email.toLowerCase() === email.toLowerCase())) return false;
-  subs.push({ email, createdAt: new Date().toISOString() });
-  await writeJson("newsletter.json", subs);
-  return true;
+  try {
+    await pb(`/collections/newsletter/records`, {
+      method: "POST",
+      body: { email: email.toLowerCase() },
+    });
+    return true;
+  } catch {
+    return false; // doublon (index unique) ou erreur réseau
+  }
 }
 
 // ─── Réglages ───────────────────────────────────────────────
@@ -151,13 +318,33 @@ const DEFAULT_SETTINGS: Settings = {
   instagram: "",
 };
 
+type PbSettings = Partial<Settings> & { id: string };
+
+async function getSettingsRecord(): Promise<PbSettings | null> {
+  const res = await pb<ListResult<PbSettings>>(`/collections/settings/records?perPage=1`);
+  return res.items[0] ?? null;
+}
+
 export async function getSettings(): Promise<Settings> {
-  const saved = await readJson<Partial<Settings>>("settings.json", {});
-  return { ...DEFAULT_SETTINGS, ...saved };
+  try {
+    const record = await getSettingsRecord();
+    return { ...DEFAULT_SETTINGS, ...(record ?? {}) };
+  } catch {
+    // PocketBase injoignable : le site reste debout avec les valeurs par défaut
+    return DEFAULT_SETTINGS;
+  }
 }
 
 export async function saveSettings(patch: Partial<Settings>): Promise<Settings> {
-  const settings = { ...(await getSettings()), ...patch };
-  await writeJson("settings.json", settings);
-  return settings;
+  const record = await getSettingsRecord();
+  const saved = record
+    ? await pb<PbSettings>(`/collections/settings/records/${record.id}`, {
+        method: "PATCH",
+        body: patch,
+      })
+    : await pb<PbSettings>(`/collections/settings/records`, {
+        method: "POST",
+        body: { ...DEFAULT_SETTINGS, ...patch },
+      });
+  return { ...DEFAULT_SETTINGS, ...saved };
 }

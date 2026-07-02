@@ -34,14 +34,20 @@ Le checkout relit **toujours** les prix côté serveur (jamais ceux du client),
 la commande est créée par le webhook (idempotent) et le stock est décrémenté
 automatiquement.
 
-## Données (pas encore de BDD — choix volontaire)
+## Données : PocketBase
 
-Toutes les données vivent dans `data/*.json` (produits, commandes, newsletter,
-réglages) derrière la couche `lib/store.ts`. Pour brancher une vraie base plus
-tard (Supabase, Postgres, SQLite…), il suffit de réécrire `lib/store.ts` — le
-reste du code n'y touche jamais directement.
+Les données (produits, commandes, newsletter, réglages) vivent dans
+**PocketBase** (instance Coolify), derrière la couche `lib/store.ts` — le reste
+du code n'y touche jamais directement. Configuration dans `.env` :
+`POCKETBASE_URL`, `POCKETBASE_ADMIN_EMAIL`, `POCKETBASE_ADMIN_PASSWORD`.
 
-- `scripts/seed.mjs` — régénère le catalogue de démo (`--force` pour écraser)
+Les collections ont toutes leurs règles d'accès à `null` (superuser
+uniquement) : seul le serveur Next.js parle à PocketBase, jamais le
+navigateur.
+
+- `scripts/setup-pocketbase.mjs` — crée les collections (idempotent) et
+  importe les données de `data/*.json` (seed initial conservé en backup)
+- `scripts/seed.mjs` — régénère les JSON de seed (`--force` pour écraser)
 - `scripts/gen-images.mjs` — régénère les visuels SVG de `public/products/`
 
 ## Stack
@@ -56,8 +62,8 @@ app/(site)/        → boutique publique (accueil, boutique, fiche, FAQ, contact
 app/admin/         → back-office (login + dashboard, produits, commandes…)
 app/api/           → checkout Stripe, webhook, newsletter
 components/        → site, produit, panier (drawer + contexte), admin
-lib/               → store.ts (données), auth.ts, stripe.ts, types.ts, format.ts
-data/              → « base de données » JSON
+lib/               → store.ts (PocketBase), auth.ts, stripe.ts, types.ts, format.ts
+data/              → seed JSON initial (backup, plus utilisé au runtime)
 public/products/   → visuels générés
 public/uploads/    → photos ajoutées depuis l'admin
 ```
