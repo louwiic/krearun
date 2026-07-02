@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800">
+<defs>
+<radialGradient id="bgondes0" cx="42%" cy="32%" r="90%">
+<stop offset="0%" stop-color="#e9eee4"/><stop offset="100%" stop-color="#dbe4d2"/>
+</radialGradient>
+<filter id="gondes0"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" result="n"/><feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.04 0"/><feComposite operator="over" in2="SourceGraphic"/></filter>
+</defs>
+<rect width="800" height="800" fill="url(#bgondes0)" filter="url(#gondes0)"/>
+<ellipse cx="400" cy="600" rx="215" ry="34" fill="#c9d6bc" opacity="0.35"/>
+<g transform="rotate(0 400 400)">
+    <circle cx="330" cy="350" r="120" fill="#f2f5ee"/>
+    <circle cx="330" cy="350" r="35" stroke="#c9d6bc" stroke-width="7" fill="none" opacity="0.55"/><circle cx="330" cy="350" r="60" stroke="#c9d6bc" stroke-width="7" fill="none" opacity="0.55"/><circle cx="330" cy="350" r="85" stroke="#c9d6bc" stroke-width="7" fill="none" opacity="0.55"/>
+    <circle cx="480" cy="470" r="120" fill="#a8bb97" opacity="0.9"/>
+    <circle cx="480" cy="470" r="35" stroke="#f2f5ee" stroke-width="7" fill="none" opacity="0.6"/><circle cx="480" cy="470" r="60" stroke="#f2f5ee" stroke-width="7" fill="none" opacity="0.6"/><circle cx="480" cy="470" r="85" stroke="#f2f5ee" stroke-width="7" fill="none" opacity="0.6"/></g>
+</svg>

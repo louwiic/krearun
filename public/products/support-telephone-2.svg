@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800">
+<defs>
+<radialGradient id="bgsupport1" cx="42%" cy="32%" r="90%">
+<stop offset="0%" stop-color="#e9eee4"/><stop offset="100%" stop-color="#dbe4d2"/>
+</radialGradient>
+<filter id="gsupport1"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" result="n"/><feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.04 0"/><feComposite operator="over" in2="SourceGraphic"/></filter>
+</defs>
+<rect width="800" height="800" fill="url(#bgsupport1)" filter="url(#gsupport1)"/>
+<ellipse cx="400" cy="600" rx="215" ry="34" fill="#c9d6bc" opacity="0.35"/>
+<g transform="rotate(-4 400 400)">
+    <path d="M270 520 L430 250 q18 -25 40 -12 t8 40 L340 540 Z" fill="#f2f5ee"/>
+    <path d="M270 520 h230 q20 0 20 20 t-20 20 H290 q-25 0 -20 -40 Z" fill="#c9d6bc"/>
+    <rect x="376" y="300" width="120" height="200" rx="16" transform="rotate(28 436 400)" fill="#a8bb97" opacity="0.85"/>
+    <rect x="392" y="318" width="88" height="160" rx="10" transform="rotate(28 436 398)" fill="#f2f5ee" opacity="0.6"/></g>
+</svg>

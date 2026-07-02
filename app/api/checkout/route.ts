@@ -1,0 +1,111 @@
+import { NextResponse } from "next/server";
+import { getProductById, getSettings } from "@/lib/store";
+import { getStripe, stripeConfigured } from "@/lib/stripe";
+
+interface CheckoutItem {
+  productId: string;
+  quantity: number;
+  color: string;
+}
+
+export async function POST(req: Request) {
+  if (!stripeConfigured()) {
+    return NextResponse.json(
+      {
+        error:
+          "Le paiement n'est pas encore activé sur cette boutique (clés Stripe manquantes dans .env).",
+      },
+      { status: 503 }
+    );
+  }
+
+  let items: CheckoutItem[];
+  try {
+    const body = await req.json();
+    items = body.items;
+    if (!Array.isArray(items) || items.length === 0) throw new Error();
+  } catch {
+    return NextResponse.json({ error: "Panier invalide." }, { status: 400 });
+  }
+
+  const settings = await getSettings();
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+
+  // Prix relus côté serveur — on ne fait jamais confiance au client
+  const lineItems: {
+    price_data: {
+      currency: string;
+      unit_amount: number;
+      product_data: { name: string; description?: string; images?: string[] };
+    };
+    quantity: number;
+  }[] = [];
+  const metadataItems: { p: string; q: number; c: string }[] = [];
+  let subtotalCents = 0;
+
+  for (const item of items) {
+    const product = await getProductById(item.productId);
+    if (!product || !product.active) {
+      return NextResponse.json(
+        { error: "Un article du panier n'est plus disponible." },
+        { status: 400 }
+      );
+    }
+    const quantity = Math.max(1, Math.min(Number(item.quantity) || 1, product.stock));
+    if (product.stock <= 0) {
+      return NextResponse.json(
+        { error: `« ${product.name} » est épuisé pour le moment.` },
+        { status: 400 }
+      );
+    }
+    subtotalCents += product.priceCents * quantity;
+    lineItems.push({
+      price_data: {
+        currency: "eur",
+        unit_amount: product.priceCents,
+        product_data: {
+          name: item.color ? `${product.name} — ${item.color}` : product.name,
+          images: product.images[0]?.startsWith("http")
+            ? [product.images[0]]
+            : undefined,
+        },
+      },
+      quantity,
+    });
+    metadataItems.push({ p: product.id, q: quantity, c: item.color || "" });
+  }
+
+  const freeShipping = subtotalCents >= settings.free_shipping_threshold_cents;
+  const shippingCents = freeShipping ? 0 : settings.shipping_flat_cents;
+
+  const stripe = getStripe();
+  const session = await stripe.checkout.sessions.create({
+    mode: "payment",
+    line_items: lineItems,
+    shipping_address_collection: {
+      allowed_countries: ["FR", "BE", "LU", "CH", "MC"],
+    },
+    shipping_options: [
+      {
+        shipping_rate_data: {
+          type: "fixed_amount",
+          fixed_amount: { amount: shippingCents, currency: "eur" },
+          display_name: freeShipping
+            ? "Livraison suivie offerte"
+            : "Livraison suivie",
+          delivery_estimate: {
+            minimum: { unit: "business_day", value: 4 },
+            maximum: { unit: "business_day", value: 8 },
+          },
+        },
+      },
+    ],
+    phone_number_collection: { enabled: true },
+    locale: "fr",
+    metadata: { items: JSON.stringify(metadataItems) },
+    success_url: `${siteUrl}/commande/succes?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${siteUrl}/boutique`,
+  });
+
+  return NextResponse.json({ url: session.url });
+}

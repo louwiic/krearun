@@ -1,0 +1,396 @@
+[
+  {
+    "id": "cbe3e15f-74d7-4c99-aa8c-14d14b8490ac",
+    "tagline": "Un croissant de douceur pour vos nuits",
+    "description": "Imprimée en 3D couche par couche dans notre petit atelier, cette veilleuse en forme de lune diffuse une lumière chaude et tamisée, parfaite pour accompagner les soirs calmes. Son PLA biosourcé laisse passer la lumière comme du papier de riz.\r\n\r\n• Ampoule LED basse consommation incluse\r\n• Câble USB en coton tressé (1,5 m)\r\n• Diamètre 14 cm\r\n• Imprimée à la commande, rien que pour vous",
+    "compareAtCents": null,
+    "colors": [
+      {
+        "name": "Crème",
+        "hex": "#f3ead9"
+      },
+      {
+        "name": "Blush",
+        "hex": "#e8c4b8"
+      }
+    ],
+    "stock": 25,
+    "featured": true,
+    "active": true,
+    "isNew": true,
+    "createdAt": "2026-07-02T14:40:29.467Z",
+    "updatedAt": "2026-07-02T17:19:56.811Z",
+    "images": [
+      "/products/veilleuse-lune.svg",
+      "/products/veilleuse-lune-2.svg"
+    ],
+    "name": "Veilleuse Lune",
+    "slug": "veilleuse-lune",
+    "priceCents": 3900,
+    "category": "veilleuses"
+  },
+  {
+    "id": "9d439f3a-2072-469d-b920-72eeb74ad091",
+    "tagline": "Un petit nuage qui veille sur vous",
+    "description": "Notre nuage préféré, tout en rondeurs. Posé sur une étagère ou une table de chevet, il enveloppe la pièce d'une lueur douce comme un ciel de fin d'été.\n\n• Variateur tactile 3 intensités\n• Câble USB-C inclus\n• Largeur 18 cm\n• PLA biosourcé, imprimé en circuit court",
+    "compareAtCents": null,
+    "colors": [
+      {
+        "name": "Ciel",
+        "hex": "#dbe7ec"
+      },
+      {
+        "name": "Crème",
+        "hex": "#f3ead9"
+      }
+    ],
+    "stock": 8,
+    "featured": true,
+    "active": true,
+    "isNew": true,
+    "createdAt": "2026-07-02T14:40:29.467Z",
+    "updatedAt": "2026-07-02T14:40:29.467Z",
+    "images": [
+      "/products/veilleuse-nuage.svg",
+      "/products/veilleuse-nuage-2.svg"
+    ],
+    "name": "Veilleuse Nuage",
+    "slug": "veilleuse-nuage",
+    "priceCents": 4400,
+    "category": "veilleuses"
+  },
+  {
+    "id": "1b6484cf-f1af-4dc8-9500-106bd14590a6",
+    "tagline": "La forêt enchantée, version bureau",
+    "description": "Inspirée des champignons des sous-bois, cette petite lampe apporte une touche de poésie à votre bureau ou votre entrée. Son chapeau translucide diffuse une lumière ambrée très apaisante.\n\n• Hauteur 22 cm\n• Interrupteur sur câble\n• Impression 3D soignée, ponçage à la main",
+    "compareAtCents": 5900,
+    "colors": [
+      {
+        "name": "Blush",
+        "hex": "#e8c4b8"
+      },
+      {
+        "name": "Terracotta",
+        "hex": "#cf9670"
+      }
+    ],
+    "stock": 6,
+    "featured": true,
+    "active": true,
+    "isNew": false,
+    "createdAt": "2026-07-02T14:40:29.467Z",
+    "updatedAt": "2026-07-02T14:40:29.467Z",
+    "images": [
+      "/products/lampe-champignon.svg",
+      "/products/lampe-champignon-2.svg"
+    ],
+    "name": "Lampe Champignon",
+    "slug": "lampe-champignon",
+    "priceCents": 5200,
+    "category": "veilleuses"
+  },
+  {
+    "id": "75ed9e7d-aaaa-4e45-8364-6a125ecc51c7",
+    "tagline": "Une flamme, un cocon",
+    "description": "Ce photophore ajouré projette des ombres délicates sur les murs. Glissez-y une bougie LED (fournie) et laissez la magie opérer.\n\n• Bougie LED rechargeable incluse\n• Hauteur 12 cm\n• Motif tissé imprimé en 3D",
+    "compareAtCents": null,
+    "colors": [
+      {
+        "name": "Crème",
+        "hex": "#f3ead9"
+      }
+    ],
+    "stock": 15,
+    "featured": false,
+    "active": true,
+    "isNew": false,
+    "createdAt": "2026-07-02T14:40:29.467Z",
+    "updatedAt": "2026-07-02T14:40:29.467Z",
+    "images": [
+      "/products/bougie-cocon.svg",
+      "/products/bougie-cocon-2.svg"
+    ],
+    "name": "Photophore Cocon",
+    "slug": "bougie-cocon",
+    "priceCents": 2900,
+    "category": "veilleuses"
+  },
+  {
+    "id": "9d6f9c1b-e3b0-4e53-84bc-5d81e22d1abd",
+    "tagline": "Des vagues douces pour vos fleurs séchées",
+    "description": "Ses ondulations régulières sont le résultat de 14 heures d'impression lente. Un vase sculptural qui se suffit à lui-même, ou qui sublime un bouquet de fleurs séchées.\n\n• Hauteur 20 cm\n• Étanche avec insert en verre (fourni)\n• Chaque pièce est unique, avec ses fines lignes d'impression",
+    "compareAtCents": null,
+    "colors": [
+      {
+        "name": "Sauge",
+        "hex": "#b8c8a8"
+      },
+      {
+        "name": "Crème",
+        "hex": "#f3ead9"
+      },
+      {
+        "name": "Terracotta",
+        "hex": "#cf9670"
+      }
+    ],
+    "stock": 10,
+    "featured": true,
+    "active": true,
+    "isNew": true,
+    "createdAt": "2026-07-02T14:40:29.467Z",
+    "updatedAt": "2026-07-02T14:40:29.467Z",
+    "images": [
+      "/products/vase-ondule.svg",
+      "/products/vase-ondule-2.svg"
+    ],
+    "name": "Vase Ondulé",
+    "slug": "vase-ondule",
+    "priceCents": 4600,
+    "category": "vases"
+  },
+  {
+    "id": "c8aa62d9-c31d-4e01-ab41-0ba76c475c35",
+    "tagline": "Une spirale qui attrape la lumière",
+    "description": "Sa torsion élégante accroche la lumière du matin comme celle du soir. Imprimé en mode « vase » d'une seule paroi continue, sans couture.\n\n• Hauteur 24 cm\n• Insert verre inclus pour fleurs fraîches\n• Fini satiné",
+    "compareAtCents": null,
+    "colors": [
+      {
+        "name": "Terracotta",
+        "hex": "#cf9670"
+      },
+      {
+        "name": "Sauge",
+        "hex": "#b8c8a8"
+      }
+    ],
+    "stock": 9,
+    "featured": false,
+    "active": true,
+    "isNew": false,
+    "createdAt": "2026-07-02T14:40:29.467Z",
+    "updatedAt": "2026-07-02T14:40:29.467Z",
+    "images": [
+      "/products/vase-torsade.svg",
+      "/products/vase-torsade-2.svg"
+    ],
+    "name": "Vase Torsadé",
+    "slug": "vase-torsade",
+    "priceCents": 4200,
+    "category": "vases"
+  },
+  {
+    "id": "5f2b213a-fea5-4d96-adec-260ed805c6a6",
+    "tagline": "Il dort pendant que vos plantes poussent",
+    "description": "Notre best-seller. Ce cache-pot au visage paisible accueille vos succulentes et petites plantes avec une tendresse infinie. Ses « cheveux » deviennent le feuillage.\n\n• Pour pots de 8–10 cm\n• Trou de drainage + soucoupe intégrée\n• Hauteur 13 cm",
+    "compareAtCents": null,
+    "colors": [
+      {
+        "name": "Blush",
+        "hex": "#e8c4b8"
+      },
+      {
+        "name": "Crème",
+        "hex": "#f3ead9"
+      },
+      {
+        "name": "Lavande",
+        "hex": "#c5bcd8"
+      }
+    ],
+    "stock": 14,
+    "featured": true,
+    "active": true,
+    "isNew": false,
+    "createdAt": "2026-07-02T14:40:29.467Z",
+    "updatedAt": "2026-07-02T14:40:29.467Z",
+    "images": [
+      "/products/cache-pot-visage.svg",
+      "/products/cache-pot-visage-2.svg"
+    ],
+    "name": "Cache-pot Visage Endormi",
+    "slug": "cache-pot-visage",
+    "priceCents": 3400,
+    "category": "deco"
+  },
+  {
+    "id": "f739d160-1aec-4b2f-a5ec-42a7c6239001",
+    "tagline": "Votre téléphone, bien installé",
+    "description": "Une arche minimaliste qui tient votre téléphone à l'angle parfait, en portrait comme en paysage. Passage de câble intégré pour charger pendant vos appels vidéo.\n\n• Compatible tous smartphones (avec ou sans coque)\n• Patins antidérapants\n• Angle de 62°, pensé pour les visios",
+    "compareAtCents": null,
+    "colors": [
+      {
+        "name": "Sauge",
+        "hex": "#b8c8a8"
+      },
+      {
+        "name": "Crème",
+        "hex": "#f3ead9"
+      }
+    ],
+    "stock": 22,
+    "featured": false,
+    "active": true,
+    "isNew": false,
+    "createdAt": "2026-07-02T14:40:29.467Z",
+    "updatedAt": "2026-07-02T14:40:29.467Z",
+    "images": [
+      "/products/support-telephone.svg",
+      "/products/support-telephone-2.svg"
+    ],
+    "name": "Support Téléphone Arche",
+    "slug": "support-telephone",
+    "priceCents": 1900,
+    "category": "bureau"
+  },
+  {
+    "id": "e2322184-d0e7-4719-88a8-55ba681e5aef",
+    "tagline": "Un abri douillet pour vos stylos",
+    "description": "Le chapeau se soulève pour révéler un rangement secret, le pied accueille stylos et pinceaux. Un petit compagnon de bureau qui fait sourire.\n\n• Hauteur 16 cm\n• Compartiment secret sous le chapeau\n• Base lestée",
+    "compareAtCents": null,
+    "colors": [
+      {
+        "name": "Terracotta",
+        "hex": "#cf9670"
+      },
+      {
+        "name": "Blush",
+        "hex": "#e8c4b8"
+      }
+    ],
+    "stock": 18,
+    "featured": false,
+    "active": true,
+    "isNew": false,
+    "createdAt": "2026-07-02T14:40:29.467Z",
+    "updatedAt": "2026-07-02T14:40:29.467Z",
+    "images": [
+      "/products/pot-champignon.svg",
+      "/products/pot-champignon-2.svg"
+    ],
+    "name": "Pot à Crayons Champignon",
+    "slug": "pot-champignon",
+    "priceCents": 2600,
+    "category": "bureau"
+  },
+  {
+    "id": "ed21264d-14ea-4adf-9263-307449820209",
+    "tagline": "Trois vallons pour tout ranger",
+    "description": "Inspiré des dunes au coucher du soleil, cet organiseur modulable range lunettes, clés, stylos et petits trésors. Ses trois modules s'emboîtent ou vivent séparés.\n\n• 3 modules aimantés\n• Largeur totale 28 cm\n• Feutrine douce sous chaque module",
+    "compareAtCents": null,
+    "colors": [
+      {
+        "name": "Lavande",
+        "hex": "#c5bcd8"
+      },
+      {
+        "name": "Crème",
+        "hex": "#f3ead9"
+      }
+    ],
+    "stock": 7,
+    "featured": false,
+    "active": true,
+    "isNew": true,
+    "createdAt": "2026-07-02T14:40:29.467Z",
+    "updatedAt": "2026-07-02T14:40:29.467Z",
+    "images": [
+      "/products/organiseur-dune.svg",
+      "/products/organiseur-dune-2.svg"
+    ],
+    "name": "Organiseur Dune",
+    "slug": "organiseur-dune",
+    "priceCents": 3800,
+    "category": "bureau"
+  },
+  {
+    "id": "3392db9f-b71f-4175-8b69-3e83f7cc5fe9",
+    "tagline": "Vos bijoux dans un écrin marin",
+    "description": "Un coquillage qui s'ouvre sur un intérieur nacré, parfait pour bagues, boucles d'oreilles et petits secrets. Charnière imprimée d'une pièce, sans vis.\n\n• Largeur 11 cm\n• Charnière intégrée, ouverture douce\n• Intérieur fini nacré",
+    "compareAtCents": null,
+    "colors": [
+      {
+        "name": "Blush",
+        "hex": "#e8c4b8"
+      },
+      {
+        "name": "Crème",
+        "hex": "#f3ead9"
+      }
+    ],
+    "stock": 11,
+    "featured": false,
+    "active": true,
+    "isNew": false,
+    "createdAt": "2026-07-02T14:40:29.467Z",
+    "updatedAt": "2026-07-02T14:40:29.467Z",
+    "images": [
+      "/products/boite-coquillage.svg",
+      "/products/boite-coquillage-2.svg"
+    ],
+    "name": "Boîte Coquillage",
+    "slug": "boite-coquillage",
+    "priceCents": 3200,
+    "category": "rangement"
+  },
+  {
+    "id": "a915bc1a-1f8d-4200-b235-6bc3a152fcb3",
+    "tagline": "Posez tout, respirez",
+    "description": "Comme un galet poli par la mer, ce vide-poche accueille clés, monnaie et bijoux à l'entrée. Sa forme organique est douce au toucher, presque méditative.\n\n• Largeur 19 cm\n• Fond feutré antidérapant\n• Chaque exemplaire varie légèrement — c'est voulu",
+    "compareAtCents": null,
+    "colors": [
+      {
+        "name": "Crème",
+        "hex": "#f3ead9"
+      },
+      {
+        "name": "Sauge",
+        "hex": "#b8c8a8"
+      }
+    ],
+    "stock": 16,
+    "featured": false,
+    "active": true,
+    "isNew": false,
+    "createdAt": "2026-07-02T14:40:29.467Z",
+    "updatedAt": "2026-07-02T14:40:29.467Z",
+    "images": [
+      "/products/vide-poche-galet.svg",
+      "/products/vide-poche-galet-2.svg"
+    ],
+    "name": "Vide-poche Galet",
+    "slug": "vide-poche-galet",
+    "priceCents": 2400,
+    "category": "rangement"
+  },
+  {
+    "id": "82e6d868-9abc-4cc2-95b6-d90d4e34cf5e",
+    "tagline": "Des ronds dans l'eau sur votre table",
+    "description": "Quatre dessous de verre aux motifs d'ondes concentriques, livrés avec leur support assorti. Le relief retient les gouttes de condensation.\n\n• Set de 4 + support\n• Diamètre 10 cm\n• Relief anti-gouttes",
+    "compareAtCents": null,
+    "colors": [
+      {
+        "name": "Sauge",
+        "hex": "#b8c8a8"
+      },
+      {
+        "name": "Terracotta",
+        "hex": "#cf9670"
+      }
+    ],
+    "stock": 20,
+    "featured": false,
+    "active": true,
+    "isNew": false,
+    "createdAt": "2026-07-02T14:40:29.467Z",
+    "updatedAt": "2026-07-02T14:40:29.467Z",
+    "images": [
+      "/products/dessous-verre-ondes.svg",
+      "/products/dessous-verre-ondes-2.svg"
+    ],
+    "name": "Dessous de Verre Ondes (x4)",
+    "slug": "dessous-verre-ondes",
+    "priceCents": 2200,
+    "category": "deco"
+  }
+]

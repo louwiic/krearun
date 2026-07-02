@@ -1,0 +1,32 @@
+[
+  {
+    "id": "6268a129-2655-4532-b456-684204531668",
+    "number": 1001,
+    "email": "camille@exemple.fr",
+    "name": "Camille Rousseau",
+    "phone": "+33612345678",
+    "addressLine1": "12 rue des Lilas",
+    "addressLine2": "",
+    "city": "Lyon",
+    "postalCode": "69003",
+    "country": "FR",
+    "subtotalCents": 9200,
+    "shippingCents": 0,
+    "totalCents": 9200,
+    "status": "preparing",
+    "stripeSessionId": "cs_test_demo_0001",
+    "note": "",
+    "items": [
+      {
+        "productId": "9d6f9c1b-e3b0-4e53-84bc-5d81e22d1abd",
+        "name": "Vase Ondulé",
+        "priceCents": 4600,
+        "quantity": 2,
+        "color": "Sauge",
+        "image": "/products/vase-ondule.svg"
+      }
+    ],
+    "createdAt": "2026-07-02T17:20:22.858Z",
+    "updatedAt": "2026-07-02T17:20:56.352Z"
+  }
+]

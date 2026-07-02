@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800">
+<defs>
+<radialGradient id="bgcoquillage1" cx="42%" cy="32%" r="90%">
+<stop offset="0%" stop-color="#f7e9e4"/><stop offset="100%" stop-color="#f1dcd4"/>
+</radialGradient>
+<filter id="gcoquillage1"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" result="n"/><feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.04 0"/><feComposite operator="over" in2="SourceGraphic"/></filter>
+</defs>
+<rect width="800" height="800" fill="url(#bgcoquillage1)" filter="url(#gcoquillage1)"/>
+<ellipse cx="400" cy="600" rx="215" ry="34" fill="#e6c8bc" opacity="0.35"/>
+<g transform="rotate(-4 400 400)">
+    <path d="M400 540 L250 350 q-15 -25 5 -45 q60 -60 145 -60 t145 60 q20 20 5 45 Z" fill="#fbf3f0"/>
+    <path d="M400 535 Q 290 400 264 268" stroke="#e6c8bc" stroke-width="7" fill="none" opacity="0.55"/><path d="M400 535 Q 345 400 332 268" stroke="#e6c8bc" stroke-width="7" fill="none" opacity="0.55"/><path d="M400 535 Q 400 400 400 268" stroke="#e6c8bc" stroke-width="7" fill="none" opacity="0.55"/><path d="M400 535 Q 455 400 468 268" stroke="#e6c8bc" stroke-width="7" fill="none" opacity="0.55"/><path d="M400 535 Q 510 400 536 268" stroke="#e6c8bc" stroke-width="7" fill="none" opacity="0.55"/>
+    <circle cx="400" cy="540" r="14" fill="#d4a894"/></g>
+</svg>

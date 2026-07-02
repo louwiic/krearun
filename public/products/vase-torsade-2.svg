@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800">
+<defs>
+<radialGradient id="bgvasetorsade1" cx="42%" cy="32%" r="90%">
+<stop offset="0%" stop-color="#f3e3d7"/><stop offset="100%" stop-color="#ecd4c1"/>
+</radialGradient>
+<filter id="gvasetorsade1"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" result="n"/><feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.04 0"/><feComposite operator="over" in2="SourceGraphic"/></filter>
+</defs>
+<rect width="800" height="800" fill="url(#bgvasetorsade1)" filter="url(#gvasetorsade1)"/>
+<ellipse cx="400" cy="600" rx="215" ry="34" fill="#ddb394" opacity="0.35"/>
+<g transform="rotate(-4 400 400)">
+    <path d="M330 210 h140 q-15 70 0 140 q20 100 -10 180 q-10 40 -60 40 t-60 -40 q-30 -80 -10 -180 q15 -70 0 -140 Z" fill="#f9f0e8"/>
+    <path d="M338 215 q30 180 -20 350" stroke="#ddb394" stroke-width="9" fill="none" opacity="0.45"/><path d="M368 215 q30 180 -10 350" stroke="#ddb394" stroke-width="9" fill="none" opacity="0.45"/><path d="M398 215 q30 180 0 350" stroke="#ddb394" stroke-width="9" fill="none" opacity="0.45"/><path d="M428 215 q30 180 10 350" stroke="#ddb394" stroke-width="9" fill="none" opacity="0.45"/><path d="M458 215 q30 180 20 350" stroke="#ddb394" stroke-width="9" fill="none" opacity="0.45"/>
+    <ellipse cx="400" cy="210" rx="70" ry="12" fill="#c98d63" opacity="0.5"/></g>
+</svg>

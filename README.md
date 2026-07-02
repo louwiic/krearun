@@ -1,36 +1,63 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Cocon Studio — boutique d'objets imprimés en 3D
 
-## Getting Started
+E-shop complet (front + admin) au ton très doux, inspiré de cozyleigh.studio.
 
-First, run the development server:
+## Démarrer
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+node scripts/seed.mjs   # (déjà fait) catalogue de démo dans data/
+npm run dev             # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Espace admin
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- URL : http://localhost:3000/admin
+- Identifiants par défaut (à changer dans `.env`) :
+  - E-mail : `admin@cocon.studio`
+  - Mot de passe : `cocon2026`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+L'admin permet de gérer : produits (création, édition, stock, photos, coloris,
+mise en avant), commandes (statuts En attente → Payée → En préparation →
+Expédiée → Livrée), abonnés newsletter, réglages (bandeau d'annonce, frais de
+port, seuil livraison offerte, e-mail de contact, Instagram).
 
-## Learn More
+## Activer les paiements Stripe
 
-To learn more about Next.js, take a look at the following resources:
+1. Renseigner dans `.env` : `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
+2. Créer un webhook Stripe vers `/api/stripe/webhook` (événement
+   `checkout.session.completed`) et renseigner `STRIPE_WEBHOOK_SECRET`.
+   En local : `stripe listen --forward-to localhost:3000/api/stripe/webhook`
+3. Redémarrer le serveur.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Le checkout relit **toujours** les prix côté serveur (jamais ceux du client),
+la commande est créée par le webhook (idempotent) et le stock est décrémenté
+automatiquement.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Données (pas encore de BDD — choix volontaire)
 
-## Deploy on Vercel
+Toutes les données vivent dans `data/*.json` (produits, commandes, newsletter,
+réglages) derrière la couche `lib/store.ts`. Pour brancher une vraie base plus
+tard (Supabase, Postgres, SQLite…), il suffit de réécrire `lib/store.ts` — le
+reste du code n'y touche jamais directement.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- `scripts/seed.mjs` — régénère le catalogue de démo (`--force` pour écraser)
+- `scripts/gen-images.mjs` — régénère les visuels SVG de `public/products/`
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Stack
+
+Next.js 16 (App Router, Turbopack) · TypeScript · Tailwind CSS v4 · Stripe
+Checkout · Auth admin par cookie JWT signé (`jose`) via `proxy.ts`.
+
+## Arborescence
+
+```
+app/(site)/        → boutique publique (accueil, boutique, fiche, FAQ, contact…)
+app/admin/         → back-office (login + dashboard, produits, commandes…)
+app/api/           → checkout Stripe, webhook, newsletter
+components/        → site, produit, panier (drawer + contexte), admin
+lib/               → store.ts (données), auth.ts, stripe.ts, types.ts, format.ts
+data/              → « base de données » JSON
+public/products/   → visuels générés
+public/uploads/    → photos ajoutées depuis l'admin
+```
