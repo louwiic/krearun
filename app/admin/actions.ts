@@ -59,6 +59,31 @@ function parseColors(raw: string): ProductColor[] {
     .filter((c): c is ProductColor => c !== null);
 }
 
+// Convertit les photos en WebP (max 1600 px, qualité 82) avant envoi
+// vers PocketBase. Les SVG restent tels quels (déjà légers, vectoriels).
+async function toWebp(files: File[]): Promise<File[]> {
+  const sharp = (await import("sharp")).default;
+  const out: File[] = [];
+  for (const file of files) {
+    if (file.type === "image/svg+xml") {
+      out.push(file);
+      continue;
+    }
+    try {
+      const buffer = await sharp(Buffer.from(await file.arrayBuffer()))
+        .rotate() // respecte l'orientation EXIF
+        .resize({ width: 1600, height: 1600, fit: "inside", withoutEnlargement: true })
+        .webp({ quality: 82 })
+        .toBuffer();
+      const name = file.name.replace(/\.[^.]+$/, "") + ".webp";
+      out.push(new File([new Uint8Array(buffer)], name, { type: "image/webp" }));
+    } catch {
+      out.push(file); // format non géré par sharp → on envoie l'original
+    }
+  }
+  return out;
+}
+
 export async function saveProductAction(formData: FormData) {
   await requireAdmin();
 
@@ -97,9 +122,9 @@ export async function saveProductAction(formData: FormData) {
 
   const product = id ? await updateProduct(id, data) : await createProduct(data);
 
-  // Les nouvelles photos partent dans le stockage de fichiers PocketBase
+  // Les nouvelles photos sont compressées en WebP puis stockées dans PocketBase
   if (product && newFiles.length > 0) {
-    const urls = await uploadProductPhotos(product.id, newFiles);
+    const urls = await uploadProductPhotos(product.id, await toWebp(newFiles));
     await updateProduct(product.id, { images: [...existingImages, ...urls] });
   }
 
