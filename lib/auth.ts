@@ -54,3 +54,27 @@ export async function verifyAdminToken(token: string | undefined): Promise<boole
 }
 
 export const ADMIN_COOKIE = COOKIE_NAME;
+
+// Vérifie les identifiants admin boutique auprès de PocketBase
+// (collection auth "boutique_admins" — comptes gérés depuis l'interface /_/).
+export async function verifyAdminCredentials(
+  email: string,
+  password: string
+): Promise<boolean> {
+  const url = (process.env.POCKETBASE_URL ?? "").replace(/\/$/, "");
+  if (!url) return false;
+  try {
+    const res = await fetch(
+      `${url}/api/collections/boutique_admins/auth-with-password`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ identity: email, password }),
+        cache: "no-store",
+      }
+    );
+    return res.ok;
+  } catch {
+    return false;
+  }
+}

@@ -174,6 +174,32 @@ export async function deleteProduct(id: string): Promise<void> {
   await pb(`/collections/products/records/${id}`, { method: "DELETE" });
 }
 
+// Téléverse des photos dans le champ fichier "photos" du produit et
+// renvoie leurs URLs publiques PocketBase.
+export async function uploadProductPhotos(
+  productId: string,
+  files: File[]
+): Promise<string[]> {
+  if (files.length === 0) return [];
+  const form = new FormData();
+  for (const file of files) form.append("photos+", file); // "+" = ajout sans écraser
+
+  const res = await fetch(`${PB_URL}/api/collections/products/records/${productId}`, {
+    method: "PATCH",
+    headers: { Authorization: await getToken() },
+    body: form,
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    throw new Error(`PocketBase upload photos → ${res.status} ${await res.text()}`);
+  }
+  const record = (await res.json()) as { photos?: string[] };
+  const names = (record.photos ?? []).slice(-files.length);
+  return names.map(
+    (name) => `${PB_URL}/api/files/products/${productId}/${name}`
+  );
+}
+
 export async function decrementStock(items: { productId: string; quantity: number }[]) {
   for (const item of items) {
     const product = await getProductById(item.productId);

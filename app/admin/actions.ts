@@ -1,14 +1,12 @@
 "use server";
 
-import { promises as fs } from "node:fs";
-import path from "node:path";
-import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
   createAdminSession,
   destroyAdminSession,
   isAdmin,
+  verifyAdminCredentials,
 } from "@/lib/auth";
 import {
   createProduct,
@@ -17,6 +15,7 @@ import {
   saveSettings,
   updateOrderStatus,
   updateProduct,
+  uploadProductPhotos,
 } from "@/lib/store";
 import { slugify } from "@/lib/format";
 import type { Category, OrderStatus, ProductColor } from "@/lib/types";
@@ -30,10 +29,7 @@ export async function loginAction(
   const email = String(formData.get("email") ?? "");
   const password = String(formData.get("password") ?? "");
 
-  if (
-    email !== process.env.ADMIN_EMAIL ||
-    password !== process.env.ADMIN_PASSWORD
-  ) {
+  if (!(await verifyAdminCredentials(email, password))) {
     return { error: "Identifiants incorrects." };
   }
 
@@ -63,29 +59,6 @@ function parseColors(raw: string): ProductColor[] {
     .filter((c): c is ProductColor => c !== null);
 }
 
-async function saveUploadedImages(formData: FormData): Promise<string[]> {
-  const files = formData
-    .getAll("nouvelles_images")
-    .filter((f): f is File => f instanceof File && f.size > 0);
-  const urls: string[] = [];
-  if (files.length === 0) return urls;
-
-  const uploadDir = path.join(process.cwd(), "public", "uploads");
-  await fs.mkdir(uploadDir, { recursive: true });
-
-  for (const file of files) {
-    const ext = path.extname(file.name).toLowerCase() || ".jpg";
-    if (![".jpg", ".jpeg", ".png", ".webp", ".svg", ".avif"].includes(ext)) continue;
-    const filename = `${randomUUID()}${ext}`;
-    await fs.writeFile(
-      path.join(uploadDir, filename),
-      Buffer.from(await file.arrayBuffer())
-    );
-    urls.push(`/uploads/${filename}`);
-  }
-  return urls;
-}
-
 export async function saveProductAction(formData: FormData) {
   await requireAdmin();
 
@@ -97,7 +70,9 @@ export async function saveProductAction(formData: FormData) {
     .split("\n")
     .map((s) => s.trim())
     .filter(Boolean);
-  const uploaded = await saveUploadedImages(formData);
+  const newFiles = formData
+    .getAll("nouvelles_images")
+    .filter((f): f is File => f instanceof File && f.size > 0);
 
   const compareAtRaw = String(formData.get("compareAt") ?? "").replace(",", ".");
   const priceRaw = String(formData.get("price") ?? "0").replace(",", ".");
@@ -112,7 +87,7 @@ export async function saveProductAction(formData: FormData) {
       ? Math.round(parseFloat(compareAtRaw) * 100)
       : null,
     category: String(formData.get("category") ?? "deco") as Category,
-    images: [...existingImages, ...uploaded],
+    images: existingImages,
     colors: parseColors(String(formData.get("colors") ?? "")),
     stock: Math.max(0, parseInt(String(formData.get("stock") ?? "0"), 10) || 0),
     featured: formData.get("featured") === "on",
@@ -120,10 +95,12 @@ export async function saveProductAction(formData: FormData) {
     isNew: formData.get("isNew") === "on",
   };
 
-  if (id) {
-    await updateProduct(id, data);
-  } else {
-    await createProduct(data);
+  const product = id ? await updateProduct(id, data) : await createProduct(data);
+
+  // Les nouvelles photos partent dans le stockage de fichiers PocketBase
+  if (product && newFiles.length > 0) {
+    const urls = await uploadProductPhotos(product.id, newFiles);
+    await updateProduct(product.id, { images: [...existingImages, ...urls] });
   }
 
   revalidatePath("/", "layout");

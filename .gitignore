@@ -40,6 +40,3 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# Données locales runtime
-/public/uploads/*
-!/public/uploads/.gitkeep
