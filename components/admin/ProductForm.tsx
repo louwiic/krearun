@@ -108,16 +108,16 @@ export default function ProductForm({ product }: { product?: Product }) {
               placeholder={"/products/mon-objet.svg\n/uploads/photo.jpg"}
             />
           </label>
-          <label>
-            <span className={label}>Ajouter des photos</span>
+          <div>
+            <span className={label}>Ajouter des photos (converties en WebP automatiquement)</span>
             <input
               name="nouvelles_images"
               type="file"
               multiple
               accept="image/*"
-              className="block w-full text-sm text-ink-soft file:mr-4 file:rounded-full file:border-0 file:bg-sage/25 file:px-5 file:py-2.5 file:text-xs file:font-bold file:text-sage-deep hover:file:bg-sage/40"
+              className="block w-full cursor-pointer text-sm text-ink-soft file:mr-4 file:cursor-pointer file:rounded-full file:border-0 file:bg-sage/25 file:px-5 file:py-2.5 file:text-xs file:font-bold file:text-sage-deep hover:file:bg-sage/40"
             />
-          </label>
+          </div>
           <label>
             <span className={label}>Coloris — format « Nom:#hex » séparés par des virgules</span>
             <input
