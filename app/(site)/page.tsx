@@ -23,10 +23,21 @@ const avis = [
   },
 ];
 
+const CATEGORY_ART: Record<string, string> = {
+  veilleuses: "/products/veilleuse-lune.svg",
+  vases: "/products/vase-ondule.svg",
+  bureau: "/products/organiseur-dune.svg",
+  rangement: "/products/boite-coquillage.svg",
+  "salle-de-bain": "/products/vide-poche-galet.svg",
+  deco: "/products/dessous-verre-ondes.svg",
+};
+
 export default async function HomePage() {
   const products = await getProducts();
   const featured = products.filter((p) => p.featured).slice(0, 4);
   const nouveautes = products.filter((p) => p.isNew).slice(0, 3);
+  const heroMain = featured[0] ?? products[0];
+  const heroSecond = featured.find((p) => p.id !== heroMain?.id) ?? products[1];
 
   return (
     <>
@@ -74,24 +85,34 @@ export default async function HomePage() {
           </div>
 
           <div className="reveal reveal-2 relative">
-            <div className="animate-float overflow-hidden rounded-[3rem] shadow-lifted">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/products/veilleuse-lune.svg"
-                alt="Veilleuse Lune imprimée en 3D"
-                className="aspect-square w-full object-cover"
-              />
-            </div>
-            <div className="animate-drift absolute -bottom-8 -left-8 hidden w-40 overflow-hidden rounded-[2rem] border-4 border-linen shadow-lifted sm:block">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/products/cache-pot-visage.svg"
-                alt="Cache-pot Visage Endormi"
-                className="aspect-square w-full object-cover"
-              />
-            </div>
+            {heroMain && (
+              <Link
+                href={`/boutique/${heroMain.slug}`}
+                className="block animate-float overflow-hidden rounded-[3rem] shadow-lifted"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={heroMain.images[0]}
+                  alt={heroMain.name}
+                  className="aspect-square w-full object-cover"
+                />
+              </Link>
+            )}
+            {heroSecond && (
+              <Link
+                href={`/boutique/${heroSecond.slug}`}
+                className="animate-drift absolute -bottom-8 -left-8 hidden w-40 overflow-hidden rounded-[2rem] border-4 border-linen shadow-lifted sm:block"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={heroSecond.images[0]}
+                  alt={heroSecond.name}
+                  className="aspect-square w-full object-cover"
+                />
+              </Link>
+            )}
             <p className="absolute -right-2 top-6 hidden rotate-6 rounded-2xl bg-cream px-4 py-2 font-display text-sm italic text-ink-soft shadow-soft md:block">
-              imprimée pour vous ✿
+              imprimé pour vous ✿
             </p>
           </div>
         </div>
@@ -148,14 +169,23 @@ export default async function HomePage() {
         <h2 className="mb-8 font-display text-2xl font-semibold">
           Par petits univers
         </h2>
-        <div className="flex flex-wrap gap-3">
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
           {CATEGORIES.map((c) => (
             <Link
               key={c.value}
               href={`/boutique?categorie=${c.value}`}
-              className="rounded-full border border-sand bg-cream px-6 py-3 text-sm font-bold text-ink-soft transition-all hover:border-terra hover:text-terra hover:shadow-soft"
+              className="group overflow-hidden rounded-blob bg-cream text-center shadow-soft transition-shadow hover:shadow-lifted"
             >
-              {c.label}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={CATEGORY_ART[c.value]}
+                alt=""
+                aria-hidden
+                className="aspect-square w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+              <p className="px-2 py-3.5 text-sm font-bold text-ink-soft group-hover:text-terra">
+                {c.label}
+              </p>
             </Link>
           ))}
         </div>
