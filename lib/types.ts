@@ -1,10 +1,17 @@
-export type Category = "veilleuses" | "vases" | "bureau" | "rangement" | "deco";
+export type Category =
+  | "veilleuses"
+  | "vases"
+  | "bureau"
+  | "rangement"
+  | "salle-de-bain"
+  | "deco";
 
 export const CATEGORIES: { value: Category; label: string }[] = [
   { value: "veilleuses", label: "Veilleuses & Lampes" },
   { value: "vases", label: "Vases" },
   { value: "bureau", label: "Bureau" },
   { value: "rangement", label: "Rangement" },
+  { value: "salle-de-bain", label: "Salle de bain" },
   { value: "deco", label: "Décoration" },
 ];
 

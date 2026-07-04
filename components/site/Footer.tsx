@@ -32,6 +32,7 @@ export default function Footer({
               <li><Link className="hover:text-terra" href="/boutique?categorie=veilleuses">Veilleuses & lampes</Link></li>
               <li><Link className="hover:text-terra" href="/boutique?categorie=vases">Vases</Link></li>
               <li><Link className="hover:text-terra" href="/boutique?categorie=bureau">Bureau</Link></li>
+              <li><Link className="hover:text-terra" href="/boutique?categorie=salle-de-bain">Salle de bain</Link></li>
               <li><Link className="hover:text-terra" href="/boutique?categorie=deco">Décoration</Link></li>
             </ul>
           </div>
