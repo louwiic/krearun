@@ -14,13 +14,25 @@ const nunito = Nunito_Sans({
   subsets: ["latin"],
 });
 
+const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/$/, "");
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: {
     default: "Cocon Studio — Objets imprimés en 3D, tout en douceur",
     template: "%s · Cocon Studio",
   },
   description:
     "Veilleuses, vases et petits objets du quotidien imprimés en 3D dans notre atelier familial. Des pièces douces, fabriquées lentement, à la commande.",
+  openGraph: {
+    type: "website",
+    siteName: "Cocon Studio",
+    locale: "fr_FR",
+    images: [{ url: "/og.png", width: 1200, height: 630, alt: "Cocon Studio" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+  },
 };
 
 export default function RootLayout({

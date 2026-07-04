@@ -18,7 +18,16 @@ export async function generateMetadata({
   const { slug } = await params;
   const product = await getProductBySlug(slug);
   if (!product) return { title: "Objet introuvable" };
-  return { title: product.name, description: product.tagline };
+  return {
+    title: product.name,
+    description: product.tagline || product.description.slice(0, 155),
+    alternates: { canonical: `/boutique/${product.slug}` },
+    openGraph: {
+      title: product.name,
+      description: product.tagline,
+      images: product.images[0] ? [{ url: product.images[0] }] : undefined,
+    },
+  };
 }
 
 export default async function ProductPage({
@@ -37,8 +46,36 @@ export default async function ProductPage({
   const categoryLabel =
     CATEGORIES.find((c) => c.value === product.category)?.label ?? product.category;
 
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/$/, "");
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    description: product.tagline || product.description.slice(0, 200),
+    image: product.images.map((img) =>
+      img.startsWith("http") ? img : `${siteUrl}${img}`
+    ),
+    url: `${siteUrl}/boutique/${product.slug}`,
+    category: categoryLabel,
+    brand: { "@type": "Brand", name: "Cocon Studio" },
+    offers: {
+      "@type": "Offer",
+      price: (product.priceCents / 100).toFixed(2),
+      priceCurrency: "EUR",
+      availability:
+        product.stock > 0
+          ? "https://schema.org/InStock"
+          : "https://schema.org/OutOfStock",
+      url: `${siteUrl}/boutique/${product.slug}`,
+    },
+  };
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <nav className="mb-8 text-sm text-ink-faint">
         <Link href="/boutique" className="hover:text-terra">
           Boutique
