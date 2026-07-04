@@ -57,7 +57,7 @@ export default async function ProductPage({
     ),
     url: `${siteUrl}/boutique/${product.slug}`,
     category: categoryLabel,
-    brand: { "@type": "Brand", name: "Cocon Studio" },
+    brand: { "@type": "Brand", name: "Krearun Studio" },
     offers: {
       "@type": "Offer",
       price: (product.priceCents / 100).toFixed(2),

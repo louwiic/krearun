@@ -23,7 +23,7 @@ export default async function AdminLayout({
     <div className="flex min-h-screen bg-linen">
       <aside className="fixed inset-y-0 left-0 hidden w-60 flex-col border-r border-sand/70 bg-cream px-5 py-8 md:flex">
         <Link href="/admin" className="font-display text-xl font-semibold">
-          Cocon<span className="text-terra">·</span>Admin
+          Krearun<span className="text-terra">·</span>Admin
         </Link>
 
         <nav className="mt-10 flex flex-1 flex-col gap-1.5">

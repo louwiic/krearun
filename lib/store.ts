@@ -354,8 +354,8 @@ const DEFAULT_SETTINGS: Settings = {
   announcement: "",
   shipping_flat_cents: 590,
   free_shipping_threshold_cents: 6000,
-  store_name: "Cocon Studio",
-  contact_email: "bonjour@cocon.studio",
+  store_name: "Krearun Studio",
+  contact_email: "bonjour@krearun.studio",
   instagram: "",
 };
 

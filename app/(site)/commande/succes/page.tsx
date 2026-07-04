@@ -26,7 +26,7 @@ export default async function SuccesPage({
         Merci, du fond du cœur
       </h1>
       <p className="mx-auto mt-4 max-w-md leading-relaxed text-ink-soft">
-        Votre commande est bien arrivée dans notre cocon.
+        Votre commande est bien arrivée dans notre atelier.
         {order && (
           <>
             {" "}

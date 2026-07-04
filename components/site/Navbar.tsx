@@ -25,7 +25,7 @@ export default function Navbar() {
           href="/"
           className="font-display text-2xl font-semibold tracking-tight text-ink"
         >
-          Cocon<span className="text-terra">·</span>Studio
+          Krearun<span className="text-terra">·</span>Studio
         </Link>
 
         <ul className="hidden items-center gap-7 md:flex">

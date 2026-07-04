@@ -14,7 +14,7 @@ function LoginForm() {
       className="w-full max-w-sm rounded-blob bg-cream p-10 shadow-lifted"
     >
       <p className="font-display text-2xl font-semibold">
-        Cocon<span className="text-terra">·</span>Studio
+        Krearun<span className="text-terra">·</span>Studio
       </p>
       <p className="mb-8 mt-1 text-sm text-ink-soft">
         Espace administration
@@ -63,7 +63,7 @@ function LoginForm() {
         disabled={pending}
         className="w-full rounded-full bg-ink py-3.5 text-sm font-bold text-cream transition-colors hover:bg-terra disabled:opacity-60"
       >
-        {pending ? "Connexion…" : "Entrer dans le cocon"}
+        {pending ? "Connexion…" : "Entrer dans le studio"}
       </button>
     </form>
   );

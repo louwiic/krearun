@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Notre atelier",
   description:
-    "L'histoire de Cocon Studio : un petit atelier familial d'impression 3D, des objets doux fabriqués lentement et à la commande.",
+    "L'histoire de Krearun Studio : un petit atelier familial d'impression 3D, des objets doux fabriqués lentement et à la commande.",
 };
 
 export default function AProposPage() {
@@ -14,7 +14,7 @@ export default function AProposPage() {
         Notre histoire
       </p>
       <h1 className="font-display text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">
-        Un cocon, deux imprimantes,
+        Un petit studio, deux imprimantes,
         <br />
         et l'envie de faire doucement.
       </h1>
@@ -23,12 +23,12 @@ export default function AProposPage() {
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/products/atelier.svg"
-          alt="L'atelier Cocon Studio"
+          alt="L'atelier Krearun Studio"
           className="aspect-video w-full object-cover"
         />
       </div>
 
-      <div className="prose-cocon mt-12 space-y-6 leading-relaxed text-ink-soft">
+      <div className="prose-krearun mt-12 space-y-6 leading-relaxed text-ink-soft">
         <p>
           Tout a commencé un dimanche pluvieux, avec une première bobine de
           filament crème et l'envie de fabriquer une veilleuse pour la chambre
@@ -52,12 +52,12 @@ export default function AProposPage() {
           signature, celle des objets qui prennent leur temps.
         </p>
         <p>
-          Merci d'être là. En choisissant Cocon Studio, vous soutenez une
+          Merci d'être là. En choisissant Krearun Studio, vous soutenez une
           petite fabrication locale et lente — et ça, ça nous touche
           énormément.
         </p>
         <p className="font-display text-xl italic text-ink">
-          — La petite famille de Cocon Studio ✿
+          — La petite famille de Krearun Studio ✿
         </p>
       </div>
 

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { formatPrice } from "@/lib/format";
 
-const STORAGE_KEY = "cocon-calc-params-v1";
+const STORAGE_KEY = "krearun-calc-params-v1";
 
 const field =
   "w-full rounded-2xl border border-sand bg-linen px-4 py-3 text-sm outline-none focus:border-terra";

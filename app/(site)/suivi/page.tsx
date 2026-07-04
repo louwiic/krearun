@@ -14,7 +14,7 @@ const field =
   "w-full rounded-full border border-sand bg-cream px-5 py-3.5 text-sm outline-none transition-colors placeholder:text-ink-faint focus:border-terra";
 
 const STEPS: { status: OrderStatus; label: string; icon: string; text: string }[] = [
-  { status: "paid", label: "Commande reçue", icon: "✿", text: "Votre commande est bien arrivée dans notre cocon." },
+  { status: "paid", label: "Commande reçue", icon: "✿", text: "Votre commande est bien arrivée dans notre atelier." },
   { status: "preparing", label: "En fabrication", icon: "🖨️", text: "L'imprimante ronronne : votre pièce naît couche par couche." },
   { status: "shipped", label: "En route", icon: "📦", text: "Emballée avec soin, votre commande voyage vers vous." },
   { status: "delivered", label: "Livrée", icon: "🏡", text: "Bienvenue à la maison ! On espère qu'elle vous plaît." },

@@ -7,19 +7,19 @@ export const dynamic = "force-dynamic";
 
 const avis = [
   {
-    text: "La veilleuse lune de ma fille est devenue son doudou lumineux. La matière est incroyablement douce, on sent le fait-main.",
+    text: "La lampe plissée trône sur mon buffet et tout le monde me demande d'où elle vient. La lumière du soir est d'une douceur incroyable.",
     author: "Camille R.",
-    product: "Veilleuse Lune",
+    product: "Lampe Plissée Trépied",
   },
   {
     text: "Emballage adorable, petit mot manuscrit, et le vase est encore plus beau qu'en photo. On sent l'amour du détail.",
     author: "Mathieu L.",
-    product: "Vase Ondulé",
+    product: "Vase Pétale",
   },
   {
-    text: "Mon bureau respire enfin. L'organiseur Dune est à la fois beau et malin, et les couleurs sont d'une douceur rare.",
+    text: "Le set Rivage a transformé notre salle de bain : tout est rangé, et les stries cachent vraiment les traces d'eau. Malin et beau.",
     author: "Inès B.",
-    product: "Organiseur Dune",
+    product: "Set Salle de Bain Rivage",
   },
 ];
 
@@ -227,7 +227,7 @@ export default async function HomePage() {
                 <br className="hidden sm:block" /> et beaucoup de patience.
               </h2>
               <p className="mt-5 max-w-lg leading-relaxed text-ink-soft">
-                Cocon Studio est né dans un coin de salon, entre une bobine de
+                Krearun Studio est né dans un coin de salon, entre une bobine de
                 filament crème et une tasse de thé. Chaque objet est dessiné,
                 imprimé, poncé puis emballé à la main. On fabrique lentement, en
                 petites quantités — parce que les jolies choses prennent le
@@ -244,7 +244,7 @@ export default async function HomePage() {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/products/atelier.svg"
-                alt="L'atelier Cocon Studio"
+                alt="L'atelier Krearun Studio"
                 className="aspect-square w-full object-cover"
               />
             </div>

@@ -15,7 +15,7 @@ export default function NotFound() {
         href="/"
         className="mt-8 rounded-full bg-terra px-8 py-4 text-sm font-bold text-cream transition-colors hover:bg-terra-deep"
       >
-        Revenir au cocon
+        Revenir à l'accueil
       </Link>
     </div>
   );

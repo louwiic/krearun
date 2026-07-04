@@ -19,16 +19,16 @@ const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").re
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Cocon Studio — Objets imprimés en 3D, tout en douceur",
-    template: "%s · Cocon Studio",
+    default: "Krearun Studio — Objets imprimés en 3D, tout en douceur",
+    template: "%s · Krearun Studio",
   },
   description:
     "Veilleuses, vases et petits objets du quotidien imprimés en 3D dans notre atelier familial. Des pièces douces, fabriquées lentement, à la commande.",
   openGraph: {
     type: "website",
-    siteName: "Cocon Studio",
+    siteName: "Krearun Studio",
     locale: "fr_FR",
-    images: [{ url: "/og.png", width: 1200, height: 630, alt: "Cocon Studio" }],
+    images: [{ url: "/og.png", width: 1200, height: 630, alt: "Krearun Studio" }],
   },
   twitter: {
     card: "summary_large_image",

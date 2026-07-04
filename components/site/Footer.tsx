@@ -64,7 +64,7 @@ export default function Footer({
 
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-sand/60 pt-6 text-xs text-ink-faint sm:flex-row">
           <p>
-            © {new Date().getFullYear()} Cocon Studio — objets imprimés en 3D avec
+            © {new Date().getFullYear()} Krearun Studio — objets imprimés en 3D avec
             amour, lentement.
           </p>
           <div className="flex gap-5">

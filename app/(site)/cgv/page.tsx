@@ -5,11 +5,11 @@ export const metadata: Metadata = { title: "Conditions générales de vente" };
 const sections = [
   {
     t: "1. Objet",
-    c: "Les présentes conditions régissent les ventes conclues sur la boutique en ligne Cocon Studio, spécialisée dans la vente d'objets de décoration et d'accessoires fabriqués par impression 3D.",
+    c: "Les présentes conditions régissent les ventes conclues sur la boutique en ligne Krearun Studio, spécialisée dans la vente d'objets de décoration et d'accessoires fabriqués par impression 3D.",
   },
   {
     t: "2. Prix",
-    c: "Les prix sont indiqués en euros, toutes taxes comprises. Les frais de livraison sont précisés avant la validation de la commande. Cocon Studio se réserve le droit de modifier ses prix à tout moment ; les produits sont facturés au tarif en vigueur au moment de la commande.",
+    c: "Les prix sont indiqués en euros, toutes taxes comprises. Les frais de livraison sont précisés avant la validation de la commande. Krearun Studio se réserve le droit de modifier ses prix à tout moment ; les produits sont facturés au tarif en vigueur au moment de la commande.",
   },
   {
     t: "3. Commande et fabrication",
@@ -17,7 +17,7 @@ const sections = [
   },
   {
     t: "4. Paiement",
-    c: "Le paiement s'effectue en ligne par carte bancaire via Stripe, plateforme de paiement sécurisée. Aucune donnée bancaire n'est conservée par Cocon Studio.",
+    c: "Le paiement s'effectue en ligne par carte bancaire via Stripe, plateforme de paiement sécurisée. Aucune donnée bancaire n'est conservée par Krearun Studio.",
   },
   {
     t: "5. Livraison",

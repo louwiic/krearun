@@ -4,7 +4,7 @@
 import type { Order } from "./types";
 import { formatPrice } from "./format";
 
-const FROM = process.env.EMAIL_FROM || "Cocon Studio <onboarding@resend.dev>";
+const FROM = process.env.EMAIL_FROM || "Krearun Studio <onboarding@resend.dev>";
 
 async function sendEmail(to: string, subject: string, html: string) {
   const key = process.env.RESEND_API_KEY;
@@ -35,13 +35,13 @@ function layout(content: string): string {
 <tr><td align="center">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#fdfaf4;border-radius:24px;overflow:hidden;">
 <tr><td style="padding:28px 40px;border-bottom:1px solid #e8dcc9;">
-  <span style="font-size:22px;font-weight:bold;">Cocon<span style="color:#c07a50;">·</span>Studio</span>
+  <span style="font-size:22px;font-weight:bold;">Krearun<span style="color:#c07a50;">·</span>Studio</span>
 </td></tr>
 <tr><td style="padding:36px 40px;font-size:15px;line-height:1.7;">
 ${content}
 </td></tr>
 <tr><td style="padding:24px 40px;border-top:1px solid #e8dcc9;font-size:12px;color:#b3a695;">
-  Cocon Studio — objets imprimés en 3D avec amour, lentement. ✿<br/>
+  Krearun Studio — objets imprimés en 3D avec amour, lentement. ✿<br/>
   Une question ? Répondez simplement à cet e-mail.
 </td></tr>
 </table>
@@ -85,7 +85,7 @@ export async function sendOrderConfirmation(order: Order) {
     `✿ Commande #${order.number} bien reçue — merci !`,
     layout(`
 <h1 style="font-size:24px;margin:0 0 16px;">Merci ${prenom}, du fond du cœur.</h1>
-<p>Votre commande <strong>#${order.number}</strong> est arrivée dans notre cocon.
+<p>Votre commande <strong>#${order.number}</strong> est arrivée dans notre atelier.
 L'imprimante va bientôt se mettre à ronronner : chaque pièce est fabriquée
 rien que pour vous, couche par couche (comptez 2 à 4 jours), puis expédiée
 en colis suivi.</p>
@@ -129,7 +129,7 @@ On espère que vos nouveaux compagnons trouvent déjà leur place.</p>
 <p>Un petit mot, une photo de l'objet installé chez ${prenom === "vous" ? "vous" : prenom},
 ou quelque chose qui n'allait pas ? Répondez à cet e-mail, on lit tout,
 et on répond toujours.</p>
-<p>À bientôt dans le cocon ✿</p>`)
+<p>À bientôt au studio ✿</p>`)
   );
 }
 

@@ -1,4 +1,4 @@
-# Cocon Studio — boutique d'objets imprimés en 3D
+# Krearun Studio — boutique d'objets imprimés en 3D
 
 E-shop complet (front + admin) au ton très doux, inspiré de cozyleigh.studio.
 
@@ -13,9 +13,9 @@ npm run dev             # http://localhost:3000
 ## Espace admin
 
 - URL : http://localhost:3000/admin
-- Identifiants par défaut (à changer dans `.env`) :
-  - E-mail : `admin@cocon.studio`
-  - Mot de passe : `cocon2026`
+- Comptes gérés dans PocketBase (collection auth `boutique_admins`) —
+  création/reset via `node scripts/setup-admin-collection.mjs <email> <mdp>`
+  ou depuis l'interface PocketBase `/_/`.
 
 L'admin permet de gérer : produits (création, édition, stock, photos, coloris,
 mise en avant), commandes (statuts En attente → Payée → En préparation →
@@ -43,7 +43,7 @@ d'expédition avec n° de suivi (statut → Expédiée), petit mot de livraison
 
 ⚠️ Tant qu'aucun domaine n'est vérifié sur resend.com/domains, Resend
 n'envoie que vers l'adresse du compte. Après vérification, mettre
-`EMAIL_FROM="Cocon Studio <bonjour@votredomaine.fr>"`.
+`EMAIL_FROM="Krearun Studio <bonjour@votredomaine.fr>"`.
 
 ## Données : PocketBase
 

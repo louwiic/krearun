@@ -12,11 +12,11 @@ export default function MentionsLegalesPage() {
         <section>
           <h2 className="font-display text-xl font-semibold text-ink">Éditeur du site</h2>
           <p className="mt-2">
-            Cocon Studio — [Raison sociale à compléter]
+            Krearun Studio — [Raison sociale à compléter]
             <br />
             [Adresse à compléter]
             <br />
-            SIRET : [à compléter] · E-mail : bonjour@cocon.studio
+            SIRET : [à compléter] · E-mail : bonjour@krearun.studio
           </p>
         </section>
         <section>
@@ -30,7 +30,7 @@ export default function MentionsLegalesPage() {
             uniquement au traitement des commandes et, avec votre accord, à
             l'envoi de notre lettre d'information. Conformément au RGPD, vous
             disposez d'un droit d'accès, de rectification et de suppression de
-            vos données : écrivez-nous à bonjour@cocon.studio.
+            vos données : écrivez-nous à bonjour@krearun.studio.
           </p>
         </section>
         <section>
@@ -45,7 +45,7 @@ export default function MentionsLegalesPage() {
           <h2 className="font-display text-xl font-semibold text-ink">Propriété intellectuelle</h2>
           <p className="mt-2">
             Les créations, visuels, textes et modèles 3D présentés sur ce site
-            sont la propriété exclusive de Cocon Studio. Toute reproduction est
+            sont la propriété exclusive de Krearun Studio. Toute reproduction est
             interdite sans autorisation écrite.
           </p>
         </section>

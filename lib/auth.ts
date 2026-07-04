@@ -1,11 +1,11 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 
-const COOKIE_NAME = "cocon_admin";
+const COOKIE_NAME = "krearun_admin";
 
 function secret() {
   return new TextEncoder().encode(
-    process.env.AUTH_SECRET || "cocon-studio-dev-secret"
+    process.env.AUTH_SECRET || "krearun-studio-dev-secret"
   );
 }
 

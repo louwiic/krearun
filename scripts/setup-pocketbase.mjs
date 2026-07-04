@@ -1,4 +1,4 @@
-// Provisionne PocketBase pour Cocon Studio :
+// Provisionne PocketBase pour Krearun Studio :
 // crée les collections (idempotent) puis importe les données de data/*.json.
 // Usage : node scripts/setup-pocketbase.mjs
 import { readFileSync } from "node:fs";
@@ -223,4 +223,4 @@ for (const s of readData("newsletter.json")) {
   console.log(res.ok ? `✓ Abonné ${s.email}` : `• Abonné ${s.email} (déjà présent)`);
 }
 
-console.log("\n✓ PocketBase prêt pour Cocon Studio");
+console.log("\n✓ PocketBase prêt pour Krearun Studio");
