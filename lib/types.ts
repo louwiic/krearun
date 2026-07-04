@@ -81,6 +81,7 @@ export interface Order {
   totalCents: number;
   status: OrderStatus;
   stripeSessionId?: string | null;
+  trackingNumber: string;
   note: string;
   items: OrderItem[];
   createdAt: string;

@@ -107,12 +107,27 @@ export default async function CommandeDetailPage({
                   </option>
                 ))}
               </select>
+              <div>
+                <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-ink-soft">
+                  N° de suivi colis
+                </label>
+                <input
+                  name="trackingNumber"
+                  defaultValue={order.trackingNumber}
+                  placeholder="ex. 6A12345678901"
+                  className="w-full rounded-2xl border border-sand bg-linen px-4 py-3 text-sm outline-none focus:border-terra"
+                />
+              </div>
               <button
                 type="submit"
                 className="w-full rounded-full bg-ink py-3 text-sm font-bold text-cream transition-colors hover:bg-terra"
               >
                 Mettre à jour
               </button>
+              <p className="text-[11px] leading-relaxed text-ink-faint">
+                Passer en « Expédiée » envoie automatiquement l'e-mail avec le
+                n° de suivi au client. « Livrée » envoie le petit mot de fin.
+              </p>
             </form>
           </section>
 

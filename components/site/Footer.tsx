@@ -44,6 +44,7 @@ export default function Footer({
             <ul className="space-y-2.5 text-sm text-ink-soft">
               <li><Link className="hover:text-terra" href="/a-propos">Notre histoire</Link></li>
               <li><Link className="hover:text-terra" href="/faq">FAQ & livraison</Link></li>
+              <li><Link className="hover:text-terra" href="/suivi">Suivre ma commande</Link></li>
               <li><Link className="hover:text-terra" href="/contact">Nous écrire</Link></li>
               {instagram && (
                 <li>

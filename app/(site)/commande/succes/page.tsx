@@ -47,12 +47,22 @@ export default async function SuccesPage({
         </ol>
       </div>
 
-      <Link
-        href="/boutique"
-        className="mt-10 inline-block rounded-full bg-terra px-8 py-4 text-sm font-bold text-cream transition-colors hover:bg-terra-deep"
-      >
-        Retourner flâner en boutique
-      </Link>
+      <div className="mt-10 flex flex-wrap justify-center gap-4">
+        {order && (
+          <Link
+            href={`/suivi?commande=${order.number}&email=${encodeURIComponent(order.email)}`}
+            className="rounded-full bg-terra px-8 py-4 text-sm font-bold text-cream transition-colors hover:bg-terra-deep"
+          >
+            Suivre ma commande
+          </Link>
+        )}
+        <Link
+          href="/boutique"
+          className="rounded-full border border-sand bg-cream px-8 py-4 text-sm font-bold transition-colors hover:border-terra hover:text-terra"
+        >
+          Retourner flâner en boutique
+        </Link>
+      </div>
     </div>
   );
 }

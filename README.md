@@ -34,6 +34,17 @@ Le checkout relit **toujours** les prix côté serveur (jamais ceux du client),
 la commande est créée par le webhook (idempotent) et le stock est décrémenté
 automatiquement.
 
+## E-mails transactionnels (Resend)
+
+`RESEND_API_KEY` et `EMAIL_FROM` dans `.env`. Envois automatiques :
+confirmation de commande + notification admin (webhook Stripe), e-mail
+d'expédition avec n° de suivi (statut → Expédiée), petit mot de livraison
+(statut → Livrée). Suivi client public sur `/suivi`.
+
+⚠️ Tant qu'aucun domaine n'est vérifié sur resend.com/domains, Resend
+n'envoie que vers l'adresse du compte. Après vérification, mettre
+`EMAIL_FROM="Cocon Studio <bonjour@votredomaine.fr>"`.
+
 ## Données : PocketBase
 
 Les données (produits, commandes, newsletter, réglages) vivent dans

@@ -11,12 +11,14 @@ import {
 import {
   createProduct,
   deleteProduct,
+  getOrderById,
   getProductById,
   saveSettings,
   updateOrderStatus,
   updateProduct,
   uploadProductPhotos,
 } from "@/lib/store";
+import { sendOrderDelivered, sendOrderShipped } from "@/lib/email";
 import { slugify } from "@/lib/format";
 import type { Category, OrderStatus, ProductColor } from "@/lib/types";
 
@@ -148,7 +150,21 @@ export async function updateOrderStatusAction(formData: FormData) {
   await requireAdmin();
   const id = String(formData.get("id") ?? "");
   const status = String(formData.get("status") ?? "") as OrderStatus;
-  await updateOrderStatus(id, status);
+  const trackingNumber = String(formData.get("trackingNumber") ?? "").trim();
+
+  const previous = await getOrderById(id);
+  const order = await updateOrderStatus(id, status, { trackingNumber });
+
+  // E-mail automatique au client quand le colis part ou arrive
+  if (order && previous && previous.status !== status) {
+    try {
+      if (status === "shipped") await sendOrderShipped(order);
+      if (status === "delivered") await sendOrderDelivered(order);
+    } catch (e) {
+      console.error("E-mail de statut :", e);
+    }
+  }
+
   revalidatePath("/admin/commandes");
   redirect(`/admin/commandes/${id}`);
 }

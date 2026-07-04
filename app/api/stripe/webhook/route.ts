@@ -6,7 +6,9 @@ import {
   decrementStock,
   getOrderByStripeSession,
   getProductById,
+  getSettings,
 } from "@/lib/store";
+import { sendAdminNewOrder, sendOrderConfirmation } from "@/lib/email";
 import type { OrderItem } from "@/lib/types";
 
 export async function POST(req: Request) {
@@ -61,7 +63,7 @@ export async function POST(req: Request) {
         .shipping_details;
     const address = details?.address;
 
-    await createOrder({
+    const order = await createOrder({
       email: session.customer_details?.email ?? "",
       name: details?.name ?? session.customer_details?.name ?? "",
       phone: session.customer_details?.phone ?? "",
@@ -75,6 +77,7 @@ export async function POST(req: Request) {
       totalCents: session.amount_total ?? 0,
       status: "paid",
       stripeSessionId: session.id,
+      trackingNumber: "",
       note: "",
       items,
     });
@@ -82,6 +85,16 @@ export async function POST(req: Request) {
     await decrementStock(
       parsed.map((it) => ({ productId: it.p, quantity: it.q }))
     );
+
+    // E-mails non bloquants : un échec d'envoi ne doit pas faire
+    // rejouer le webhook (la commande est déjà enregistrée)
+    try {
+      const settings = await getSettings();
+      await sendOrderConfirmation(order);
+      await sendAdminNewOrder(order, settings.contact_email);
+    } catch (e) {
+      console.error("E-mails de commande :", e);
+    }
   }
 
   return NextResponse.json({ received: true });

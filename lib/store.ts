@@ -229,6 +229,7 @@ interface PbOrder {
   totalCents: number;
   status: OrderStatus;
   stripeSessionId: string;
+  trackingNumber: string;
   note: string;
   items: Order["items"] | null;
   created: string;
@@ -252,6 +253,7 @@ function mapOrder(r: PbOrder): Order {
     totalCents: r.totalCents ?? 0,
     status: r.status ?? "pending",
     stripeSessionId: r.stripeSessionId || null,
+    trackingNumber: r.trackingNumber ?? "",
     note: r.note ?? "",
     items: r.items ?? [],
     createdAt: toIso(r.created),
@@ -299,17 +301,30 @@ export async function createOrder(
 
 export async function updateOrderStatus(
   id: string,
-  status: OrderStatus
+  status: OrderStatus,
+  extra?: { trackingNumber?: string }
 ): Promise<Order | null> {
   try {
     const record = await pb<PbOrder>(`/collections/orders/records/${id}`, {
       method: "PATCH",
-      body: { status },
+      body: { status, ...extra },
     });
     return mapOrder(record);
   } catch {
     return null;
   }
+}
+
+export async function getOrderByNumberAndEmail(
+  number: number,
+  email: string
+): Promise<Order | null> {
+  const res = await pb<ListResult<PbOrder>>(
+    `/collections/orders/records?perPage=1&filter=${encodeURIComponent(
+      `number=${number} && email='${escapeFilter(email.toLowerCase())}'`
+    )}`
+  );
+  return res.items[0] ? mapOrder(res.items[0]) : null;
 }
 
 // ─── Newsletter ─────────────────────────────────────────────
