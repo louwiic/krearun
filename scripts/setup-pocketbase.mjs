@@ -66,6 +66,7 @@ const collections = [
       { name: "featured", type: "bool" },
       { name: "active", type: "bool" },
       { name: "isNew", type: "bool" },
+      { name: "preorder", type: "bool" },
       ...autodates,
     ],
     indexes: ["CREATE UNIQUE INDEX `idx_products_slug` ON `products` (`slug`)"],
@@ -170,6 +171,7 @@ for (const p of readData("products.json")) {
     featured: p.featured,
     active: p.active,
     isNew: p.isNew,
+    preorder: Boolean(p.preorder),
   };
   const existing = await firstRecord("products", `slug='${p.slug}'`);
   const res = existing

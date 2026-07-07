@@ -28,6 +28,10 @@ const CartContext = createContext<CartContextValue | null>(null);
 
 const STORAGE_KEY = "krearun-cart-v1";
 
+function maxQuantity(item: Pick<CartItem, "stock" | "preorder">) {
+  return item.preorder ? 20 : item.stock;
+}
+
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [isOpen, setIsOpen] = useState(false);
@@ -54,11 +58,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
         if (existing) {
           return prev.map((i) =>
             i === existing
-              ? { ...i, quantity: Math.min(i.quantity + quantity, i.stock) }
+              ? { ...i, quantity: Math.min(i.quantity + quantity, maxQuantity(i)) }
               : i
           );
         }
-        return [...prev, { ...item, quantity: Math.min(quantity, item.stock) }];
+        return [...prev, { ...item, quantity: Math.min(quantity, maxQuantity(item)) }];
       });
       setIsOpen(true);
     },
@@ -78,7 +82,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           ? prev.filter((i) => !(i.productId === productId && i.color === color))
           : prev.map((i) =>
               i.productId === productId && i.color === color
-                ? { ...i, quantity: Math.min(quantity, i.stock) }
+                ? { ...i, quantity: Math.min(quantity, maxQuantity(i)) }
                 : i
             )
       );

@@ -122,6 +122,11 @@ export default function CartDrawer({
                         {item.color && (
                           <p className="text-xs text-ink-soft">Coloris : {item.color}</p>
                         )}
+                        {item.preorder && (
+                          <p className="mt-1 text-xs font-bold text-terra-deep">
+                            Pré-commande · bientôt disponible
+                          </p>
+                        )}
                       </div>
                       <button
                         onClick={() => removeItem(item.productId, item.color)}
@@ -146,7 +151,7 @@ export default function CartDrawer({
                         <button
                           onClick={() => setQuantity(item.productId, item.color, item.quantity + 1)}
                           className="px-3 py-1 text-ink-soft hover:text-ink disabled:opacity-30"
-                          disabled={item.quantity >= item.stock}
+                          disabled={item.quantity >= (item.preorder ? 20 : item.stock)}
                           aria-label="Augmenter la quantité"
                         >
                           +

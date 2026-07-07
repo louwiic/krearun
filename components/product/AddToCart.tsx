@@ -8,7 +8,8 @@ export default function AddToCart({ product }: { product: Product }) {
   const { addItem } = useCart();
   const [color, setColor] = useState(product.colors[0]?.name ?? "");
   const [quantity, setQuantity] = useState(1);
-  const soldOut = product.stock <= 0;
+  const maxQuantity = product.preorder ? 20 : product.stock;
+  const soldOut = product.stock <= 0 && !product.preorder;
 
   return (
     <div className="space-y-6">
@@ -47,9 +48,9 @@ export default function AddToCart({ product }: { product: Product }) {
           </button>
           <span className="min-w-8 text-center font-bold">{quantity}</span>
           <button
-            onClick={() => setQuantity((q) => Math.min(product.stock, q + 1))}
+            onClick={() => setQuantity((q) => Math.min(maxQuantity, q + 1))}
             className="px-4 py-2.5 text-ink-soft hover:text-ink disabled:opacity-30"
-            disabled={quantity >= product.stock}
+            disabled={quantity >= maxQuantity}
             aria-label="Augmenter la quantité"
           >
             +
@@ -67,6 +68,7 @@ export default function AddToCart({ product }: { product: Product }) {
                 color,
                 image: product.images[0] ?? "",
                 stock: product.stock,
+                preorder: product.preorder,
               },
               quantity
             )
@@ -74,11 +76,21 @@ export default function AddToCart({ product }: { product: Product }) {
           disabled={soldOut}
           className="flex-1 rounded-full bg-terra px-8 py-3.5 text-sm font-bold text-cream transition-all hover:bg-terra-deep hover:shadow-lifted disabled:cursor-not-allowed disabled:bg-ink-faint"
         >
-          {soldOut ? "Bientôt de retour" : "Ajouter au panier"}
+          {soldOut
+            ? "Bientôt de retour"
+            : product.preorder
+              ? "Pré-commander"
+              : "Ajouter au panier"}
         </button>
       </div>
 
-      {!soldOut && product.stock <= 5 && (
+      {product.preorder && (
+        <p className="rounded-2xl bg-sand/40 px-4 py-3 text-xs font-semibold leading-relaxed text-ink-soft">
+          Bientôt disponible : votre pièce sera fabriquée dès le prochain lot.
+        </p>
+      )}
+
+      {!soldOut && !product.preorder && product.stock <= 5 && (
         <p className="text-xs font-semibold text-terra-deep">
           Plus que {product.stock} exemplaire{product.stock > 1 ? "s" : ""} — le
           prochain lot est déjà sur l'imprimante ✿

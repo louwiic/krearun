@@ -16,7 +16,7 @@ export default async function AdminDashboard() {
   const paidOrders = orders.filter((o) => o.status !== "cancelled" && o.status !== "pending");
   const revenue = paidOrders.reduce((n, o) => n + o.totalCents, 0);
   const toShip = orders.filter((o) => o.status === "paid" || o.status === "preparing");
-  const lowStock = products.filter((p) => p.active && p.stock <= 3);
+  const lowStock = products.filter((p) => p.active && !p.preorder && p.stock <= 3);
   const recent = orders.slice(0, 6);
 
   const stats = [

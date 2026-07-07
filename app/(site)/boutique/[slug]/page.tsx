@@ -63,7 +63,9 @@ export default async function ProductPage({
       price: (product.priceCents / 100).toFixed(2),
       priceCurrency: "EUR",
       availability:
-        product.stock > 0
+        product.preorder
+          ? "https://schema.org/PreOrder"
+          : product.stock > 0
           ? "https://schema.org/InStock"
           : "https://schema.org/OutOfStock",
       url: `${siteUrl}/boutique/${product.slug}`,
@@ -95,11 +97,18 @@ export default async function ProductPage({
         <Gallery images={product.images} name={product.name} />
 
         <div>
-          {product.isNew && (
-            <span className="mb-4 inline-block rounded-full bg-sage px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-cream">
-              Nouveau
-            </span>
-          )}
+          <div className="mb-4 flex flex-wrap gap-2">
+            {product.preorder && (
+              <span className="inline-block rounded-full bg-terra px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-cream">
+                Pré-commande · bientôt disponible
+              </span>
+            )}
+            {product.isNew && !product.preorder && (
+              <span className="inline-block rounded-full bg-sage px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-cream">
+                Nouveau
+              </span>
+            )}
+          </div>
           <h1 className="font-display text-4xl font-semibold tracking-tight">
             {product.name}
           </h1>
@@ -133,7 +142,12 @@ export default async function ProductPage({
 
           <div className="mt-8 grid gap-3 rounded-blob bg-cream p-6 text-sm shadow-soft">
             {[
-              ["🖨️", "Imprimé à la commande — 2 à 4 jours de fabrication"],
+              [
+                "🖨️",
+                product.preorder
+                  ? "Pré-commande — fabrication au lancement du prochain lot"
+                  : "Imprimé à la commande — 2 à 4 jours de fabrication",
+              ],
               ["🚚", "Expédié en 48 h après impression, suivi inclus"],
               ["💚", "PLA biosourcé, emballage recyclé et recyclable"],
             ].map(([icon, text]) => (

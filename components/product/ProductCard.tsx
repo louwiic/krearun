@@ -9,7 +9,7 @@ export default function ProductCard({
   product: Product;
   className?: string;
 }) {
-  const soldOut = product.stock <= 0;
+  const soldOut = product.stock <= 0 && !product.preorder;
 
   return (
     <Link
@@ -33,7 +33,12 @@ export default function ProductCard({
           />
         )}
         <div className="absolute left-4 top-4 flex gap-2">
-          {product.isNew && !soldOut && (
+          {product.preorder && (
+            <span className="rounded-full bg-terra px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-cream">
+              Pré-commande
+            </span>
+          )}
+          {product.isNew && !soldOut && !product.preorder && (
             <span className="rounded-full bg-sage px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-cream">
               Nouveau
             </span>

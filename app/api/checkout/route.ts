@@ -51,8 +51,9 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
-    const quantity = Math.max(1, Math.min(Number(item.quantity) || 1, product.stock));
-    if (product.stock <= 0) {
+    const maxQuantity = product.preorder ? 20 : product.stock;
+    const quantity = Math.max(1, Math.min(Number(item.quantity) || 1, maxQuantity));
+    if (product.stock <= 0 && !product.preorder) {
       return NextResponse.json(
         { error: `« ${product.name} » est épuisé pour le moment.` },
         { status: 400 }
@@ -65,6 +66,7 @@ export async function POST(req: Request) {
         unit_amount: product.priceCents,
         product_data: {
           name: item.color ? `${product.name} — ${item.color}` : product.name,
+          description: product.preorder ? "Pré-commande · bientôt disponible" : undefined,
           images: product.images[0]?.startsWith("http")
             ? [product.images[0]]
             : undefined,

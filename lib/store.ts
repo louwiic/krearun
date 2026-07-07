@@ -87,6 +87,7 @@ interface PbProduct {
   featured: boolean;
   active: boolean;
   isNew: boolean;
+  preorder: boolean;
   created: string;
   updated: string;
 }
@@ -107,6 +108,7 @@ function mapProduct(r: PbProduct): Product {
     featured: Boolean(r.featured),
     active: Boolean(r.active),
     isNew: Boolean(r.isNew),
+    preorder: Boolean(r.preorder),
     createdAt: toIso(r.created),
     updatedAt: toIso(r.updated),
   };
@@ -188,6 +190,7 @@ export async function decrementStock(items: { productId: string; quantity: numbe
   for (const item of items) {
     const product = await getProductById(item.productId);
     if (!product) continue;
+    if (product.preorder) continue;
     await pb(`/collections/products/records/${item.productId}`, {
       method: "PATCH",
       body: { stock: Math.max(0, product.stock - item.quantity) },

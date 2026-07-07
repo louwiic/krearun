@@ -35,6 +35,7 @@ export interface Product {
   featured: boolean;
   active: boolean;
   isNew: boolean;
+  preorder: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -106,4 +107,5 @@ export interface CartItem {
   color: string;
   image: string;
   stock: number;
+  preorder?: boolean;
 }

@@ -47,6 +47,7 @@ export default async function AdminProduitsPage() {
                       {p.name}
                       {p.featured && <span className="ml-2" title="Coup de cœur">💛</span>}
                       {p.isNew && <span className="ml-1 rounded-full bg-sage/30 px-2 py-0.5 text-[10px] font-bold text-sage-deep">NEW</span>}
+                      {p.preorder && <span className="ml-1 rounded-full bg-terra/15 px-2 py-0.5 text-[10px] font-bold text-terra-deep">PRÉCO</span>}
                     </span>
                   </Link>
                 </td>
@@ -69,7 +70,10 @@ export default async function AdminProduitsPage() {
                 </td>
                 <td className="hidden px-5 py-3 md:table-cell">
                   {p.active ? (
-                    <span className="text-xs font-bold text-sage-deep">● En ligne</span>
+                    <span className="text-xs font-bold text-sage-deep">
+                      ● En ligne
+                      {p.preorder && <span className="ml-2 text-terra-deep">· Pré-commande</span>}
+                    </span>
                   ) : (
                     <span className="text-xs font-bold text-ink-faint">○ Masqué</span>
                   )}

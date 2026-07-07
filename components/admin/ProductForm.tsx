@@ -145,6 +145,10 @@ export default function ProductForm({ product }: { product?: Product }) {
             <input type="checkbox" name="isNew" defaultChecked={product?.isNew} className="h-4 w-4 accent-terra" />
             Badge « Nouveau »
           </label>
+          <label className="flex items-center gap-2.5">
+            <input type="checkbox" name="preorder" defaultChecked={product?.preorder} className="h-4 w-4 accent-terra" />
+            Pré-commande / bientôt disponible
+          </label>
         </div>
       </div>
 
