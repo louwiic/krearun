@@ -45,12 +45,19 @@ d'expédition avec n° de suivi (statut → Expédiée), petit mot de livraison
 n'envoie que vers l'adresse du compte. Après vérification, mettre
 `EMAIL_FROM="Krearun Studio <bonjour@votredomaine.fr>"`.
 
-## Données : PocketBase
+## Données : PocketBase + R2
 
 Les données (produits, commandes, newsletter, réglages) vivent dans
 **PocketBase** (instance Coolify), derrière la couche `lib/store.ts` — le reste
-du code n'y touche jamais directement. Configuration dans `.env` :
-`POCKETBASE_URL`, `POCKETBASE_ADMIN_EMAIL`, `POCKETBASE_ADMIN_PASSWORD`.
+du code n'y touche jamais directement. Les photos produits sont stockées dans
+**Cloudflare R2** et les produits gardent uniquement les URLs publiques dans
+leur champ `images`.
+
+Configuration dans `.env` :
+`POCKETBASE_URL`, `POCKETBASE_ADMIN_EMAIL`, `POCKETBASE_ADMIN_PASSWORD`,
+`R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`,
+`R2_PUBLIC_URL`. Si le bucket reste privé, `R2_PUBLIC_URL` peut pointer vers
+la route proxy du site, par exemple `https://krearun.re/api/r2`.
 
 Les collections ont toutes leurs règles d'accès à `null` (superuser
 uniquement) : seul le serveur Next.js parle à PocketBase, jamais le
@@ -58,6 +65,8 @@ navigateur.
 
 - `scripts/setup-pocketbase.mjs` — crée les collections (idempotent) et
   importe les données de `data/*.json` (seed initial conservé en backup)
+- `scripts/migrate-product-images-to-r2.mjs` — copie les images produit
+  existantes vers R2 et remplace les URLs PocketBase
 - `scripts/seed.mjs` — régénère les JSON de seed (`--force` pour écraser)
 - `scripts/gen-images.mjs` — régénère les visuels SVG de `public/products/`
 

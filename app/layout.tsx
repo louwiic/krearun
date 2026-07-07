@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Fraunces, Nunito_Sans } from "next/font/google";
+import Script from "next/script";
 import { CartProvider } from "@/components/cart/CartContext";
 import "./globals.css";
 
@@ -48,6 +49,12 @@ export default function RootLayout({
     >
       <body className="grain min-h-full flex flex-col">
         <CartProvider>{children}</CartProvider>
+        <Script
+          defer
+          data-domain="krearun.re"
+          src="https://analytics.peibox.fr/js/script.js"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   );

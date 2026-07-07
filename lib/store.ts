@@ -2,6 +2,7 @@
 // orders, newsletter, settings — règles null, accès superuser uniquement).
 // Tout le site passe par ces fonctions, exécutées côté serveur seulement.
 import type { Order, OrderStatus, Product, Settings } from "./types";
+import { uploadProductImageToR2 } from "./r2";
 
 const PB_URL = (process.env.POCKETBASE_URL ?? "").replace(/\/$/, "");
 const PB_EMAIL = process.env.POCKETBASE_ADMIN_EMAIL ?? "";
@@ -174,30 +175,13 @@ export async function deleteProduct(id: string): Promise<void> {
   await pb(`/collections/products/records/${id}`, { method: "DELETE" });
 }
 
-// Téléverse des photos dans le champ fichier "photos" du produit et
-// renvoie leurs URLs publiques PocketBase.
+// Téléverse les photos produit dans Cloudflare R2 et renvoie leurs URLs publiques.
 export async function uploadProductPhotos(
   productId: string,
   files: File[]
 ): Promise<string[]> {
   if (files.length === 0) return [];
-  const form = new FormData();
-  for (const file of files) form.append("photos+", file); // "+" = ajout sans écraser
-
-  const res = await fetch(`${PB_URL}/api/collections/products/records/${productId}`, {
-    method: "PATCH",
-    headers: { Authorization: await getToken() },
-    body: form,
-    cache: "no-store",
-  });
-  if (!res.ok) {
-    throw new Error(`PocketBase upload photos → ${res.status} ${await res.text()}`);
-  }
-  const record = (await res.json()) as { photos?: string[] };
-  const names = (record.photos ?? []).slice(-files.length);
-  return names.map(
-    (name) => `${PB_URL}/api/files/products/${productId}/${name}`
-  );
+  return Promise.all(files.map((file) => uploadProductImageToR2(productId, file)));
 }
 
 export async function decrementStock(items: { productId: string; quantity: number }[]) {
