@@ -96,6 +96,9 @@ export interface Settings {
   store_name: string;
   contact_email: string;
   instagram: string;
+  hero_image_url: string;
+  hero_image_alt: string;
+  hero_link_url: string;
 }
 
 export interface CartItem {

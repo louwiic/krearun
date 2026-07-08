@@ -20,6 +20,7 @@ import {
 } from "@/lib/store";
 import { sendOrderDelivered, sendOrderShipped } from "@/lib/email";
 import { slugify } from "@/lib/format";
+import { uploadSiteImageToR2 } from "@/lib/r2";
 import type { Category, OrderStatus, ProductColor } from "@/lib/types";
 
 // ─── Auth ───────────────────────────────────────────────────
@@ -177,6 +178,13 @@ export async function saveSettingsAction(formData: FormData) {
 
   const flat = String(formData.get("shipping_flat") ?? "0").replace(",", ".");
   const threshold = String(formData.get("free_shipping_threshold") ?? "0").replace(",", ".");
+  const heroFile = formData.get("hero_image_file");
+  let heroImageUrl = String(formData.get("hero_image_url") ?? "").trim();
+
+  if (heroFile instanceof File && heroFile.size > 0) {
+    const [optimized] = await toWebp([heroFile]);
+    heroImageUrl = await uploadSiteImageToR2("home", optimized);
+  }
 
   await saveSettings({
     store_name: String(formData.get("store_name") ?? "").trim(),
@@ -185,6 +193,9 @@ export async function saveSettingsAction(formData: FormData) {
     instagram: String(formData.get("instagram") ?? "").trim(),
     shipping_flat_cents: Math.round(parseFloat(flat || "0") * 100),
     free_shipping_threshold_cents: Math.round(parseFloat(threshold || "0") * 100),
+    hero_image_url: heroImageUrl,
+    hero_image_alt: String(formData.get("hero_image_alt") ?? "").trim(),
+    hero_link_url: String(formData.get("hero_link_url") ?? "").trim(),
   });
 
   revalidatePath("/", "layout");

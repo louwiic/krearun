@@ -41,6 +41,58 @@ export default async function AdminParametresPage() {
         </div>
 
         <div className="rounded-blob bg-cream p-7 shadow-soft">
+          <h2 className="mb-5 font-display text-lg font-semibold">Accueil</h2>
+          <div className="grid gap-5">
+            {settings.hero_image_url ? (
+              <div>
+                <span className={label}>Image actuelle du hero</span>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={settings.hero_image_url}
+                  alt=""
+                  className="aspect-[4/3] w-full max-w-sm rounded-2xl object-cover"
+                />
+              </div>
+            ) : null}
+            <label>
+              <span className={label}>URL de l'image principale</span>
+              <input
+                name="hero_image_url"
+                defaultValue={settings.hero_image_url}
+                className={field}
+                placeholder="/home/hero-monster-product.webp"
+              />
+            </label>
+            <label>
+              <span className={label}>Remplacer l'image principale</span>
+              <input
+                name="hero_image_file"
+                type="file"
+                accept="image/*"
+                className="w-full rounded-2xl border border-dashed border-sand bg-linen px-4 py-4 text-sm"
+              />
+            </label>
+            <label>
+              <span className={label}>Texte alternatif</span>
+              <input
+                name="hero_image_alt"
+                defaultValue={settings.hero_image_alt}
+                className={field}
+              />
+            </label>
+            <label>
+              <span className={label}>Lien au clic</span>
+              <input
+                name="hero_link_url"
+                defaultValue={settings.hero_link_url}
+                className={field}
+                placeholder="/boutique"
+              />
+            </label>
+          </div>
+        </div>
+
+        <div className="rounded-blob bg-cream p-7 shadow-soft">
           <h2 className="mb-5 font-display text-lg font-semibold">Livraison</h2>
           <div className="grid gap-5 sm:grid-cols-2">
             <label>

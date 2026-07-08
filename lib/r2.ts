@@ -80,6 +80,27 @@ export async function uploadProductImageToR2(productId: string, file: File) {
   return `${R2_PUBLIC_URL}/${key}`;
 }
 
+export async function uploadSiteImageToR2(folder: string, file: File) {
+  const contentType = file.type || "application/octet-stream";
+  const baseName = cleanFilename(file.name) || "image";
+  const cleanFolder = cleanFilename(folder) || "site";
+  const key = `site/${cleanFolder}/${Date.now()}-${crypto.randomUUID()}-${baseName}.${extensionFromContentType(
+    contentType
+  )}`;
+
+  await getClient().send(
+    new PutObjectCommand({
+      Bucket: R2_BUCKET,
+      Key: key,
+      Body: Buffer.from(await file.arrayBuffer()),
+      ContentType: contentType,
+      CacheControl: "public, max-age=31536000, immutable",
+    })
+  );
+
+  return `${R2_PUBLIC_URL}/${key}`;
+}
+
 export async function getObjectFromR2(key: string) {
   const object = await getClient().send(
     new GetObjectCommand({
@@ -103,4 +124,3 @@ export async function getObjectFromR2(key: string) {
     lastModified: object.LastModified,
   };
 }
-

@@ -344,6 +344,9 @@ const DEFAULT_SETTINGS: Settings = {
   store_name: "Krearun Studio",
   contact_email: "bonjour@krearun.studio",
   instagram: "",
+  hero_image_url: "/home/hero-monster-product.webp",
+  hero_image_alt: "Porte-canette Monster avec mousqueton offert au bord d'une piscine",
+  hero_link_url: "/boutique",
 };
 
 type PbSettings = Partial<Settings> & { id: string };

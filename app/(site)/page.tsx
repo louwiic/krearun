@@ -1,6 +1,6 @@
 import Link from "next/link";
 import ProductCard from "@/components/product/ProductCard";
-import { getProducts } from "@/lib/store";
+import { getProducts, getSettings } from "@/lib/store";
 import { CATEGORIES } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -33,11 +33,14 @@ const CATEGORY_ART: Record<string, string> = {
 };
 
 export default async function HomePage() {
-  const products = await getProducts();
+  const [products, settings] = await Promise.all([getProducts(), getSettings()]);
   const featured = products.filter((p) => p.featured).slice(0, 4);
   const nouveautes = products.filter((p) => p.isNew).slice(0, 3);
   const heroMain = featured[0] ?? products[0];
   const heroSecond = featured.find((p) => p.id !== heroMain?.id) ?? products[1];
+  const heroImage = settings.hero_image_url || heroMain?.images[0] || "/products/hero.svg";
+  const heroAlt = settings.hero_image_alt || heroMain?.name || "Produit Krearun Studio";
+  const heroHref = settings.hero_link_url || (heroMain ? `/boutique/${heroMain.slug}` : "/boutique");
 
   return (
     <>
@@ -85,15 +88,15 @@ export default async function HomePage() {
           </div>
 
           <div className="reveal reveal-2 relative">
-            {heroMain && (
+            {heroImage && (
               <Link
-                href={`/boutique/${heroMain.slug}`}
+                href={heroHref}
                 className="block animate-float overflow-hidden rounded-[3rem] shadow-lifted"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={heroMain.images[0]}
-                  alt={heroMain.name}
+                  src={heroImage}
+                  alt={heroAlt}
                   className="aspect-square w-full object-cover"
                 />
               </Link>
