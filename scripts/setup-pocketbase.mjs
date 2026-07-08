@@ -183,37 +183,42 @@ async function firstRecord(collection, filter) {
   return res.body?.items?.[0] ?? null;
 }
 
-// Produits (upsert par slug)
-for (const p of readData("products.json")) {
-  const payload = {
-    name: p.name,
-    slug: p.slug,
-    tagline: p.tagline,
-    description: p.description,
-    priceCents: p.priceCents,
-    compareAtCents: p.compareAtCents ?? 0,
-    category: p.category,
-    images: p.images,
-    videoUrl: p.videoUrl ?? "",
-    weightGrams: p.weightGrams ?? 0,
-    colors: p.colors,
-    stock: p.stock,
-    featured: p.featured,
-    active: p.active,
-    isNew: p.isNew,
-    preorder: Boolean(p.preorder),
-  };
-  const existing = await firstRecord("products", `slug='${p.slug}'`);
-  const res = existing
-    ? await pb(`/collections/products/records/${existing.id}`, {
-        method: "PATCH",
-        body: JSON.stringify(payload),
-      })
-    : await pb(`/collections/products/records`, {
-        method: "POST",
-        body: JSON.stringify(payload),
-      });
-  console.log(res.ok ? `✓ Produit ${p.slug}` : `✗ Produit ${p.slug}: ${JSON.stringify(res.body)}`);
+// Produits de démonstration : désactivés par défaut pour ne pas écraser la
+// vraie boutique. À lancer seulement avec SEED_DEMO_PRODUCTS=1 en local.
+if (process.env.SEED_DEMO_PRODUCTS === "1") {
+  for (const p of readData("products.json")) {
+    const payload = {
+      name: p.name,
+      slug: p.slug,
+      tagline: p.tagline,
+      description: p.description,
+      priceCents: p.priceCents,
+      compareAtCents: p.compareAtCents ?? 0,
+      category: p.category,
+      images: p.images,
+      videoUrl: p.videoUrl ?? "",
+      weightGrams: p.weightGrams ?? 0,
+      colors: p.colors,
+      stock: p.stock,
+      featured: p.featured,
+      active: p.active,
+      isNew: p.isNew,
+      preorder: Boolean(p.preorder),
+    };
+    const existing = await firstRecord("products", `slug='${p.slug}'`);
+    const res = existing
+      ? await pb(`/collections/products/records/${existing.id}`, {
+          method: "PATCH",
+          body: JSON.stringify(payload),
+        })
+      : await pb(`/collections/products/records`, {
+          method: "POST",
+          body: JSON.stringify(payload),
+        });
+    console.log(res.ok ? `✓ Produit ${p.slug}` : `✗ Produit ${p.slug}: ${JSON.stringify(res.body)}`);
+  }
+} else {
+  console.log("• Produits de démonstration ignorés (SEED_DEMO_PRODUCTS non défini)");
 }
 
 // Réglages (enregistrement unique)
