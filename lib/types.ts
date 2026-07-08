@@ -30,6 +30,7 @@ export interface Product {
   compareAtCents?: number | null;
   category: Category;
   images: string[];
+  videoUrl: string;
   colors: ProductColor[];
   stock: number;
   featured: boolean;
@@ -99,6 +100,10 @@ export interface Settings {
   hero_image_url: string;
   hero_image_alt: string;
   hero_link_url: string;
+  hero_secondary_media_url: string;
+  hero_secondary_media_type: "image" | "video";
+  hero_secondary_media_alt: string;
+  hero_secondary_link_url: string;
 }
 
 export interface CartItem {

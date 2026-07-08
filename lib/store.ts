@@ -2,7 +2,7 @@
 // orders, newsletter, settings — règles null, accès superuser uniquement).
 // Tout le site passe par ces fonctions, exécutées côté serveur seulement.
 import type { Order, OrderStatus, Product, Settings } from "./types";
-import { uploadProductImageToR2 } from "./r2";
+import { uploadProductImageToR2, uploadProductMediaToR2 } from "./r2";
 
 const PB_URL = (process.env.POCKETBASE_URL ?? "").replace(/\/$/, "");
 const PB_EMAIL = process.env.POCKETBASE_ADMIN_EMAIL ?? "";
@@ -82,6 +82,7 @@ interface PbProduct {
   compareAtCents: number;
   category: Product["category"];
   images: string[] | null;
+  videoUrl: string;
   colors: Product["colors"] | null;
   stock: number;
   featured: boolean;
@@ -103,6 +104,7 @@ function mapProduct(r: PbProduct): Product {
     compareAtCents: r.compareAtCents > 0 ? r.compareAtCents : null,
     category: r.category,
     images: r.images ?? [],
+    videoUrl: r.videoUrl ?? "",
     colors: r.colors ?? [],
     stock: r.stock ?? 0,
     featured: Boolean(r.featured),
@@ -184,6 +186,10 @@ export async function uploadProductPhotos(
 ): Promise<string[]> {
   if (files.length === 0) return [];
   return Promise.all(files.map((file) => uploadProductImageToR2(productId, file)));
+}
+
+export async function uploadProductVideo(productId: string, file: File): Promise<string> {
+  return uploadProductMediaToR2(productId, file);
 }
 
 export async function decrementStock(items: { productId: string; quantity: number }[]) {
@@ -347,6 +353,10 @@ const DEFAULT_SETTINGS: Settings = {
   hero_image_url: "/home/hero-monster-product.webp",
   hero_image_alt: "Porte-canette Monster avec mousqueton offert au bord d'une piscine",
   hero_link_url: "/boutique",
+  hero_secondary_media_url: "/home/hero-secondary-video.mp4",
+  hero_secondary_media_type: "video",
+  hero_secondary_media_alt: "Vidéo courte du produit Monster",
+  hero_secondary_link_url: "/boutique",
 };
 
 type PbSettings = Partial<Settings> & { id: string };

@@ -46,6 +46,9 @@ function extensionFromContentType(contentType: string) {
   if (contentType === "image/png") return "png";
   if (contentType === "image/svg+xml") return "svg";
   if (contentType === "image/gif") return "gif";
+  if (contentType === "video/mp4") return "mp4";
+  if (contentType === "video/webm") return "webm";
+  if (contentType === "video/quicktime") return "mov";
   return "bin";
 }
 
@@ -80,11 +83,54 @@ export async function uploadProductImageToR2(productId: string, file: File) {
   return `${R2_PUBLIC_URL}/${key}`;
 }
 
+export async function uploadProductMediaToR2(productId: string, file: File) {
+  const contentType = file.type || "application/octet-stream";
+  const baseName = cleanFilename(file.name) || "media";
+  const folder = contentType.startsWith("video/") ? "videos" : "media";
+  const key = `products/${productId}/${folder}/${Date.now()}-${crypto.randomUUID()}-${baseName}.${extensionFromContentType(
+    contentType
+  )}`;
+
+  await getClient().send(
+    new PutObjectCommand({
+      Bucket: R2_BUCKET,
+      Key: key,
+      Body: Buffer.from(await file.arrayBuffer()),
+      ContentType: contentType,
+      CacheControl: "public, max-age=31536000, immutable",
+    })
+  );
+
+  return `${R2_PUBLIC_URL}/${key}`;
+}
+
 export async function uploadSiteImageToR2(folder: string, file: File) {
   const contentType = file.type || "application/octet-stream";
   const baseName = cleanFilename(file.name) || "image";
   const cleanFolder = cleanFilename(folder) || "site";
   const key = `site/${cleanFolder}/${Date.now()}-${crypto.randomUUID()}-${baseName}.${extensionFromContentType(
+    contentType
+  )}`;
+
+  await getClient().send(
+    new PutObjectCommand({
+      Bucket: R2_BUCKET,
+      Key: key,
+      Body: Buffer.from(await file.arrayBuffer()),
+      ContentType: contentType,
+      CacheControl: "public, max-age=31536000, immutable",
+    })
+  );
+
+  return `${R2_PUBLIC_URL}/${key}`;
+}
+
+export async function uploadSiteMediaToR2(folder: string, file: File) {
+  const contentType = file.type || "application/octet-stream";
+  const baseName = cleanFilename(file.name) || "media";
+  const cleanFolder = cleanFilename(folder) || "site";
+  const kind = contentType.startsWith("video/") ? "videos" : "media";
+  const key = `site/${cleanFolder}/${kind}/${Date.now()}-${crypto.randomUUID()}-${baseName}.${extensionFromContentType(
     contentType
   )}`;
 

@@ -89,6 +89,77 @@ export default async function AdminParametresPage() {
                 placeholder="/boutique"
               />
             </label>
+            <div className="border-t border-sand/70 pt-5">
+              <h3 className="mb-4 font-display text-base font-semibold">Petit média superposé</h3>
+              {settings.hero_secondary_media_url ? (
+                <div className="mb-4 max-w-xs overflow-hidden rounded-2xl bg-ink shadow-soft">
+                  {settings.hero_secondary_media_type === "video" ? (
+                    <video
+                      src={settings.hero_secondary_media_url}
+                      className="aspect-video w-full object-cover"
+                      controls
+                      muted
+                      playsInline
+                    />
+                  ) : (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={settings.hero_secondary_media_url}
+                      alt=""
+                      className="aspect-video w-full object-cover"
+                    />
+                  )}
+                </div>
+              ) : null}
+              <div className="grid gap-5">
+                <label>
+                  <span className={label}>URL du petit média</span>
+                  <input
+                    name="hero_secondary_media_url"
+                    defaultValue={settings.hero_secondary_media_url}
+                    className={field}
+                    placeholder="/home/hero-secondary-video.mp4"
+                  />
+                </label>
+                <label>
+                  <span className={label}>Type de média</span>
+                  <select
+                    name="hero_secondary_media_type"
+                    defaultValue={settings.hero_secondary_media_type}
+                    className={field}
+                  >
+                    <option value="image">Image</option>
+                    <option value="video">Vidéo</option>
+                  </select>
+                </label>
+                <label>
+                  <span className={label}>Uploader/remplacer le petit média</span>
+                  <input
+                    name="hero_secondary_media_file"
+                    type="file"
+                    accept="image/*,video/mp4,video/webm,video/quicktime,video/*"
+                    className="w-full rounded-2xl border border-dashed border-sand bg-linen px-4 py-4 text-sm"
+                  />
+                </label>
+                <label>
+                  <span className={label}>Texte alternatif du petit média</span>
+                  <input
+                    name="hero_secondary_media_alt"
+                    defaultValue={settings.hero_secondary_media_alt}
+                    className={field}
+                  />
+                </label>
+                <label>
+                  <span className={label}>Lien au clic du petit média</span>
+                  <input
+                    name="hero_secondary_link_url"
+                    defaultValue={settings.hero_secondary_link_url}
+                    className={field}
+                    placeholder="/boutique"
+                  />
+                </label>
+              </div>
+            </div>
           </div>
         </div>
 

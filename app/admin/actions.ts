@@ -17,10 +17,11 @@ import {
   updateOrderStatus,
   updateProduct,
   uploadProductPhotos,
+  uploadProductVideo,
 } from "@/lib/store";
 import { sendOrderDelivered, sendOrderShipped } from "@/lib/email";
 import { slugify } from "@/lib/format";
-import { uploadSiteImageToR2 } from "@/lib/r2";
+import { uploadSiteImageToR2, uploadSiteMediaToR2 } from "@/lib/r2";
 import type { Category, OrderStatus, ProductColor } from "@/lib/types";
 
 // ─── Auth ───────────────────────────────────────────────────
@@ -87,6 +88,59 @@ async function toWebp(files: File[]): Promise<File[]> {
   return out;
 }
 
+function runFfmpeg(args: string[]) {
+  return new Promise<void>((resolve, reject) => {
+    // Dynamic import keeps Turbopack from tracing Node internals across the app.
+    import("node:child_process").then(({ spawn }) => {
+    const child = spawn("ffmpeg", args, { stdio: "ignore" });
+    child.on("error", reject);
+    child.on("close", (code) => {
+      code === 0 ? resolve() : reject(new Error(`ffmpeg exited with ${code}`));
+    });
+    }, reject);
+  });
+}
+
+async function toWebMp4(file: File): Promise<File> {
+  if (!file.type.startsWith("video/")) return file;
+  const [{ mkdtemp, readFile, rm, writeFile }, { tmpdir }, { join }] = await Promise.all([
+    import("node:fs/promises"),
+    import("node:os"),
+    import("node:path"),
+  ]);
+  const dir = await mkdtemp(join(tmpdir(), "krearun-video-"));
+  const input = join(dir, file.name || "input-video");
+  const output = join(dir, "video-web.mp4");
+
+  try {
+    await writeFile(input, Buffer.from(await file.arrayBuffer()));
+    await runFfmpeg([
+      "-y",
+      "-i",
+      input,
+      "-vf",
+      "scale='min(720,iw)':-2",
+      "-an",
+      "-c:v",
+      "libx264",
+      "-preset",
+      "veryfast",
+      "-crf",
+      "28",
+      "-movflags",
+      "+faststart",
+      output,
+    ]);
+    const buffer = await readFile(output);
+    const name = file.name.replace(/\.[^.]+$/, "") + ".mp4";
+    return new File([new Uint8Array(buffer)], name, { type: "video/mp4" });
+  } catch {
+    return file;
+  } finally {
+    await rm(dir, { recursive: true, force: true }).catch(() => {});
+  }
+}
+
 export async function saveProductAction(formData: FormData) {
   await requireAdmin();
 
@@ -97,10 +151,13 @@ export async function saveProductAction(formData: FormData) {
   const existingImages = String(formData.get("images") ?? "")
     .split("\n")
     .map((s) => s.trim())
-    .filter(Boolean);
+    .filter(Boolean)
+    .slice(0, 3);
   const newFiles = formData
     .getAll("nouvelles_images")
     .filter((f): f is File => f instanceof File && f.size > 0);
+  const videoFile = formData.get("nouvelle_video");
+  let videoUrl = String(formData.get("videoUrl") ?? "").trim();
 
   const compareAtRaw = String(formData.get("compareAt") ?? "").replace(",", ".");
   const priceRaw = String(formData.get("price") ?? "0").replace(",", ".");
@@ -116,6 +173,7 @@ export async function saveProductAction(formData: FormData) {
       : null,
     category: String(formData.get("category") ?? "deco") as Category,
     images: existingImages,
+    videoUrl,
     colors: parseColors(String(formData.get("colors") ?? "")),
     stock: Math.max(0, parseInt(String(formData.get("stock") ?? "0"), 10) || 0),
     featured: formData.get("featured") === "on",
@@ -128,8 +186,14 @@ export async function saveProductAction(formData: FormData) {
 
   // Les nouvelles photos sont compressées en WebP puis stockées dans R2.
   if (product && newFiles.length > 0) {
-    const urls = await uploadProductPhotos(product.id, await toWebp(newFiles));
-    await updateProduct(product.id, { images: [...existingImages, ...urls] });
+    const slots = Math.max(0, 3 - existingImages.length);
+    const urls = await uploadProductPhotos(product.id, await toWebp(newFiles.slice(0, slots)));
+    await updateProduct(product.id, { images: [...existingImages, ...urls].slice(0, 3) });
+  }
+
+  if (product && videoFile instanceof File && videoFile.size > 0) {
+    videoUrl = await uploadProductVideo(product.id, await toWebMp4(videoFile));
+    await updateProduct(product.id, { videoUrl });
   }
 
   revalidatePath("/", "layout");
@@ -179,11 +243,25 @@ export async function saveSettingsAction(formData: FormData) {
   const flat = String(formData.get("shipping_flat") ?? "0").replace(",", ".");
   const threshold = String(formData.get("free_shipping_threshold") ?? "0").replace(",", ".");
   const heroFile = formData.get("hero_image_file");
+  const secondaryFile = formData.get("hero_secondary_media_file");
   let heroImageUrl = String(formData.get("hero_image_url") ?? "").trim();
+  let secondaryMediaUrl = String(formData.get("hero_secondary_media_url") ?? "").trim();
+  let secondaryMediaType = String(formData.get("hero_secondary_media_type") ?? "image");
 
   if (heroFile instanceof File && heroFile.size > 0) {
     const [optimized] = await toWebp([heroFile]);
     heroImageUrl = await uploadSiteImageToR2("home", optimized);
+  }
+
+  if (secondaryFile instanceof File && secondaryFile.size > 0) {
+    if (secondaryFile.type.startsWith("video/")) {
+      secondaryMediaUrl = await uploadSiteMediaToR2("home", await toWebMp4(secondaryFile));
+      secondaryMediaType = "video";
+    } else {
+      const [optimized] = await toWebp([secondaryFile]);
+      secondaryMediaUrl = await uploadSiteImageToR2("home", optimized);
+      secondaryMediaType = "image";
+    }
   }
 
   await saveSettings({
@@ -196,6 +274,10 @@ export async function saveSettingsAction(formData: FormData) {
     hero_image_url: heroImageUrl,
     hero_image_alt: String(formData.get("hero_image_alt") ?? "").trim(),
     hero_link_url: String(formData.get("hero_link_url") ?? "").trim(),
+    hero_secondary_media_url: secondaryMediaUrl,
+    hero_secondary_media_type: secondaryMediaType === "video" ? "video" : "image",
+    hero_secondary_media_alt: String(formData.get("hero_secondary_media_alt") ?? "").trim(),
+    hero_secondary_link_url: String(formData.get("hero_secondary_link_url") ?? "").trim(),
   });
 
   revalidatePath("/", "layout");

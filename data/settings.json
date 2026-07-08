@@ -7,5 +7,9 @@
   "instagram": "https://instagram.com/coconstudio",
   "hero_image_url": "/home/hero-monster-product.webp",
   "hero_image_alt": "Porte-canette Monster avec mousqueton offert au bord d'une piscine",
-  "hero_link_url": "/boutique"
+  "hero_link_url": "/boutique",
+  "hero_secondary_media_url": "/home/hero-secondary-video.mp4",
+  "hero_secondary_media_type": "video",
+  "hero_secondary_media_alt": "Vidéo courte du produit Monster",
+  "hero_secondary_link_url": "/boutique"
 }

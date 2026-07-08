@@ -41,6 +41,14 @@ export default async function HomePage() {
   const heroImage = settings.hero_image_url || heroMain?.images[0] || "/products/hero.svg";
   const heroAlt = settings.hero_image_alt || heroMain?.name || "Produit Krearun Studio";
   const heroHref = settings.hero_link_url || (heroMain ? `/boutique/${heroMain.slug}` : "/boutique");
+  const secondaryMedia =
+    settings.hero_secondary_media_url || heroSecond?.images[0] || "";
+  const secondaryHref =
+    settings.hero_secondary_link_url ||
+    (heroSecond ? `/boutique/${heroSecond.slug}` : "/boutique");
+  const secondaryIsVideo =
+    settings.hero_secondary_media_type === "video" ||
+    /\.(mp4|webm|mov)(\?|#|$)/i.test(secondaryMedia);
 
   return (
     <>
@@ -101,17 +109,29 @@ export default async function HomePage() {
                 />
               </Link>
             )}
-            {heroSecond && (
+            {secondaryMedia && (
               <Link
-                href={`/boutique/${heroSecond.slug}`}
+                href={secondaryHref}
                 className="animate-drift absolute -bottom-8 -left-8 hidden w-40 overflow-hidden rounded-[2rem] border-4 border-linen shadow-lifted sm:block"
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={heroSecond.images[0]}
-                  alt={heroSecond.name}
-                  className="aspect-square w-full object-cover"
-                />
+                {secondaryIsVideo ? (
+                  <video
+                    src={secondaryMedia}
+                    className="aspect-square w-full object-cover"
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    aria-label={settings.hero_secondary_media_alt || "Vidéo produit"}
+                  />
+                ) : (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={secondaryMedia}
+                    alt={settings.hero_secondary_media_alt || heroSecond?.name || ""}
+                    className="aspect-square w-full object-cover"
+                  />
+                )}
               </Link>
             )}
             <p className="absolute -right-2 top-6 hidden rotate-6 rounded-2xl bg-cream px-4 py-2 font-display text-sm italic text-ink-soft shadow-soft md:block">

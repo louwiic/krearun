@@ -32,6 +32,11 @@ export default function ProductCard({
             className="absolute inset-0 aspect-square w-full object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100"
           />
         )}
+        {product.videoUrl && (
+          <span className="absolute bottom-4 right-4 rounded-full bg-ink/70 px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-cream">
+            Vidéo
+          </span>
+        )}
         <div className="absolute left-4 top-4 flex gap-2">
           {product.preorder && (
             <span className="rounded-full bg-terra px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-cream">

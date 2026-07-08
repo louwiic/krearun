@@ -42,12 +42,13 @@ export default async function AdminProduitsPage() {
                 <td className="px-5 py-3">
                   <Link href={`/admin/produits/${p.id}`} className="flex items-center gap-3 font-semibold hover:text-terra">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={p.images[0]} alt="" className="h-11 w-11 rounded-xl object-cover" />
+                    <img src={p.images[0] ?? "/products/hero.svg"} alt="" className="h-11 w-11 rounded-xl object-cover" />
                     <span>
                       {p.name}
                       {p.featured && <span className="ml-2" title="Coup de cœur">💛</span>}
                       {p.isNew && <span className="ml-1 rounded-full bg-sage/30 px-2 py-0.5 text-[10px] font-bold text-sage-deep">NEW</span>}
                       {p.preorder && <span className="ml-1 rounded-full bg-terra/15 px-2 py-0.5 text-[10px] font-bold text-terra-deep">PRÉCO</span>}
+                      {p.videoUrl && <span className="ml-1 rounded-full bg-ink/10 px-2 py-0.5 text-[10px] font-bold text-ink-soft">VIDÉO</span>}
                     </span>
                   </Link>
                 </td>

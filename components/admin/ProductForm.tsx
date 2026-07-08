@@ -88,7 +88,7 @@ export default function ProductForm({ product }: { product?: Product }) {
       </div>
 
       <div className="rounded-blob bg-cream p-7 shadow-soft">
-        <h2 className="mb-5 font-display text-lg font-semibold">Images & coloris</h2>
+        <h2 className="mb-5 font-display text-lg font-semibold">Médias & coloris</h2>
         <div className="space-y-5">
           {product && product.images.length > 0 && (
             <div className="flex flex-wrap gap-3">
@@ -99,22 +99,51 @@ export default function ProductForm({ product }: { product?: Product }) {
             </div>
           )}
           <label>
-            <span className={label}>URLs des images (une par ligne)</span>
+            <span className={label}>URLs des images (1 à 3, une par ligne)</span>
             <textarea
               name="images"
               rows={3}
-              defaultValue={product?.images.join("\n")}
+              defaultValue={product?.images.slice(0, 3).join("\n")}
               className={`${field} font-mono text-xs`}
               placeholder={"/products/mon-objet.svg\n/uploads/photo.jpg"}
             />
           </label>
           <div>
-            <span className={label}>Ajouter des photos (converties en WebP automatiquement)</span>
+            <span className={label}>Ajouter des photos (max 3 au total, converties en WebP)</span>
             <input
               name="nouvelles_images"
               type="file"
               multiple
               accept="image/*"
+              className="block w-full cursor-pointer text-sm text-ink-soft file:mr-4 file:cursor-pointer file:rounded-full file:border-0 file:bg-sage/25 file:px-5 file:py-2.5 file:text-xs file:font-bold file:text-sage-deep hover:file:bg-sage/40"
+            />
+          </div>
+          {product?.videoUrl ? (
+            <div className="max-w-xs overflow-hidden rounded-2xl bg-ink shadow-soft">
+              <video
+                src={product.videoUrl}
+                className="aspect-video w-full object-cover"
+                controls
+                muted
+                playsInline
+              />
+            </div>
+          ) : null}
+          <label>
+            <span className={label}>URL vidéo courte (optionnelle)</span>
+            <input
+              name="videoUrl"
+              defaultValue={product?.videoUrl}
+              className={`${field} font-mono text-xs`}
+              placeholder="https://.../video.mp4"
+            />
+          </label>
+          <div>
+            <span className={label}>Ajouter/remplacer une vidéo courte</span>
+            <input
+              name="nouvelle_video"
+              type="file"
+              accept="video/mp4,video/webm,video/quicktime,video/*"
               className="block w-full cursor-pointer text-sm text-ink-soft file:mr-4 file:cursor-pointer file:rounded-full file:border-0 file:bg-sage/25 file:px-5 file:py-2.5 file:text-xs file:font-bold file:text-sage-deep hover:file:bg-sage/40"
             />
           </div>
