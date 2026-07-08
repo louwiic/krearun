@@ -48,7 +48,7 @@ export default function ProductForm({ product }: { product?: Product }) {
 
       <div className="rounded-blob bg-cream p-7 shadow-soft">
         <h2 className="mb-5 font-display text-lg font-semibold">Prix & stock</h2>
-        <div className="grid gap-5 sm:grid-cols-3">
+        <div className="grid gap-5 sm:grid-cols-4">
           <label>
             <span className={label}>Prix (€) *</span>
             <input
@@ -82,6 +82,18 @@ export default function ProductForm({ product }: { product?: Product }) {
               min="0"
               defaultValue={product?.stock ?? 10}
               className={field}
+            />
+          </label>
+          <label>
+            <span className={label}>Poids (g)</span>
+            <input
+              name="weightGrams"
+              type="number"
+              min="0"
+              step="1"
+              defaultValue={product?.weightGrams ?? 120}
+              className={field}
+              placeholder="120"
             />
           </label>
         </div>

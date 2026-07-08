@@ -25,6 +25,7 @@ export default async function SiteLayout({
       />
       <CartDrawer
         freeShippingThresholdCents={settings.free_shipping_threshold_cents}
+        shippingRatesJson={settings.shipping_rates_json}
       />
     </div>
   );

@@ -31,6 +31,7 @@ export interface Product {
   category: Category;
   images: string[];
   videoUrl: string;
+  weightGrams: number;
   colors: ProductColor[];
   stock: number;
   featured: boolean;
@@ -65,6 +66,7 @@ export interface OrderItem {
   quantity: number;
   color: string;
   image: string;
+  weightGrams?: number;
 }
 
 export interface Order {
@@ -94,6 +96,7 @@ export interface Settings {
   announcement: string;
   shipping_flat_cents: number;
   free_shipping_threshold_cents: number;
+  shipping_rates_json: string;
   store_name: string;
   contact_email: string;
   instagram: string;
@@ -115,5 +118,6 @@ export interface CartItem {
   color: string;
   image: string;
   stock: number;
+  weightGrams: number;
   preorder?: boolean;
 }

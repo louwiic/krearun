@@ -174,6 +174,7 @@ export async function saveProductAction(formData: FormData) {
     category: String(formData.get("category") ?? "deco") as Category,
     images: existingImages,
     videoUrl,
+    weightGrams: Math.max(0, parseInt(String(formData.get("weightGrams") ?? "0"), 10) || 0),
     colors: parseColors(String(formData.get("colors") ?? "")),
     stock: Math.max(0, parseInt(String(formData.get("stock") ?? "0"), 10) || 0),
     featured: formData.get("featured") === "on",
@@ -242,6 +243,7 @@ export async function saveSettingsAction(formData: FormData) {
 
   const flat = String(formData.get("shipping_flat") ?? "0").replace(",", ".");
   const threshold = String(formData.get("free_shipping_threshold") ?? "0").replace(",", ".");
+  const shippingRatesJson = String(formData.get("shipping_rates_json") ?? "").trim();
   const heroFile = formData.get("hero_image_file");
   const secondaryFile = formData.get("hero_secondary_media_file");
   let heroImageUrl = String(formData.get("hero_image_url") ?? "").trim();
@@ -271,6 +273,7 @@ export async function saveSettingsAction(formData: FormData) {
     instagram: String(formData.get("instagram") ?? "").trim(),
     shipping_flat_cents: Math.round(parseFloat(flat || "0") * 100),
     free_shipping_threshold_cents: Math.round(parseFloat(threshold || "0") * 100),
+    shipping_rates_json: shippingRatesJson,
     hero_image_url: heroImageUrl,
     hero_image_alt: String(formData.get("hero_image_alt") ?? "").trim(),
     hero_link_url: String(formData.get("hero_link_url") ?? "").trim(),

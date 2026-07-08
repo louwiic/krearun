@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getProductById, getSettings } from "@/lib/store";
 import { getStripe, stripeConfigured } from "@/lib/stripe";
+import { calculateShippingCents, parseShippingRates } from "@/lib/shipping";
 
 interface CheckoutItem {
   productId: string;
@@ -42,6 +43,7 @@ export async function POST(req: Request) {
   }[] = [];
   const metadataItems: { p: string; q: number; c: string }[] = [];
   let subtotalCents = 0;
+  let totalWeightGrams = 0;
 
   for (const item of items) {
     const product = await getProductById(item.productId);
@@ -60,6 +62,7 @@ export async function POST(req: Request) {
       );
     }
     subtotalCents += product.priceCents * quantity;
+    totalWeightGrams += (product.weightGrams || 0) * quantity;
     lineItems.push({
       price_data: {
         currency: "eur",
@@ -77,8 +80,12 @@ export async function POST(req: Request) {
     metadataItems.push({ p: product.id, q: quantity, c: item.color || "" });
   }
 
-  const freeShipping = subtotalCents >= settings.free_shipping_threshold_cents;
-  const shippingCents = freeShipping ? 0 : settings.shipping_flat_cents;
+  const shippingRates = parseShippingRates(settings.shipping_rates_json);
+  const shipping = calculateShippingCents(totalWeightGrams || 1, shippingRates);
+  const freeShipping =
+    settings.free_shipping_threshold_cents > 0 &&
+    subtotalCents >= settings.free_shipping_threshold_cents;
+  const shippingCents = freeShipping ? 0 : shipping.priceCents;
 
   const stripe = getStripe();
   const session = await stripe.checkout.sessions.create({
@@ -94,7 +101,7 @@ export async function POST(req: Request) {
           fixed_amount: { amount: shippingCents, currency: "eur" },
           display_name: freeShipping
             ? "Livraison suivie offerte"
-            : "Livraison suivie",
+            : `Colissimo Réunion · ${shipping.label}`,
           delivery_estimate: {
             minimum: { unit: "business_day", value: 4 },
             maximum: { unit: "business_day", value: 8 },

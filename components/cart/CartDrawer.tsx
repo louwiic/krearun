@@ -4,18 +4,27 @@ import Link from "next/link";
 import { useState } from "react";
 import { useCart } from "./CartContext";
 import { formatPrice } from "@/lib/format";
+import { calculateShippingCents, formatWeight, parseShippingRates } from "@/lib/shipping";
 
 export default function CartDrawer({
   freeShippingThresholdCents,
+  shippingRatesJson,
 }: {
   freeShippingThresholdCents: number;
+  shippingRatesJson: string;
 }) {
-  const { items, subtotalCents, isOpen, closeCart, setQuantity, removeItem } =
+  const { items, subtotalCents, totalWeightGrams, isOpen, closeCart, setQuantity, removeItem } =
     useCart();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const freeShippingEnabled = freeShippingThresholdCents > 0;
   const remaining = freeShippingThresholdCents - subtotalCents;
+  const shippingRates = parseShippingRates(shippingRatesJson);
+  const shippingEstimate = calculateShippingCents(totalWeightGrams || 1, shippingRates);
+  const freeShipping = freeShippingEnabled && subtotalCents >= freeShippingThresholdCents;
+  const shippingCents = freeShipping ? 0 : shippingEstimate.priceCents;
+  const totalCents = subtotalCents + shippingCents;
 
   async function checkout() {
     setLoading(true);
@@ -90,13 +99,15 @@ export default function CartDrawer({
         ) : (
           <>
             <div className="border-b border-sand/70 bg-cream px-6 py-3 text-center text-xs font-semibold text-ink-soft">
-              {remaining > 0 ? (
+              {freeShippingEnabled && remaining > 0 ? (
                 <>
                   Plus que <span className="text-terra">{formatPrice(remaining)}</span>{" "}
                   pour la livraison offerte ✿
                 </>
-              ) : (
+              ) : freeShippingEnabled ? (
                 <>La livraison est offerte pour vous ✿</>
+              ) : (
+                <>Livraison Colissimo calculée par poids ✿</>
               )}
             </div>
 
@@ -167,10 +178,24 @@ export default function CartDrawer({
             </ul>
 
             <div className="border-t border-sand/70 bg-cream px-6 py-5">
-              <div className="mb-4 flex items-center justify-between">
+              <div className="mb-2 flex items-center justify-between">
                 <span className="text-sm text-ink-soft">Sous-total</span>
                 <span className="font-display text-lg font-semibold">
                   {formatPrice(subtotalCents)}
+                </span>
+              </div>
+              <div className="mb-2 flex items-center justify-between text-sm">
+                <span className="text-ink-soft">
+                  Livraison Colissimo · {formatWeight(totalWeightGrams)} · {shippingEstimate.label}
+                </span>
+                <span className="font-semibold">
+                  {shippingCents === 0 ? "Offerte" : formatPrice(shippingCents)}
+                </span>
+              </div>
+              <div className="mb-4 flex items-center justify-between border-t border-sand/60 pt-3">
+                <span className="text-sm font-bold">Total estimé</span>
+                <span className="font-display text-lg font-semibold">
+                  {formatPrice(totalCents)}
                 </span>
               </div>
               {error && (
@@ -186,7 +211,7 @@ export default function CartDrawer({
                 {loading ? "Un instant…" : "Passer commande"}
               </button>
               <p className="mt-3 text-center text-[11px] text-ink-faint">
-                Paiement sécurisé par Stripe · Frais de port calculés à l'étape suivante
+                Paiement sécurisé par Stripe · Frais recalculés au paiement
               </p>
             </div>
           </>

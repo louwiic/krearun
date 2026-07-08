@@ -68,6 +68,7 @@ export default function AddToCart({ product }: { product: Product }) {
                 color,
                 image: product.images[0] ?? "",
                 stock: product.stock,
+                weightGrams: product.weightGrams,
                 preorder: product.preorder,
               },
               quantity

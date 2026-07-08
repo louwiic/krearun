@@ -15,6 +15,7 @@ interface CartContextValue {
   items: CartItem[];
   count: number;
   subtotalCents: number;
+  totalWeightGrams: number;
   isOpen: boolean;
   openCart: () => void;
   closeCart: () => void;
@@ -97,6 +98,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       items,
       count: items.reduce((n, i) => n + i.quantity, 0),
       subtotalCents: items.reduce((n, i) => n + i.priceCents * i.quantity, 0),
+      totalWeightGrams: items.reduce((n, i) => n + (i.weightGrams ?? 0) * i.quantity, 0),
       isOpen,
       openCart: () => setIsOpen(true),
       closeCart: () => setIsOpen(false),

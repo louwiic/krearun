@@ -1,6 +1,7 @@
 import { getSettings } from "@/lib/store";
 import { saveSettingsAction } from "@/app/admin/actions";
 import { stripeConfigured } from "@/lib/stripe";
+import { DEFAULT_REUNION_SHIPPING_RATES } from "@/lib/shipping";
 
 export const dynamic = "force-dynamic";
 
@@ -167,7 +168,7 @@ export default async function AdminParametresPage() {
           <h2 className="mb-5 font-display text-lg font-semibold">Livraison</h2>
           <div className="grid gap-5 sm:grid-cols-2">
             <label>
-              <span className={label}>Frais de port (€)</span>
+              <span className={label}>Ancien forfait de secours (€)</span>
               <input
                 name="shipping_flat"
                 type="number"
@@ -187,6 +188,21 @@ export default async function AdminParametresPage() {
                 defaultValue={(settings.free_shipping_threshold_cents / 100).toFixed(2)}
                 className={field}
               />
+            </label>
+            <label className="sm:col-span-2">
+              <span className={label}>Grille Colissimo Réunion → Réunion</span>
+              <textarea
+                name="shipping_rates_json"
+                rows={8}
+                defaultValue={
+                  settings.shipping_rates_json ||
+                  JSON.stringify(DEFAULT_REUNION_SHIPPING_RATES, null, 2)
+                }
+                className={`${field} font-mono text-xs`}
+              />
+              <span className="mt-1 block text-xs text-ink-faint">
+                Format JSON. `priceCents` est en centimes. Mettez le seuil de gratuité à 0 pour toujours calculer les frais par poids.
+              </span>
             </label>
           </div>
         </div>

@@ -6,6 +6,7 @@ import AddToCart from "@/components/product/AddToCart";
 import ProductCard from "@/components/product/ProductCard";
 import { getProductBySlug, getProducts } from "@/lib/store";
 import { formatPrice } from "@/lib/format";
+import { formatWeight } from "@/lib/shipping";
 import { CATEGORIES } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -149,6 +150,7 @@ export default async function ProductPage({
                   : "Imprimé à la commande — 2 à 4 jours de fabrication",
               ],
               ["🚚", "Expédié en 48 h après impression, suivi inclus"],
+              ["⚖️", `Poids colis estimé : ${formatWeight(product.weightGrams)}`],
               ["💚", "PLA biosourcé, emballage recyclé et recyclable"],
             ].map(([icon, text]) => (
               <p key={text as string} className="flex items-center gap-3 text-ink-soft">

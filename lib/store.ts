@@ -3,6 +3,7 @@
 // Tout le site passe par ces fonctions, exécutées côté serveur seulement.
 import type { Order, OrderStatus, Product, Settings } from "./types";
 import { uploadProductImageToR2, uploadProductMediaToR2 } from "./r2";
+import { DEFAULT_REUNION_SHIPPING_RATES } from "./shipping";
 
 const PB_URL = (process.env.POCKETBASE_URL ?? "").replace(/\/$/, "");
 const PB_EMAIL = process.env.POCKETBASE_ADMIN_EMAIL ?? "";
@@ -83,6 +84,7 @@ interface PbProduct {
   category: Product["category"];
   images: string[] | null;
   videoUrl: string;
+  weightGrams: number;
   colors: Product["colors"] | null;
   stock: number;
   featured: boolean;
@@ -105,6 +107,7 @@ function mapProduct(r: PbProduct): Product {
     category: r.category,
     images: r.images ?? [],
     videoUrl: r.videoUrl ?? "",
+    weightGrams: r.weightGrams ?? 0,
     colors: r.colors ?? [],
     stock: r.stock ?? 0,
     featured: Boolean(r.featured),
@@ -346,7 +349,8 @@ export async function addSubscriber(email: string): Promise<boolean> {
 const DEFAULT_SETTINGS: Settings = {
   announcement: "",
   shipping_flat_cents: 590,
-  free_shipping_threshold_cents: 6000,
+  free_shipping_threshold_cents: 0,
+  shipping_rates_json: JSON.stringify(DEFAULT_REUNION_SHIPPING_RATES),
   store_name: "Krearun Studio",
   contact_email: "bonjour@krearun.studio",
   instagram: "",
