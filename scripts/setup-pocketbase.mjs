@@ -134,6 +134,19 @@ const collections = [
       ...autodates,
     ],
   },
+  {
+    name: "inventory_colors",
+    type: "base",
+    fields: [
+      { name: "name", type: "text", required: true },
+      { name: "hex", type: "text", required: true },
+      { name: "stockGrams", type: "number", onlyInt: true },
+      { name: "active", type: "bool" },
+      { name: "note", type: "text", max: 5000 },
+      { name: "sortOrder", type: "number", onlyInt: true },
+      ...autodates,
+    ],
+  },
 ];
 
 // Toutes les règles restent null (accès superuser uniquement) : le site
@@ -218,6 +231,31 @@ const settingsData = JSON.parse(readFileSync(join(process.cwd(), "data", "settin
         body: JSON.stringify(settingsData),
       });
   console.log(r.ok ? "✓ Réglages" : `✗ Réglages: ${JSON.stringify(r.body)}`);
+}
+
+// Inventaire matière (upsert par nom)
+for (const color of readData("inventory-colors.json")) {
+  const payload = {
+    name: color.name,
+    hex: color.hex,
+    stockGrams: color.stockGrams ?? 0,
+    active: color.active ?? true,
+    note: color.note ?? "",
+    sortOrder: color.sortOrder ?? 0,
+  };
+  const existing = await firstRecord("inventory_colors", `name='${color.name.replace(/'/g, "\\'")}'`);
+  const res = existing
+    ? await pb(`/collections/inventory_colors/records/${existing.id}`, {
+        method: "PATCH",
+        body: JSON.stringify(payload),
+      })
+    : await pb(`/collections/inventory_colors/records`, {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+  console.log(
+    res.ok ? `✓ Couleur ${color.name}` : `✗ Couleur ${color.name}: ${JSON.stringify(res.body)}`
+  );
 }
 
 // Commandes existantes

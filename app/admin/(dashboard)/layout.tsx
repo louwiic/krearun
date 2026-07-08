@@ -6,6 +6,7 @@ import { logoutAction } from "../actions";
 const nav = [
   { href: "/admin", label: "Tableau de bord", icon: "🏠" },
   { href: "/admin/produits", label: "Produits", icon: "🧸" },
+  { href: "/admin/inventaire", label: "Inventaire", icon: "🎨" },
   { href: "/admin/calculateur", label: "Calculateur", icon: "🧮" },
   { href: "/admin/commandes", label: "Commandes", icon: "📦" },
   { href: "/admin/newsletter", label: "Newsletter", icon: "💌" },

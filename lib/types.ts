@@ -20,6 +20,16 @@ export interface ProductColor {
   hex: string;
 }
 
+export interface InventoryColor extends ProductColor {
+  id: string;
+  stockGrams: number;
+  active: boolean;
+  note: string;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Product {
   id: string;
   name: string;

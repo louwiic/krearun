@@ -10,10 +10,13 @@ import {
 } from "@/lib/auth";
 import {
   createProduct,
+  createInventoryColor,
   deleteProduct,
+  getInventoryColors,
   getOrderById,
   getProductById,
   saveSettings,
+  updateInventoryColor,
   updateOrderStatus,
   updateProduct,
   uploadProductPhotos,
@@ -161,6 +164,13 @@ export async function saveProductAction(formData: FormData) {
 
   const compareAtRaw = String(formData.get("compareAt") ?? "").replace(",", ".");
   const priceRaw = String(formData.get("price") ?? "0").replace(",", ".");
+  const inventoryColorIds = formData.getAll("inventoryColorIds").map(String);
+  const inventoryColors =
+    inventoryColorIds.length > 0
+      ? (await getInventoryColors({ includeInactive: true }))
+          .filter((color) => inventoryColorIds.includes(color.id))
+          .map((color) => ({ name: color.name, hex: color.hex }))
+      : [];
 
   const data = {
     name,
@@ -175,7 +185,10 @@ export async function saveProductAction(formData: FormData) {
     images: existingImages,
     videoUrl,
     weightGrams: Math.max(0, parseInt(String(formData.get("weightGrams") ?? "0"), 10) || 0),
-    colors: parseColors(String(formData.get("colors") ?? "")),
+    colors: [
+      ...inventoryColors,
+      ...parseColors(String(formData.get("colors") ?? "")),
+    ],
     stock: Math.max(0, parseInt(String(formData.get("stock") ?? "0"), 10) || 0),
     featured: formData.get("featured") === "on",
     active: formData.get("active") === "on",
@@ -209,6 +222,48 @@ export async function deleteProductAction(formData: FormData) {
   }
   revalidatePath("/", "layout");
   redirect("/admin/produits");
+}
+
+// ─── Inventaire matière ────────────────────────────────────
+
+export async function saveInventoryColorAction(formData: FormData) {
+  await requireAdmin();
+
+  const id = String(formData.get("id") ?? "");
+  const name = String(formData.get("name") ?? "").trim();
+  const hex = String(formData.get("hex") ?? "#000000").trim() || "#000000";
+  if (!name) redirect("/admin/inventaire");
+
+  const stockGrams = Math.max(0, parseInt(String(formData.get("stockGrams") ?? "0"), 10) || 0);
+  const sortOrder = parseInt(String(formData.get("sortOrder") ?? "0"), 10) || 0;
+  const data = {
+    name,
+    hex,
+    stockGrams,
+    active: formData.get("active") === "on",
+    note: String(formData.get("note") ?? "").trim(),
+    sortOrder,
+  };
+
+  if (id) {
+    await updateInventoryColor(id, data);
+  } else {
+    await createInventoryColor(data);
+  }
+
+  revalidatePath("/admin/inventaire");
+  revalidatePath("/admin/produits", "layout");
+  redirect("/admin/inventaire");
+}
+
+export async function toggleInventoryColorAction(formData: FormData) {
+  await requireAdmin();
+  const id = String(formData.get("id") ?? "");
+  const active = formData.get("active") === "on";
+  if (id) await updateInventoryColor(id, { active });
+  revalidatePath("/admin/inventaire");
+  revalidatePath("/admin/produits", "layout");
+  redirect("/admin/inventaire");
 }
 
 // ─── Commandes ──────────────────────────────────────────────

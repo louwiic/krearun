@@ -1,11 +1,37 @@
 import { saveProductAction } from "@/app/admin/actions";
-import { CATEGORIES, type Product } from "@/lib/types";
+import { CATEGORIES, type InventoryColor, type Product } from "@/lib/types";
 
 const field =
   "w-full rounded-2xl border border-sand bg-linen px-4 py-3 text-sm outline-none focus:border-terra";
 const label = "mb-1.5 block text-xs font-bold uppercase tracking-wide text-ink-soft";
 
-export default function ProductForm({ product }: { product?: Product }) {
+export default function ProductForm({
+  product,
+  inventoryColors = [],
+}: {
+  product?: Product;
+  inventoryColors?: InventoryColor[];
+}) {
+  const selectedInventoryIds = new Set(
+    inventoryColors
+      .filter((item) =>
+        product?.colors.some(
+          (color) =>
+            color.name.toLowerCase() === item.name.toLowerCase() ||
+            color.hex.toLowerCase() === item.hex.toLowerCase()
+        )
+      )
+      .map((item) => item.id)
+  );
+  const customColors = product?.colors.filter(
+    (color) =>
+      !inventoryColors.some(
+        (item) =>
+          color.name.toLowerCase() === item.name.toLowerCase() ||
+          color.hex.toLowerCase() === item.hex.toLowerCase()
+      )
+  ) ?? [];
+
   return (
     <form action={saveProductAction} className="space-y-6">
       {product && <input type="hidden" name="id" value={product.id} />}
@@ -159,11 +185,44 @@ export default function ProductForm({ product }: { product?: Product }) {
               className="block w-full cursor-pointer text-sm text-ink-soft file:mr-4 file:cursor-pointer file:rounded-full file:border-0 file:bg-sage/25 file:px-5 file:py-2.5 file:text-xs file:font-bold file:text-sage-deep hover:file:bg-sage/40"
             />
           </div>
+          {inventoryColors.length > 0 ? (
+            <div>
+              <span className={label}>Coloris disponibles depuis l&apos;inventaire</span>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {inventoryColors.map((item) => (
+                  <label
+                    key={item.id}
+                    className="flex min-h-14 items-center gap-3 rounded-2xl border border-sand bg-linen px-4 py-3 text-sm font-semibold text-ink-soft"
+                  >
+                    <input
+                      type="checkbox"
+                      name="inventoryColorIds"
+                      value={item.id}
+                      defaultChecked={selectedInventoryIds.has(item.id)}
+                      className="h-4 w-4 accent-terra"
+                    />
+                    <span
+                      className="h-7 w-7 shrink-0 rounded-full border border-ink/10 shadow-soft"
+                      style={{ backgroundColor: item.hex }}
+                    />
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-ink">{item.name}</span>
+                      <span className="block text-xs font-medium text-ink-faint">
+                        {Math.round(item.stockGrams / 10) / 100} kg en stock
+                      </span>
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          ) : null}
           <label>
-            <span className={label}>Coloris — format « Nom:#hex » séparés par des virgules</span>
+            <span className={label}>
+              Coloris libres — format « Nom:#hex » séparés par des virgules
+            </span>
             <input
               name="colors"
-              defaultValue={product?.colors.map((c) => `${c.name}:${c.hex}`).join(", ")}
+              defaultValue={customColors.map((c) => `${c.name}:${c.hex}`).join(", ")}
               className={`${field} font-mono text-xs`}
               placeholder="Crème:#f3ead9, Sauge:#b8c8a8"
             />

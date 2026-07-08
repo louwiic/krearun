@@ -1,0 +1,98 @@
+[
+  {
+    "name": "PLA rose fluo",
+    "hex": "#ff2f7d",
+    "stockGrams": 1000,
+    "active": true,
+    "note": "Bobine rose vif",
+    "sortOrder": 10
+  },
+  {
+    "name": "PLA gris clair",
+    "hex": "#9aa8ad",
+    "stockGrams": 1000,
+    "active": true,
+    "note": "Bobine gris clair",
+    "sortOrder": 20
+  },
+  {
+    "name": "PLA orange fluo",
+    "hex": "#ff5a00",
+    "stockGrams": 1000,
+    "active": true,
+    "note": "Bobine orange vif",
+    "sortOrder": 30
+  },
+  {
+    "name": "PLA bois clair",
+    "hex": "#c49a63",
+    "stockGrams": 1000,
+    "active": true,
+    "note": "Aspect bois clair",
+    "sortOrder": 40
+  },
+  {
+    "name": "PLA cuivre",
+    "hex": "#a96b2f",
+    "stockGrams": 1000,
+    "active": true,
+    "note": "Teinte cuivre / bronze",
+    "sortOrder": 50
+  },
+  {
+    "name": "PLA jaune",
+    "hex": "#ffd600",
+    "stockGrams": 1000,
+    "active": true,
+    "note": "Bobine jaune vif",
+    "sortOrder": 60
+  },
+  {
+    "name": "PLA turquoise",
+    "hex": "#00c8b8",
+    "stockGrams": 1000,
+    "active": true,
+    "note": "Bobine turquoise",
+    "sortOrder": 70
+  },
+  {
+    "name": "PLA menthe",
+    "hex": "#bcefe3",
+    "stockGrams": 1000,
+    "active": true,
+    "note": "Bobine menthe claire",
+    "sortOrder": 80
+  },
+  {
+    "name": "PLA paillete rose",
+    "hex": "#d4a0c2",
+    "stockGrams": 1000,
+    "active": true,
+    "note": "Filament rose translucide paillete",
+    "sortOrder": 90
+  },
+  {
+    "name": "PLA bleu",
+    "hex": "#0056d6",
+    "stockGrams": 1000,
+    "active": true,
+    "note": "Bobine bleu brillant",
+    "sortOrder": 100
+  },
+  {
+    "name": "PLA noir",
+    "hex": "#111111",
+    "stockGrams": 1000,
+    "active": true,
+    "note": "Bobine noire",
+    "sortOrder": 110
+  },
+  {
+    "name": "PLA blanc translucide",
+    "hex": "#f1f4ef",
+    "stockGrams": 1000,
+    "active": true,
+    "note": "Bobine claire / translucide",
+    "sortOrder": 120
+  }
+]

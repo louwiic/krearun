@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import ProductForm from "@/components/admin/ProductForm";
 import DeleteProductButton from "@/components/admin/DeleteProductButton";
-import { getProductById } from "@/lib/store";
+import { getInventoryColors, getProductById } from "@/lib/store";
 
 export const dynamic = "force-dynamic";
 
@@ -12,7 +12,10 @@ export default async function EditProduitPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const product = await getProductById(id);
+  const [product, inventoryColors] = await Promise.all([
+    getProductById(id),
+    getInventoryColors({ includeInactive: true }),
+  ]);
   if (!product) notFound();
 
   return (
@@ -32,7 +35,7 @@ export default async function EditProduitPage({
       <h1 className="mb-8 mt-2 font-display text-3xl font-semibold">
         {product.name}
       </h1>
-      <ProductForm product={product} />
+      <ProductForm product={product} inventoryColors={inventoryColors} />
       <div className="mt-10 border-t border-sand/70 pt-6">
         <DeleteProductButton id={product.id} name={product.name} />
       </div>

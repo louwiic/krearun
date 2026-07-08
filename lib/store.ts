@@ -1,7 +1,7 @@
 // Couche de persistance branchée sur PocketBase (collections : products,
 // orders, newsletter, settings — règles null, accès superuser uniquement).
 // Tout le site passe par ces fonctions, exécutées côté serveur seulement.
-import type { Order, OrderStatus, Product, Settings } from "./types";
+import type { InventoryColor, Order, OrderStatus, Product, Settings } from "./types";
 import { uploadProductImageToR2, uploadProductMediaToR2 } from "./r2";
 import { DEFAULT_REUNION_SHIPPING_RATES } from "./shipping";
 
@@ -204,6 +204,77 @@ export async function decrementStock(items: { productId: string; quantity: numbe
       method: "PATCH",
       body: { stock: Math.max(0, product.stock - item.quantity) },
     });
+  }
+}
+
+// ─── Inventaire matière ────────────────────────────────────
+
+interface PbInventoryColor {
+  id: string;
+  name: string;
+  hex: string;
+  stockGrams: number;
+  active: boolean;
+  note: string;
+  sortOrder: number;
+  created: string;
+  updated: string;
+}
+
+function mapInventoryColor(r: PbInventoryColor): InventoryColor {
+  return {
+    id: r.id,
+    name: r.name ?? "",
+    hex: r.hex ?? "#000000",
+    stockGrams: r.stockGrams ?? 0,
+    active: Boolean(r.active),
+    note: r.note ?? "",
+    sortOrder: r.sortOrder ?? 0,
+    createdAt: toIso(r.created),
+    updatedAt: toIso(r.updated),
+  };
+}
+
+export async function getInventoryColors(opts?: {
+  includeInactive?: boolean;
+}): Promise<InventoryColor[]> {
+  const filter = opts?.includeInactive ? "" : `&filter=${encodeURIComponent("active=true")}`;
+  const res = await pb<ListResult<PbInventoryColor>>(
+    `/collections/inventory_colors/records?perPage=500&sort=sortOrder,name${filter}`
+  );
+  return res.items.map(mapInventoryColor);
+}
+
+export async function getInventoryColorById(id: string): Promise<InventoryColor | null> {
+  try {
+    return mapInventoryColor(await pb<PbInventoryColor>(`/collections/inventory_colors/records/${id}`));
+  } catch {
+    return null;
+  }
+}
+
+export async function createInventoryColor(
+  input: Omit<InventoryColor, "id" | "createdAt" | "updatedAt">
+): Promise<InventoryColor> {
+  const record = await pb<PbInventoryColor>(`/collections/inventory_colors/records`, {
+    method: "POST",
+    body: input,
+  });
+  return mapInventoryColor(record);
+}
+
+export async function updateInventoryColor(
+  id: string,
+  patch: Partial<Omit<InventoryColor, "id" | "createdAt" | "updatedAt">>
+): Promise<InventoryColor | null> {
+  try {
+    const record = await pb<PbInventoryColor>(`/collections/inventory_colors/records/${id}`, {
+      method: "PATCH",
+      body: patch,
+    });
+    return mapInventoryColor(record);
+  } catch {
+    return null;
   }
 }
 

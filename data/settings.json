@@ -3,14 +3,14 @@
   "shipping_flat_cents": 590,
   "free_shipping_threshold_cents": 0,
   "shipping_rates_json": "[{\"label\":\"0 - 250 g\",\"maxGrams\":250,\"priceCents\":525},{\"label\":\"250 - 500 g\",\"maxGrams\":500,\"priceCents\":735},{\"label\":\"500 - 750 g\",\"maxGrams\":750,\"priceCents\":865},{\"label\":\"750 g - 1 kg\",\"maxGrams\":1000,\"priceCents\":940},{\"label\":\"1 - 2 kg\",\"maxGrams\":2000,\"priceCents\":1070},{\"label\":\"2 - 5 kg\",\"maxGrams\":5000,\"priceCents\":1660}]",
-  "store_name": "Cocon Studio",
-  "contact_email": "bonjour@cocon.studio",
-  "instagram": "https://instagram.com/coconstudio",
+  "store_name": "Krearun Studio",
+  "contact_email": "bonjour@krearun.studio",
+  "instagram": "",
   "hero_image_url": "/home/hero-monster-product.webp",
   "hero_image_alt": "Porte-canette Monster avec mousqueton offert au bord d'une piscine",
-  "hero_link_url": "/boutique",
+  "hero_link_url": "/boutique/porte-canette-monster",
   "hero_secondary_media_url": "/home/hero-secondary-video.mp4",
   "hero_secondary_media_type": "video",
   "hero_secondary_media_alt": "Vidéo courte du produit Monster",
-  "hero_secondary_link_url": "/boutique"
+  "hero_secondary_link_url": "/boutique/porte-canette-monster"
 }
