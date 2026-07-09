@@ -113,7 +113,7 @@ export async function POST(req: Request) {
     locale: "fr",
     metadata: { items: JSON.stringify(metadataItems) },
     success_url: `${siteUrl}/commande/succes?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${siteUrl}/boutique`,
+    cancel_url: `${siteUrl}/commande/annulee`,
   });
 
   return NextResponse.json({ url: session.url });

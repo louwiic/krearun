@@ -3,10 +3,32 @@ import type { Metadata } from "next";
 import ClearCart from "./ClearCart";
 import { getOrderByStripeSession } from "@/lib/store";
 import { formatPrice } from "@/lib/format";
+import { getStripe, stripeConfigured } from "@/lib/stripe";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = { title: "Merci pour votre commande" };
+
+async function getStripeSessionSummary(sessionId: string) {
+  if (!stripeConfigured()) return null;
+  try {
+    const session = await getStripe().checkout.sessions.retrieve(sessionId, {
+      expand: ["line_items"],
+    });
+    return {
+      customerEmail: session.customer_details?.email ?? session.customer_email ?? "",
+      amountTotalCents: session.amount_total ?? 0,
+      itemCount:
+        session.line_items?.data.reduce(
+          (count, line) => count + (line.quantity ?? 1),
+          0
+        ) ?? 0,
+      paid: session.payment_status === "paid",
+    };
+  } catch {
+    return null;
+  }
+}
 
 export default async function SuccesPage({
   searchParams,
@@ -15,6 +37,7 @@ export default async function SuccesPage({
 }) {
   const { session_id } = await searchParams;
   const order = session_id ? await getOrderByStripeSession(session_id) : null;
+  const stripeSummary = !order && session_id ? await getStripeSessionSummary(session_id) : null;
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-20 text-center sm:px-6">
@@ -33,10 +56,31 @@ export default async function SuccesPage({
             Elle porte le doux numéro <strong className="text-ink">#{order.number}</strong>
             {" "}({formatPrice(order.totalCents)}).
           </>
+        )}
+        {!order && stripeSummary?.paid && (
+          <>
+            {" "}
+            Le paiement est confirmé
+            {stripeSummary.amountTotalCents > 0 ? ` (${formatPrice(stripeSummary.amountTotalCents)})` : ""}.
+            La commande est en cours de synchronisation.
+          </>
         )}{" "}
         L'imprimante va bientôt se mettre à ronronner — vous recevrez un e-mail
         à chaque étape, de la fabrication à la livraison.
       </p>
+
+      {!order && stripeSummary?.paid && (
+        <div className="mx-auto mt-8 max-w-md rounded-blob bg-sage/20 p-5 text-left text-sm text-ink-soft shadow-soft">
+          <p className="font-bold text-sage-deep">Paiement Stripe confirmé</p>
+          <p className="mt-2">
+            {stripeSummary.itemCount > 0 && `${stripeSummary.itemCount} article(s) · `}
+            {stripeSummary.customerEmail || "Adresse e-mail collectée par Stripe"}
+          </p>
+          <p className="mt-2">
+            Si le numéro de commande n&apos;apparaît pas encore, rechargez cette page dans quelques secondes.
+          </p>
+        </div>
+      )}
 
       <div className="mx-auto mt-10 max-w-md rounded-blob bg-cream p-8 text-left shadow-soft">
         <p className="font-display font-semibold">Et maintenant ?</p>
