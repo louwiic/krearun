@@ -72,7 +72,7 @@ function itemsTable(order: Order): string {
     .join("");
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size:14px;margin:20px 0;">
 ${rows}
-<tr><td colspan="2" style="padding:10px 0;color:#877867;">Livraison</td>
+<tr><td colspan="2" style="padding:10px 0;color:#877867;">Récupération</td>
 <td style="text-align:right;padding:10px 0;">${order.shippingCents === 0 ? "Offerte ✿" : formatPrice(order.shippingCents)}</td></tr>
 <tr><td colspan="2" style="padding:10px 0;font-weight:bold;font-size:16px;">Total</td>
 <td style="text-align:right;padding:10px 0;font-weight:bold;font-size:16px;">${formatPrice(order.totalCents)}</td></tr>
@@ -100,7 +100,7 @@ L'imprimante va bientôt se mettre à ronronner : chaque pièce est fabriquée
 rien que pour vous, couche par couche (comptez 2 à 4 jours), puis expédiée
 en colis suivi.</p>
 ${itemsTable(order)}
-<p style="color:#877867;font-size:13px;">Livraison : ${order.addressLine1}${order.addressLine2 ? ", " + order.addressLine2 : ""}, ${order.postalCode} ${order.city}</p>
+<p style="color:#877867;font-size:13px;">Récupération : ${order.addressLine1}${order.addressLine2 ? ", " + order.addressLine2 : ""}, ${order.postalCode} ${order.city}</p>
 ${suiviButton(order)}
 <p>On vous écrit dès que votre colis prend la route. D'ici là, prenez soin de vous ✿</p>`)
   );

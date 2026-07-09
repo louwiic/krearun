@@ -17,11 +17,11 @@ const sections = [
   },
   {
     t: "4. Paiement",
-    c: "Le paiement s'effectue en ligne par carte bancaire via Stripe, plateforme de paiement sécurisée. Aucune donnée bancaire n'est conservée par Krearun Studio.",
+    c: "Le paiement s'effectue en ligne par carte bancaire via une plateforme de paiement sécurisée. Aucune donnée bancaire n'est conservée par Krearun Studio.",
   },
   {
-    t: "5. Livraison",
-    c: "Les commandes sont expédiées en colis suivi. Les délais indicatifs sont de 2 à 4 jours ouvrés après expédition en France métropolitaine. En cas de retard important, le client est informé par e-mail.",
+    t: "5. Livraison et retrait",
+    c: "Les commandes peuvent être envoyées en suivi ou retirées sur un point proposé au moment de la commande, selon les options disponibles. Les retraits sont principalement organisés le week-end, sur créneau confirmé après paiement.",
   },
   {
     t: "6. Droit de rétractation",

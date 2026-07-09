@@ -22,10 +22,14 @@ function metadataCustomer(session: Stripe.Checkout.Session): CheckoutCustomer | 
   const email = metadata.customerEmail || session.customer_details?.email || "";
   const firstName = metadata.customerFirstName || "";
   const lastName = metadata.customerLastName || "";
+  const isPickup = metadata.fulfillmentMethod === "pickup";
   const addressLine1 = metadata.addressLine1 || "";
   const city = metadata.city || "";
   const postalCode = metadata.postalCode || "";
-  if (!email || !firstName || !lastName || !addressLine1 || !city || !postalCode) {
+  if (!email || !firstName || !lastName) {
+    return null;
+  }
+  if (!isPickup && (!addressLine1 || !city || !postalCode)) {
     return null;
   }
   return {
@@ -33,10 +37,10 @@ function metadataCustomer(session: Stripe.Checkout.Session): CheckoutCustomer | 
     firstName,
     lastName,
     phone: metadata.customerPhone || session.customer_details?.phone || "",
-    addressLine1,
+    addressLine1: isPickup ? metadata.pickupPointAddress || addressLine1 : addressLine1,
     addressLine2: metadata.addressLine2 || "",
-    city,
-    postalCode,
+    city: isPickup ? metadata.pickupPointName || city : city,
+    postalCode: isPickup ? "" : postalCode,
     country: metadata.country || "RE",
   };
 }
@@ -97,6 +101,21 @@ export async function POST(req: Request) {
     const name = customer
       ? `${customer.firstName} ${customer.lastName}`.trim()
       : details?.name ?? session.customer_details?.name ?? "";
+    const isPickup = session.metadata?.fulfillmentMethod === "pickup";
+    const pickupNote = isPickup
+      ? [
+          "Retrait choisi par le client",
+          session.metadata?.pickupPointName ? `Point : ${session.metadata.pickupPointName}` : "",
+          session.metadata?.pickupPointAddress
+            ? `Adresse : ${session.metadata.pickupPointAddress}`
+            : "",
+          session.metadata?.pickupPointSchedule
+            ? `Créneau : ${session.metadata.pickupPointSchedule}`
+            : "",
+        ]
+          .filter(Boolean)
+          .join("\n")
+      : "";
 
     const order = await createOrder({
       email: customer?.email ?? session.customer_details?.email ?? "",
@@ -113,7 +132,7 @@ export async function POST(req: Request) {
       status: "paid",
       stripeSessionId: session.id,
       trackingNumber: "",
-      note: "",
+      note: pickupNote,
       items,
     });
 

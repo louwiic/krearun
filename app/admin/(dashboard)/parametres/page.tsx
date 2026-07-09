@@ -2,6 +2,7 @@ import { getSettings } from "@/lib/store";
 import { saveSettingsAction } from "@/app/admin/actions";
 import { stripeConfigured } from "@/lib/stripe";
 import { DEFAULT_REUNION_SHIPPING_RATES } from "@/lib/shipping";
+import { DEFAULT_PICKUP_POINTS } from "@/lib/pickup";
 
 export const dynamic = "force-dynamic";
 
@@ -190,7 +191,7 @@ export default async function AdminParametresPage() {
               />
             </label>
             <label className="sm:col-span-2">
-              <span className={label}>Grille Colissimo Réunion → Réunion</span>
+              <span className={label}>Grille d'envoi à domicile</span>
               <textarea
                 name="shipping_rates_json"
                 rows={8}
@@ -202,6 +203,22 @@ export default async function AdminParametresPage() {
               />
               <span className="mt-1 block text-xs text-ink-faint">
                 Format JSON. `priceCents` est en centimes. Mettez le seuil de gratuité à 0 pour toujours calculer les frais par poids.
+              </span>
+            </label>
+            <label className="sm:col-span-2">
+              <span className={label}>Points de retrait</span>
+              <textarea
+                name="pickup_points_json"
+                rows={10}
+                defaultValue={
+                  settings.pickup_points_json ||
+                  JSON.stringify(DEFAULT_PICKUP_POINTS, null, 2)
+                }
+                className={`${field} font-mono text-xs`}
+              />
+              <span className="mt-1 block text-xs text-ink-faint">
+                Format JSON. Mettez `active: true` pour afficher un point au client.
+                Le retrait est gratuit et pensé pour les créneaux du week-end.
               </span>
             </label>
           </div>

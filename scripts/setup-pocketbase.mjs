@@ -146,6 +146,7 @@ const collections = [
       { name: "shipping_flat_cents", type: "number", onlyInt: true },
       { name: "free_shipping_threshold_cents", type: "number", onlyInt: true },
       { name: "shipping_rates_json", type: "text", max: 10000 },
+      { name: "pickup_points_json", type: "text", max: 10000 },
       { name: "store_name", type: "text" },
       { name: "contact_email", type: "text" },
       { name: "instagram", type: "text" },

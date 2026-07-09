@@ -12,6 +12,7 @@ import type {
 } from "./types";
 import { uploadProductImageToR2, uploadProductMediaToR2 } from "./r2";
 import { DEFAULT_REUNION_SHIPPING_RATES } from "./shipping";
+import { DEFAULT_PICKUP_POINTS } from "./pickup";
 
 const PB_URL = (process.env.POCKETBASE_URL ?? "").replace(/\/$/, "");
 const PB_EMAIL = process.env.POCKETBASE_ADMIN_EMAIL ?? "";
@@ -564,6 +565,7 @@ const DEFAULT_SETTINGS: Settings = {
   shipping_flat_cents: 590,
   free_shipping_threshold_cents: 0,
   shipping_rates_json: JSON.stringify(DEFAULT_REUNION_SHIPPING_RATES),
+  pickup_points_json: JSON.stringify(DEFAULT_PICKUP_POINTS, null, 2),
   store_name: "Krearun Studio",
   contact_email: "bonjour@krearun.studio",
   instagram: "",

@@ -80,7 +80,7 @@ export default function CartDrawer({
               ) : freeShippingEnabled ? (
                 <>La livraison est offerte pour vous ✿</>
               ) : (
-                <>Livraison Colissimo calculée par poids ✿</>
+                <>Frais d'envoi calculés par poids ✿</>
               )}
             </div>
 
@@ -181,7 +181,7 @@ export default function CartDrawer({
               </div>
               <div className="mb-2 flex items-start justify-between gap-3 text-sm">
                 <span className="text-ink-soft">
-                  Livraison Colissimo · {formatWeight(totalWeightGrams)} · {shippingEstimate.label}
+                  Envoi · {formatWeight(totalWeightGrams)} · {shippingEstimate.label}
                 </span>
                 <span className="font-semibold">
                   {shippingCents === 0 ? "Offerte" : formatPrice(shippingCents)}
@@ -201,7 +201,7 @@ export default function CartDrawer({
                 Passer commande
               </Link>
               <p className="mt-3 text-center text-[11px] text-ink-faint">
-                Paiement sécurisé par Stripe · Frais recalculés au paiement
+                Paiement sécurisé · frais recalculés au paiement
               </p>
             </div>
           </>

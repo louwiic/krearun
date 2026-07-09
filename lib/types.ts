@@ -109,6 +109,7 @@ export interface Settings {
   shipping_flat_cents: number;
   free_shipping_threshold_cents: number;
   shipping_rates_json: string;
+  pickup_points_json: string;
   store_name: string;
   contact_email: string;
   instagram: string;
@@ -146,3 +147,5 @@ export interface CheckoutCustomer {
   city: string;
   country: string;
 }
+
+export type FulfillmentMethod = "delivery" | "pickup";

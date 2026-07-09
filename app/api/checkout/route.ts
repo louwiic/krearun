@@ -3,7 +3,8 @@ import type Stripe from "stripe";
 import { getProductById, getSettings } from "@/lib/store";
 import { getStripe, stripeConfigured } from "@/lib/stripe";
 import { calculateShippingCents, parseShippingRates } from "@/lib/shipping";
-import type { CheckoutCustomer } from "@/lib/types";
+import { getPickupPoint } from "@/lib/pickup";
+import type { CheckoutCustomer, FulfillmentMethod } from "@/lib/types";
 
 interface CheckoutItem {
   productId: string;
@@ -16,6 +17,8 @@ interface CheckoutBody {
   items: CheckoutItem[];
   customer?: Partial<CheckoutCustomer>;
   promoCode?: string;
+  fulfillmentMethod?: FulfillmentMethod;
+  pickupPointId?: string;
 }
 
 function normalizeCustomName(value: unknown): string {
@@ -26,7 +29,10 @@ function text(value: unknown, max = 120): string {
   return String(value ?? "").trim().replace(/\s+/g, " ").slice(0, max);
 }
 
-function validateCustomer(input: Partial<CheckoutCustomer> | undefined): CheckoutCustomer {
+function validateCustomer(
+  input: Partial<CheckoutCustomer> | undefined,
+  fulfillmentMethod: FulfillmentMethod
+): CheckoutCustomer {
   const customer: CheckoutCustomer = {
     email: text(input?.email, 160).toLowerCase(),
     firstName: text(input?.firstName, 80),
@@ -45,7 +51,10 @@ function validateCustomer(input: Partial<CheckoutCustomer> | undefined): Checkou
     throw new Error("Indiquez votre prénom et votre nom.");
   }
   if (!customer.phone) throw new Error("Indiquez votre téléphone.");
-  if (!customer.addressLine1 || !customer.postalCode || !customer.city) {
+  if (
+    fulfillmentMethod === "delivery" &&
+    (!customer.addressLine1 || !customer.postalCode || !customer.city)
+  ) {
     throw new Error("Complétez votre adresse de livraison.");
   }
   return customer;
@@ -56,7 +65,7 @@ export async function POST(req: Request) {
     return NextResponse.json(
       {
         error:
-          "Le paiement n'est pas encore activé sur cette boutique (clés Stripe manquantes dans .env).",
+          "Le paiement n'est pas encore activé sur cette boutique.",
       },
       { status: 503 }
     );
@@ -65,11 +74,15 @@ export async function POST(req: Request) {
   let items: CheckoutItem[];
   let customer: CheckoutCustomer;
   let promoCode = "";
+  let fulfillmentMethod: FulfillmentMethod = "delivery";
+  let pickupPointId = "";
   try {
     const body = (await req.json()) as CheckoutBody;
     items = body.items;
     if (!Array.isArray(items) || items.length === 0) throw new Error();
-    customer = validateCustomer(body.customer);
+    fulfillmentMethod = body.fulfillmentMethod === "pickup" ? "pickup" : "delivery";
+    pickupPointId = text(body.pickupPointId, 80);
+    customer = validateCustomer(body.customer, fulfillmentMethod);
     promoCode = text(body.promoCode, 80);
   } catch (e) {
     return NextResponse.json(
@@ -85,6 +98,16 @@ export async function POST(req: Request) {
 
   const settings = await getSettings();
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const pickupPoint =
+    fulfillmentMethod === "pickup"
+      ? getPickupPoint(settings.pickup_points_json, pickupPointId)
+      : null;
+  if (fulfillmentMethod === "pickup" && !pickupPoint) {
+    return NextResponse.json(
+      { error: "Choisissez un point de retrait disponible." },
+      { status: 400 }
+    );
+  }
 
   // Prix relus côté serveur — on ne fait jamais confiance au client
   const lineItems: {
@@ -159,7 +182,7 @@ export async function POST(req: Request) {
   const freeShipping =
     settings.free_shipping_threshold_cents > 0 &&
     subtotalCents >= settings.free_shipping_threshold_cents;
-  const shippingCents = freeShipping ? 0 : shipping.priceCents;
+  const shippingCents = pickupPoint ? 0 : freeShipping ? 0 : shipping.priceCents;
 
   const stripe = getStripe();
   const discounts: NonNullable<Stripe.Checkout.SessionCreateParams["discounts"]> = [];
@@ -190,9 +213,11 @@ export async function POST(req: Request) {
           shipping_rate_data: {
             type: "fixed_amount",
             fixed_amount: { amount: shippingCents, currency: "eur" },
-            display_name: freeShipping
-              ? "Livraison suivie offerte"
-              : `Colissimo Réunion · ${shipping.label}`,
+            display_name: pickupPoint
+              ? `Retrait · ${pickupPoint.name}`
+              : freeShipping
+                ? "Envoi offert"
+                : `Envoi suivi · ${shipping.label}`,
             delivery_estimate: {
               minimum: { unit: "business_day", value: 4 },
               maximum: { unit: "business_day", value: 8 },
@@ -214,6 +239,11 @@ export async function POST(req: Request) {
         postalCode: customer.postalCode,
         city: customer.city,
         country: customer.country,
+        fulfillmentMethod,
+        pickupPointId: pickupPoint?.id ?? "",
+        pickupPointName: pickupPoint?.name ?? "",
+        pickupPointAddress: pickupPoint?.address ?? "",
+        pickupPointSchedule: pickupPoint?.schedule ?? "",
         promoCode,
       },
       discounts: discounts.length ? discounts : undefined,
@@ -225,7 +255,7 @@ export async function POST(req: Request) {
   } catch (e) {
     console.error("Stripe checkout :", e);
     return NextResponse.json(
-      { error: "Impossible de préparer le paiement. Vérifiez la configuration Stripe." },
+      { error: "Impossible de préparer le paiement. Vérifiez la configuration de paiement." },
       { status: 502 }
     );
   }

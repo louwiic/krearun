@@ -5,6 +5,8 @@ import { useMemo, useState } from "react";
 import { useCart } from "@/components/cart/CartContext";
 import { formatPrice } from "@/lib/format";
 import { calculateShippingCents, formatWeight, parseShippingRates } from "@/lib/shipping";
+import { parsePickupPoints } from "@/lib/pickup";
+import type { FulfillmentMethod } from "@/lib/types";
 
 const inputClass =
   "w-full rounded-2xl border border-sand bg-cream px-4 py-3 text-sm outline-none transition-colors placeholder:text-ink-faint focus:border-terra";
@@ -45,14 +47,19 @@ function Field({
 export default function CheckoutForm({
   freeShippingThresholdCents,
   shippingRatesJson,
+  pickupPointsJson,
 }: {
   freeShippingThresholdCents: number;
   shippingRatesJson: string;
+  pickupPointsJson: string;
 }) {
   const { items, subtotalCents, totalWeightGrams, setQuantity, removeItem } = useCart();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [promoCode, setPromoCode] = useState("");
+  const pickupPoints = useMemo(() => parsePickupPoints(pickupPointsJson), [pickupPointsJson]);
+  const [fulfillmentMethod, setFulfillmentMethod] = useState<FulfillmentMethod>("delivery");
+  const [pickupPointId, setPickupPointId] = useState(pickupPoints[0]?.id ?? "");
   const [customer, setCustomer] = useState({
     email: "",
     firstName: "",
@@ -69,7 +76,10 @@ export default function CheckoutForm({
   const shippingEstimate = calculateShippingCents(totalWeightGrams || 1, shippingRates);
   const freeShipping =
     freeShippingThresholdCents > 0 && subtotalCents >= freeShippingThresholdCents;
-  const shippingCents = freeShipping ? 0 : shippingEstimate.priceCents;
+  const selectedPickupPoint =
+    pickupPoints.find((point) => point.id === pickupPointId) ?? pickupPoints[0] ?? null;
+  const isPickup = fulfillmentMethod === "pickup" && selectedPickupPoint;
+  const shippingCents = isPickup ? 0 : freeShipping ? 0 : shippingEstimate.priceCents;
   const totalCents = subtotalCents + shippingCents;
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
@@ -83,6 +93,8 @@ export default function CheckoutForm({
         body: JSON.stringify({
           customer,
           promoCode,
+          fulfillmentMethod,
+          pickupPointId: isPickup ? selectedPickupPoint.id : "",
           items: items.map((item) => ({
             productId: item.productId,
             quantity: item.quantity,
@@ -94,7 +106,7 @@ export default function CheckoutForm({
       const text = await res.text();
       const data = text ? JSON.parse(text) : {};
       if (!res.ok) throw new Error(data.error || "Impossible de préparer le paiement.");
-      if (!data.url) throw new Error("Stripe n'a pas renvoyé de lien de paiement.");
+      if (!data.url) throw new Error("Le service de paiement n'a pas renvoyé de lien.");
       window.location.href = data.url;
     } catch (e) {
       setError(e instanceof Error ? e.message : "Une erreur est survenue.");
@@ -123,12 +135,90 @@ export default function CheckoutForm({
     <form onSubmit={submit} className="mt-10 grid gap-8 lg:grid-cols-[minmax(0,1fr)_400px]">
       <section className="space-y-6 bg-cream p-5 shadow-soft sm:p-8">
         <div>
-          <h2 className="font-display text-2xl font-semibold">Coordonnées de livraison</h2>
+          <h2 className="font-display text-2xl font-semibold">Coordonnées</h2>
           <p className="mt-2 text-sm text-ink-soft">
-            Ces informations seront utilisées pour préparer l'expédition et créer votre
-            espace client.
+            Ces informations seront utilisées pour préparer la commande et créer votre
+            espace client après paiement.
           </p>
         </div>
+
+        <div className="grid gap-3 sm:grid-cols-2">
+          <label
+            className={`cursor-pointer rounded-2xl border p-4 transition-colors ${
+              fulfillmentMethod === "delivery"
+                ? "border-terra bg-linen"
+                : "border-sand bg-cream hover:border-terra/60"
+            }`}
+          >
+            <input
+              type="radio"
+              name="fulfillment"
+              value="delivery"
+              checked={fulfillmentMethod === "delivery"}
+              onChange={() => setFulfillmentMethod("delivery")}
+              className="sr-only"
+            />
+            <span className="block text-sm font-bold">Envoi à domicile</span>
+            <span className="mt-1 block text-xs leading-5 text-ink-soft">
+              Frais calculés selon le poids du panier.
+            </span>
+          </label>
+          <label
+            className={`cursor-pointer rounded-2xl border p-4 transition-colors ${
+              fulfillmentMethod === "pickup"
+                ? "border-terra bg-linen"
+                : "border-sand bg-cream hover:border-terra/60"
+            } ${pickupPoints.length === 0 ? "cursor-not-allowed opacity-50" : ""}`}
+          >
+            <input
+              type="radio"
+              name="fulfillment"
+              value="pickup"
+              checked={fulfillmentMethod === "pickup"}
+              onChange={() => {
+                if (pickupPoints.length > 0) setFulfillmentMethod("pickup");
+              }}
+              disabled={pickupPoints.length === 0}
+              className="sr-only"
+            />
+            <span className="block text-sm font-bold">Retrait</span>
+            <span className="mt-1 block text-xs leading-5 text-ink-soft">
+              Principalement le week-end, selon les créneaux proposés.
+            </span>
+          </label>
+        </div>
+
+        {fulfillmentMethod === "pickup" && pickupPoints.length > 0 && (
+          <label className="block">
+            <span className="mb-1.5 block text-xs font-bold text-ink-soft">
+              Point de retrait
+            </span>
+            <select
+              className={inputClass}
+              value={pickupPointId}
+              onChange={(event) => setPickupPointId(event.target.value)}
+            >
+              {pickupPoints.map((point) => (
+                <option key={point.id} value={point.id}>
+                  {point.name}
+                </option>
+              ))}
+            </select>
+            {selectedPickupPoint && (
+              <span className="mt-2 block rounded-2xl bg-linen px-4 py-3 text-xs leading-5 text-ink-soft">
+                <strong className="text-ink">{selectedPickupPoint.address}</strong>
+                <br />
+                {selectedPickupPoint.schedule}
+                {selectedPickupPoint.note ? (
+                  <>
+                    <br />
+                    {selectedPickupPoint.note}
+                  </>
+                ) : null}
+              </span>
+            )}
+          </label>
+        )}
 
         <div className="grid gap-4 sm:grid-cols-2">
           <Field
@@ -168,6 +258,7 @@ export default function CheckoutForm({
             label="Adresse"
             name="addressLine1"
             autoComplete="address-line1"
+            required={fulfillmentMethod === "delivery"}
             value={customer.addressLine1}
             onChange={(value) => setCustomer((c) => ({ ...c, addressLine1: value }))}
           />
@@ -184,6 +275,7 @@ export default function CheckoutForm({
               label="Code postal"
               name="postalCode"
               autoComplete="postal-code"
+              required={fulfillmentMethod === "delivery"}
               value={customer.postalCode}
               onChange={(value) => setCustomer((c) => ({ ...c, postalCode: value }))}
             />
@@ -191,6 +283,7 @@ export default function CheckoutForm({
               label="Ville"
               name="city"
               autoComplete="address-level2"
+              required={fulfillmentMethod === "delivery"}
               value={customer.city}
               onChange={(value) => setCustomer((c) => ({ ...c, city: value }))}
             />
@@ -221,7 +314,7 @@ export default function CheckoutForm({
             placeholder="Facultatif"
           />
           <span className="mt-2 block text-xs text-ink-faint">
-            Les codes promo Stripe actifs sont appliqués automatiquement au paiement.
+            Les codes actifs configurés dans le tableau de bord sont appliqués au paiement.
           </span>
         </label>
       </section>
@@ -310,7 +403,9 @@ export default function CheckoutForm({
           </div>
           <div className="flex items-start justify-between gap-4">
             <span className="text-ink-soft">
-              Colissimo · {formatWeight(totalWeightGrams)} · {shippingEstimate.label}
+              {isPickup
+                ? `Retrait · ${selectedPickupPoint.name}`
+                : `Envoi · ${formatWeight(totalWeightGrams)} · ${shippingEstimate.label}`}
             </span>
             <span className="font-semibold">
               {shippingCents === 0 ? "Offerte" : formatPrice(shippingCents)}
@@ -335,10 +430,10 @@ export default function CheckoutForm({
           disabled={loading}
           className="mt-5 w-full rounded-full bg-terra px-8 py-4 text-sm font-bold text-cream transition-colors hover:bg-terra-deep disabled:opacity-60"
         >
-          {loading ? "Préparation du paiement..." : "Payer avec Stripe"}
+          {loading ? "Préparation du paiement..." : "Payer la commande"}
         </button>
         <p className="mt-3 text-center text-[11px] text-ink-faint">
-          Paiement sécurisé. La commande est confirmée après validation Stripe.
+          Paiement sécurisé. La commande est confirmée après validation.
         </p>
       </aside>
     </form>

@@ -4,7 +4,7 @@ export interface ShippingRateBracket {
   priceCents: number;
 }
 
-// Defaults for a small Colissimo-style local Réunion grid. Keep editable in admin.
+// Defaults for a small local Réunion shipping grid. Keep editable in admin.
 export const DEFAULT_REUNION_SHIPPING_RATES: ShippingRateBracket[] = [
   { label: "0 - 250 g", maxGrams: 250, priceCents: 525 },
   { label: "250 - 500 g", maxGrams: 500, priceCents: 735 },
@@ -40,7 +40,7 @@ export function calculateShippingCents(
   const weight = Math.max(1, Math.ceil(totalWeightGrams));
   const bracket = rates.find((rate) => weight <= rate.maxGrams) ?? rates[rates.length - 1];
   return {
-    label: bracket?.label ?? "Colissimo",
+    label: bracket?.label ?? "Envoi suivi",
     priceCents: bracket?.priceCents ?? 0,
   };
 }

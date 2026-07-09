@@ -71,10 +71,10 @@ export default async function SuccesPage({
 
       {!order && stripeSummary?.paid && (
         <div className="mx-auto mt-8 max-w-md rounded-blob bg-sage/20 p-5 text-left text-sm text-ink-soft shadow-soft">
-          <p className="font-bold text-sage-deep">Paiement Stripe confirmé</p>
+          <p className="font-bold text-sage-deep">Paiement confirmé</p>
           <p className="mt-2">
             {stripeSummary.itemCount > 0 && `${stripeSummary.itemCount} article(s) · `}
-            {stripeSummary.customerEmail || "Adresse e-mail collectée par Stripe"}
+            {stripeSummary.customerEmail || "Adresse e-mail collectée"}
           </p>
           <p className="mt-2">
             Si le numéro de commande n&apos;apparaît pas encore, rechargez cette page dans quelques secondes.
@@ -87,7 +87,7 @@ export default async function SuccesPage({
         <ol className="mt-4 space-y-3 text-sm text-ink-soft">
           <li className="flex gap-3"><span>1.</span> Nous imprimons votre objet, couche par couche (2 à 4 jours).</li>
           <li className="flex gap-3"><span>2.</span> Ponçage, vérification et emballage tout doux.</li>
-          <li className="flex gap-3"><span>3.</span> Expédition suivie jusqu'à votre boîte aux lettres.</li>
+          <li className="flex gap-3"><span>3.</span> Envoi suivi ou retrait selon le choix fait au panier.</li>
         </ol>
       </div>
 

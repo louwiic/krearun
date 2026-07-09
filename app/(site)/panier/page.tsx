@@ -13,13 +13,15 @@ export default async function CartPage() {
         Votre panier
       </h1>
       <p className="mt-4 max-w-2xl text-sm leading-7 text-ink-soft sm:text-base">
-        Renseignez vos coordonnées de livraison ici, puis passez au paiement sécurisé
-        Stripe. Votre espace client sera préparé automatiquement après validation.
+        Renseignez vos coordonnées ici, choisissez votre mode de récupération,
+        puis passez au paiement sécurisé. Votre espace client sera préparé
+        automatiquement après validation.
       </p>
 
       <CheckoutForm
         freeShippingThresholdCents={settings.free_shipping_threshold_cents}
         shippingRatesJson={settings.shipping_rates_json}
+        pickupPointsJson={settings.pickup_points_json}
       />
     </div>
   );

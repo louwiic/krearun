@@ -93,6 +93,12 @@ export default async function CommandeDetailPage({
                 </>
               )}
             </address>
+            {order.note && (
+              <div className="mt-5 rounded-2xl bg-linen p-4 text-sm leading-relaxed text-ink-soft">
+                <p className="mb-2 font-bold text-ink">Note de préparation</p>
+                <p className="whitespace-pre-line">{order.note}</p>
+              </div>
+            )}
           </section>
         </div>
 
