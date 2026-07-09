@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
 import { useCart } from "./CartContext";
 import { formatPrice } from "@/lib/format";
 import { calculateShippingCents, formatWeight, parseShippingRates } from "@/lib/shipping";
@@ -15,8 +14,6 @@ export default function CartDrawer({
 }) {
   const { items, subtotalCents, totalWeightGrams, isOpen, closeCart, setQuantity, removeItem } =
     useCart();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const freeShippingEnabled = freeShippingThresholdCents > 0;
   const remaining = freeShippingThresholdCents - subtotalCents;
@@ -25,30 +22,6 @@ export default function CartDrawer({
   const freeShipping = freeShippingEnabled && subtotalCents >= freeShippingThresholdCents;
   const shippingCents = freeShipping ? 0 : shippingEstimate.priceCents;
   const totalCents = subtotalCents + shippingCents;
-
-  async function checkout() {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          items: items.map((i) => ({
-            productId: i.productId,
-            quantity: i.quantity,
-            color: i.color,
-          })),
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Une erreur est survenue");
-      window.location.href = data.url;
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Une erreur est survenue");
-      setLoading(false);
-    }
-  }
 
   return (
     <>
@@ -66,7 +39,7 @@ export default function CartDrawer({
         }`}
         aria-hidden={!isOpen}
       >
-        <div className="flex items-center justify-between border-b border-sand/70 px-6 py-5">
+        <div className="flex items-center justify-between border-b border-sand/70 px-4 py-4 sm:px-6 sm:py-5">
           <h2 className="font-display text-xl font-semibold">Votre panier</h2>
           <button
             onClick={closeCart}
@@ -98,7 +71,7 @@ export default function CartDrawer({
           </div>
         ) : (
           <>
-            <div className="border-b border-sand/70 bg-cream px-6 py-3 text-center text-xs font-semibold text-ink-soft">
+            <div className="border-b border-sand/70 bg-cream px-4 py-3 text-center text-xs font-semibold text-ink-soft sm:px-6">
               {freeShippingEnabled && remaining > 0 ? (
                 <>
                   Plus que <span className="text-terra">{formatPrice(remaining)}</span>{" "}
@@ -111,14 +84,17 @@ export default function CartDrawer({
               )}
             </div>
 
-            <ul className="soft-scroll flex-1 divide-y divide-sand/50 overflow-y-auto px-6">
+            <ul className="soft-scroll flex-1 divide-y divide-sand/50 overflow-y-auto px-4 sm:px-6">
               {items.map((item) => (
-                <li key={`${item.productId}-${item.color}`} className="flex gap-4 py-5">
+                <li
+                  key={`${item.productId}-${item.color}-${item.customName ?? ""}`}
+                  className="flex gap-3 py-4 sm:gap-4 sm:py-5"
+                >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={item.image}
                     alt={item.name}
-                    className="h-20 w-20 shrink-0 rounded-2xl object-cover"
+                    className="h-16 w-16 shrink-0 rounded-2xl object-cover sm:h-20 sm:w-20"
                   />
                   <div className="flex flex-1 flex-col">
                     <div className="flex items-start justify-between gap-2">
@@ -133,6 +109,11 @@ export default function CartDrawer({
                         {item.color && (
                           <p className="text-xs text-ink-soft">Coloris : {item.color}</p>
                         )}
+                        {item.customName && (
+                          <p className="text-xs font-semibold text-terra-deep">
+                            Prénom : {item.customName}
+                          </p>
+                        )}
                         {item.preorder && (
                           <p className="mt-1 text-xs font-bold text-terra-deep">
                             Pré-commande · bientôt disponible
@@ -140,7 +121,7 @@ export default function CartDrawer({
                         )}
                       </div>
                       <button
-                        onClick={() => removeItem(item.productId, item.color)}
+                        onClick={() => removeItem(item.productId, item.color, item.customName)}
                         aria-label="Retirer l'article"
                         className="text-ink-faint transition-colors hover:text-terra"
                       >
@@ -152,7 +133,14 @@ export default function CartDrawer({
                     <div className="mt-auto flex items-center justify-between pt-2">
                       <div className="flex items-center rounded-full border border-sand">
                         <button
-                          onClick={() => setQuantity(item.productId, item.color, item.quantity - 1)}
+                          onClick={() =>
+                            setQuantity(
+                              item.productId,
+                              item.color,
+                              item.customName,
+                              item.quantity - 1
+                            )
+                          }
                           className="px-3 py-1 text-ink-soft hover:text-ink"
                           aria-label="Diminuer la quantité"
                         >
@@ -160,7 +148,14 @@ export default function CartDrawer({
                         </button>
                         <span className="min-w-6 text-center text-sm font-bold">{item.quantity}</span>
                         <button
-                          onClick={() => setQuantity(item.productId, item.color, item.quantity + 1)}
+                          onClick={() =>
+                            setQuantity(
+                              item.productId,
+                              item.color,
+                              item.customName,
+                              item.quantity + 1
+                            )
+                          }
                           className="px-3 py-1 text-ink-soft hover:text-ink disabled:opacity-30"
                           disabled={item.quantity >= (item.preorder ? 20 : item.stock)}
                           aria-label="Augmenter la quantité"
@@ -177,14 +172,14 @@ export default function CartDrawer({
               ))}
             </ul>
 
-            <div className="border-t border-sand/70 bg-cream px-6 py-5">
+            <div className="border-t border-sand/70 bg-cream px-4 py-4 sm:px-6 sm:py-5">
               <div className="mb-2 flex items-center justify-between">
                 <span className="text-sm text-ink-soft">Sous-total</span>
                 <span className="font-display text-lg font-semibold">
                   {formatPrice(subtotalCents)}
                 </span>
               </div>
-              <div className="mb-2 flex items-center justify-between text-sm">
+              <div className="mb-2 flex items-start justify-between gap-3 text-sm">
                 <span className="text-ink-soft">
                   Livraison Colissimo · {formatWeight(totalWeightGrams)} · {shippingEstimate.label}
                 </span>
@@ -198,18 +193,13 @@ export default function CartDrawer({
                   {formatPrice(totalCents)}
                 </span>
               </div>
-              {error && (
-                <p className="mb-3 rounded-xl bg-blush/40 px-4 py-2 text-xs font-semibold text-terra-deep">
-                  {error}
-                </p>
-              )}
-              <button
-                onClick={checkout}
-                disabled={loading}
-                className="w-full rounded-full bg-terra py-3.5 text-sm font-bold text-cream transition-colors hover:bg-terra-deep disabled:opacity-60"
+              <Link
+                href="/panier"
+                onClick={closeCart}
+                className="flex w-full justify-center rounded-full bg-terra py-3.5 text-sm font-bold text-cream transition-colors hover:bg-terra-deep"
               >
-                {loading ? "Un instant…" : "Passer commande"}
-              </button>
+                Passer commande
+              </Link>
               <p className="mt-3 text-center text-[11px] text-ink-faint">
                 Paiement sécurisé par Stripe · Frais recalculés au paiement
               </p>

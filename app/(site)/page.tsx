@@ -62,33 +62,33 @@ export default async function HomePage() {
           aria-hidden
           className="pointer-events-none absolute -left-32 top-40 h-80 w-80 rounded-full bg-sage/30 blur-3xl"
         />
-        <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 pb-20 pt-16 sm:px-6 md:grid-cols-2 md:pt-24">
+        <div className="mx-auto grid max-w-6xl items-center gap-8 px-4 pb-14 pt-10 sm:px-6 sm:pb-20 sm:pt-16 md:grid-cols-2 md:gap-12 md:pt-24">
           <div>
-            <p className="reveal mb-4 inline-flex items-center gap-2 rounded-full bg-sage/20 px-4 py-1.5 text-xs font-bold uppercase tracking-[0.15em] text-sage-deep">
+            <p className="reveal mb-4 inline-flex items-center gap-2 rounded-full bg-sage/20 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-sage-deep sm:px-4 sm:text-xs sm:tracking-[0.15em]">
               ✿ Fabriqué lentement, dans notre atelier
             </p>
-            <h1 className="reveal reveal-1 font-display text-5xl font-semibold leading-[1.05] tracking-tight sm:text-6xl">
+            <h1 className="reveal reveal-1 font-display text-4xl font-semibold leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl">
               Des objets
               <br />
               imprimés en 3D,
               <br />
               <em className="text-terra">tout en douceur.</em>
             </h1>
-            <p className="reveal reveal-2 mt-6 max-w-md text-lg leading-relaxed text-ink-soft">
+            <p className="reveal reveal-2 mt-5 max-w-md text-base leading-relaxed text-ink-soft sm:mt-6 sm:text-lg">
               Veilleuses, vases et petits compagnons du quotidien, imprimés
               couche par couche à la commande — rien que pour vous, et pour
               longtemps.
             </p>
-            <div className="reveal reveal-3 mt-9 flex flex-wrap gap-4">
+            <div className="reveal reveal-3 mt-7 grid gap-3 sm:mt-9 sm:flex sm:flex-wrap sm:gap-4">
               <Link
                 href="/boutique"
-                className="rounded-full bg-terra px-8 py-4 text-sm font-bold text-cream transition-all hover:bg-terra-deep hover:shadow-lifted"
+                className="rounded-full bg-terra px-6 py-3.5 text-center text-sm font-bold text-cream transition-all hover:bg-terra-deep hover:shadow-lifted sm:px-8 sm:py-4"
               >
                 Découvrir la boutique
               </Link>
               <Link
                 href="/a-propos"
-                className="rounded-full border border-sand bg-cream px-8 py-4 text-sm font-bold text-ink transition-colors hover:border-terra hover:text-terra"
+                className="rounded-full border border-sand bg-cream px-6 py-3.5 text-center text-sm font-bold text-ink transition-colors hover:border-terra hover:text-terra sm:px-8 sm:py-4"
               >
                 Visiter l'atelier
               </Link>
@@ -143,7 +143,7 @@ export default async function HomePage() {
 
       {/* ── Bande réassurance ────────────────────────── */}
       <section className="border-y border-sand/60 bg-cream/70">
-        <div className="mx-auto grid max-w-6xl gap-6 px-4 py-8 sm:px-6 md:grid-cols-3">
+        <div className="mx-auto grid max-w-6xl gap-5 px-4 py-6 sm:px-6 sm:py-8 md:grid-cols-3">
           {[
             ["🌱", "PLA biosourcé", "Un plastique d'origine végétale, imprimé sans gaspillage."],
             ["🤲", "Fait à la commande", "Chaque pièce démarre son impression quand vous commandez."],
@@ -162,13 +162,13 @@ export default async function HomePage() {
 
       {/* ── Nouveautés ───────────────────────────────── */}
       {nouveautes.length > 0 && (
-        <section className="mx-auto max-w-6xl px-4 pt-20 sm:px-6">
-          <div className="mb-10 flex items-end justify-between">
+        <section className="mx-auto max-w-6xl px-4 pt-14 sm:px-6 sm:pt-20">
+          <div className="mb-6 flex items-end justify-between sm:mb-10">
             <div>
-              <p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-terra">
+              <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.14em] text-terra sm:text-xs sm:tracking-[0.18em]">
                 Fraîchement sorties de l'imprimante
               </p>
-              <h2 className="font-display text-4xl font-semibold tracking-tight">
+              <h2 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">
                 Les nouveautés
               </h2>
             </div>
@@ -179,7 +179,7 @@ export default async function HomePage() {
               Tout voir →
             </Link>
           </div>
-          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-2 gap-4 sm:gap-8 lg:grid-cols-3">
             {nouveautes.map((p) => (
               <ProductCard key={p.id} product={p} />
             ))}
@@ -188,8 +188,8 @@ export default async function HomePage() {
       )}
 
       {/* ── Catégories ───────────────────────────────── */}
-      <section className="mx-auto max-w-6xl px-4 pt-20 sm:px-6">
-        <h2 className="mb-8 font-display text-2xl font-semibold">
+      <section className="mx-auto max-w-6xl px-4 pt-14 sm:px-6 sm:pt-20">
+        <h2 className="mb-5 font-display text-2xl font-semibold sm:mb-8">
           Par petits univers
         </h2>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
@@ -206,7 +206,7 @@ export default async function HomePage() {
                 aria-hidden
                 className="aspect-square w-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
-              <p className="px-2 py-3.5 text-sm font-bold text-ink-soft group-hover:text-terra">
+              <p className="px-2 py-3 text-xs font-bold leading-tight text-ink-soft group-hover:text-terra sm:py-3.5 sm:text-sm">
                 {c.label}
               </p>
             </Link>
@@ -216,16 +216,16 @@ export default async function HomePage() {
 
       {/* ── Coups de cœur ────────────────────────────── */}
       {featured.length > 0 && (
-        <section className="mx-auto max-w-6xl px-4 pt-20 sm:px-6">
-          <div className="mb-10">
-            <p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-sage-deep">
+        <section className="mx-auto max-w-6xl px-4 pt-14 sm:px-6 sm:pt-20">
+          <div className="mb-6 sm:mb-10">
+            <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.14em] text-sage-deep sm:text-xs sm:tracking-[0.18em]">
               Les préférés de l'atelier
             </p>
-            <h2 className="font-display text-4xl font-semibold tracking-tight">
+            <h2 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">
               Nos coups de cœur
             </h2>
           </div>
-          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-4 sm:gap-8 lg:grid-cols-4">
             {featured.map((p) => (
               <ProductCard key={p.id} product={p} />
             ))}
@@ -234,8 +234,8 @@ export default async function HomePage() {
       )}
 
       {/* ── Notre histoire ───────────────────────────── */}
-      <section className="mx-auto mt-24 max-w-6xl px-4 sm:px-6">
-        <div className="relative overflow-hidden rounded-[3rem] bg-sage/15 px-6 py-16 sm:px-16">
+      <section className="mx-auto mt-16 max-w-6xl px-4 sm:mt-24 sm:px-6">
+        <div className="relative overflow-hidden rounded-[2rem] bg-sage/15 px-5 py-10 sm:rounded-[3rem] sm:px-16 sm:py-16">
           <div
             aria-hidden
             className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-blush/30 blur-3xl"
@@ -276,12 +276,12 @@ export default async function HomePage() {
       </section>
 
       {/* ── Avis ─────────────────────────────────────── */}
-      <section className="mx-auto max-w-6xl px-4 pt-24 sm:px-6">
-        <div className="mb-10 text-center">
-          <p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-terra">
+      <section className="mx-auto max-w-6xl px-4 pt-16 sm:px-6 sm:pt-24">
+        <div className="mb-8 text-center sm:mb-10">
+          <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.14em] text-terra sm:text-xs sm:tracking-[0.18em]">
             Ils nous ont adoptés
           </p>
-          <h2 className="font-display text-4xl font-semibold tracking-tight">
+          <h2 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">
             Des mots doux de nos clients
           </h2>
         </div>

@@ -7,9 +7,12 @@ import type { Product } from "@/lib/types";
 export default function AddToCart({ product }: { product: Product }) {
   const { addItem } = useCart();
   const [color, setColor] = useState(product.colors[0]?.name ?? "");
+  const [customName, setCustomName] = useState("");
   const [quantity, setQuantity] = useState(1);
   const maxQuantity = product.preorder ? 20 : product.stock;
   const soldOut = product.stock <= 0 && !product.preorder;
+  const normalizedCustomName = customName.trim().replace(/\s+/g, " ");
+  const missingCustomName = product.namePersonalizationEnabled && !normalizedCustomName;
 
   return (
     <div className="space-y-6">
@@ -37,8 +40,25 @@ export default function AddToCart({ product }: { product: Product }) {
         </div>
       )}
 
-      <div className="flex items-center gap-4">
-        <div className="flex items-center rounded-full border border-sand bg-cream">
+      {product.namePersonalizationEnabled && (
+        <label className="block">
+          <span className="mb-2 block text-sm font-bold">Prénom à personnaliser *</span>
+          <input
+            value={customName}
+            onChange={(event) => setCustomName(event.target.value)}
+            maxLength={24}
+            required
+            placeholder="Ex. Léa"
+            className="w-full rounded-2xl border border-sand bg-cream px-4 py-3 text-sm outline-none transition-colors placeholder:text-ink-faint focus:border-terra"
+          />
+          <span className="mt-2 block text-xs font-semibold text-ink-soft">
+            24 caractères maximum, exactement comme vous souhaitez l&apos;imprimer.
+          </span>
+        </label>
+      )}
+
+      <div className="grid gap-3 sm:flex sm:items-center sm:gap-4">
+        <div className="flex w-max items-center rounded-full border border-sand bg-cream">
           <button
             onClick={() => setQuantity((q) => Math.max(1, q - 1))}
             className="px-4 py-2.5 text-ink-soft hover:text-ink"
@@ -66,6 +86,9 @@ export default function AddToCart({ product }: { product: Product }) {
                 name: product.name,
                 priceCents: product.priceCents,
                 color,
+                customName: product.namePersonalizationEnabled
+                  ? normalizedCustomName
+                  : undefined,
                 image: product.images[0] ?? "",
                 stock: product.stock,
                 weightGrams: product.weightGrams,
@@ -74,11 +97,13 @@ export default function AddToCart({ product }: { product: Product }) {
               quantity
             )
           }
-          disabled={soldOut}
-          className="flex-1 rounded-full bg-terra px-8 py-3.5 text-sm font-bold text-cream transition-all hover:bg-terra-deep hover:shadow-lifted disabled:cursor-not-allowed disabled:bg-ink-faint"
+          disabled={soldOut || missingCustomName}
+          className="w-full rounded-full bg-terra px-8 py-3.5 text-sm font-bold text-cream transition-all hover:bg-terra-deep hover:shadow-lifted disabled:cursor-not-allowed disabled:bg-ink-faint sm:flex-1"
         >
           {soldOut
             ? "Bientôt de retour"
+            : missingCustomName
+              ? "Indiquer le prénom"
             : product.preorder
               ? "Pré-commander"
               : "Ajouter au panier"}

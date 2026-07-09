@@ -20,8 +20,13 @@ interface CartContextValue {
   openCart: () => void;
   closeCart: () => void;
   addItem: (item: Omit<CartItem, "quantity">, quantity?: number) => void;
-  removeItem: (productId: string, color: string) => void;
-  setQuantity: (productId: string, color: string, quantity: number) => void;
+  removeItem: (productId: string, color: string, customName?: string) => void;
+  setQuantity: (
+    productId: string,
+    color: string,
+    customName: string | undefined,
+    quantity: number
+  ) => void;
   clearCart: () => void;
 }
 
@@ -31,6 +36,19 @@ const STORAGE_KEY = "krearun-cart-v1";
 
 function maxQuantity(item: Pick<CartItem, "stock" | "preorder">) {
   return item.preorder ? 20 : item.stock;
+}
+
+function sameLine(
+  item: Pick<CartItem, "productId" | "color" | "customName">,
+  productId: string,
+  color: string,
+  customName?: string
+) {
+  return (
+    item.productId === productId &&
+    item.color === color &&
+    (item.customName ?? "") === (customName ?? "")
+  );
 }
 
 export function CartProvider({ children }: { children: ReactNode }) {
@@ -54,7 +72,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     (item: Omit<CartItem, "quantity">, quantity = 1) => {
       setItems((prev) => {
         const existing = prev.find(
-          (i) => i.productId === item.productId && i.color === item.color
+          (i) => sameLine(i, item.productId, item.color, item.customName)
         );
         if (existing) {
           return prev.map((i) =>
@@ -70,19 +88,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
     []
   );
 
-  const removeItem = useCallback((productId: string, color: string) => {
+  const removeItem = useCallback((productId: string, color: string, customName?: string) => {
     setItems((prev) =>
-      prev.filter((i) => !(i.productId === productId && i.color === color))
+      prev.filter((i) => !sameLine(i, productId, color, customName))
     );
   }, []);
 
   const setQuantity = useCallback(
-    (productId: string, color: string, quantity: number) => {
+    (productId: string, color: string, customName: string | undefined, quantity: number) => {
       setItems((prev) =>
         quantity <= 0
-          ? prev.filter((i) => !(i.productId === productId && i.color === color))
+          ? prev.filter((i) => !sameLine(i, productId, color, customName))
           : prev.map((i) =>
-              i.productId === productId && i.color === color
+              sameLine(i, productId, color, customName)
                 ? { ...i, quantity: Math.min(quantity, maxQuantity(i)) }
                 : i
             )

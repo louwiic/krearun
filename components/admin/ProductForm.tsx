@@ -249,6 +249,15 @@ export default function ProductForm({
             <input type="checkbox" name="preorder" defaultChecked={product?.preorder} className="h-4 w-4 accent-terra" />
             Pré-commande / bientôt disponible
           </label>
+          <label className="flex items-center gap-2.5">
+            <input
+              type="checkbox"
+              name="namePersonalizationEnabled"
+              defaultChecked={product?.namePersonalizationEnabled}
+              className="h-4 w-4 accent-terra"
+            />
+            Prénom personnalisable
+          </label>
         </div>
       </div>
 

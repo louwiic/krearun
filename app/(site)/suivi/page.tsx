@@ -102,7 +102,8 @@ function Timeline({ order }: { order: Order }) {
           <li key={i} className="flex justify-between">
             <span>
               {item.name}
-              {item.color ? ` — ${item.color}` : ""} × {item.quantity}
+              {item.color ? ` — ${item.color}` : ""}
+              {item.customName ? ` — Prénom : ${item.customName}` : ""} × {item.quantity}
             </span>
             <span>{formatPrice(item.priceCents * item.quantity)}</span>
           </li>

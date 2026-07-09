@@ -43,6 +43,11 @@ export default async function CommandeDetailPage({
                   <div className="flex-1">
                     <p className="text-sm font-bold">{item.name}</p>
                     {item.color && <p className="text-xs text-ink-soft">Coloris : {item.color}</p>}
+                    {item.customName && (
+                      <p className="text-xs font-semibold text-terra-deep">
+                        Prénom : {item.customName}
+                      </p>
+                    )}
                   </div>
                   <p className="text-sm text-ink-soft">× {item.quantity}</p>
                   <p className="w-20 text-right text-sm font-bold">

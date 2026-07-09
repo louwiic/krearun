@@ -22,7 +22,7 @@ export default function Gallery({
   const activeMedia = media[active] ?? media[0];
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 sm:space-y-4">
       <div className="overflow-hidden rounded-blob bg-cream shadow-soft">
         {activeMedia.type === "video" ? (
           <video
@@ -42,7 +42,7 @@ export default function Gallery({
         )}
       </div>
       {media.length > 1 && (
-        <div className="flex gap-3">
+        <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 sm:mx-0 sm:gap-3 sm:overflow-visible sm:px-0 sm:pb-0">
           {media.map((item, i) => (
             <button
               key={item.src}
@@ -54,14 +54,14 @@ export default function Gallery({
             >
               {item.type === "video" ? (
                 <>
-                  <video src={item.src} muted playsInline className="h-20 w-20 object-cover" />
+                  <video src={item.src} muted playsInline className="h-16 w-16 object-cover sm:h-20 sm:w-20" />
                   <span className="absolute inset-0 grid place-items-center bg-ink/25 text-xs font-bold text-cream">
                     ▶
                   </span>
                 </>
               ) : (
                 /* eslint-disable-next-line @next/next/no-img-element */
-                <img src={item.src} alt="" className="h-20 w-20 object-cover" />
+                <img src={item.src} alt="" className="h-16 w-16 object-cover sm:h-20 sm:w-20" />
               )}
             </button>
           ))}

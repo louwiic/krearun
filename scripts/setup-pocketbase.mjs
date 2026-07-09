@@ -69,6 +69,7 @@ const collections = [
       { name: "active", type: "bool" },
       { name: "isNew", type: "bool" },
       { name: "preorder", type: "bool" },
+      { name: "namePersonalizationEnabled", type: "bool" },
       ...autodates,
     ],
     indexes: ["CREATE UNIQUE INDEX `idx_products_slug` ON `products` (`slug`)"],
@@ -107,6 +108,35 @@ const collections = [
     type: "base",
     fields: [{ name: "email", type: "text", required: true }, ...autodates],
     indexes: ["CREATE UNIQUE INDEX `idx_newsletter_email` ON `newsletter` (`email`)"],
+  },
+  {
+    name: "customers",
+    type: "auth",
+    passwordAuth: { enabled: true, identityFields: ["email"] },
+    fields: [
+      { name: "name", type: "text" },
+      { name: "phone", type: "text" },
+      { name: "addressLine1", type: "text" },
+      { name: "addressLine2", type: "text" },
+      { name: "city", type: "text" },
+      { name: "postalCode", type: "text" },
+      { name: "country", type: "text" },
+    ],
+  },
+  {
+    name: "customer_activation_tokens",
+    type: "base",
+    fields: [
+      { name: "email", type: "text", required: true },
+      { name: "tokenHash", type: "text", required: true },
+      { name: "expiresAt", type: "date", required: true },
+      { name: "usedAt", type: "date" },
+      ...autodates,
+    ],
+    indexes: [
+      "CREATE UNIQUE INDEX `idx_customer_activation_token_hash` ON `customer_activation_tokens` (`tokenHash`)",
+      "CREATE INDEX `idx_customer_activation_email` ON `customer_activation_tokens` (`email`)",
+    ],
   },
   {
     name: "settings",
@@ -155,7 +185,25 @@ const collections = [
 for (const col of collections) {
   const existing = await pb(`/collections/${col.name}`);
   if (existing.ok) {
-    console.log(`• Collection "${col.name}" existe déjà — inchangée`);
+    const fields = existing.body?.fields ?? [];
+    const missingFields = col.fields.filter(
+      (field) => !fields.some((existingField) => existingField.name === field.name)
+    );
+    if (missingFields.length > 0) {
+      const res = await pb(`/collections/${col.name}`, {
+        method: "PATCH",
+        body: JSON.stringify({ fields: [...fields, ...missingFields] }),
+      });
+      if (!res.ok) {
+        console.error(`✗ Mise à jour "${col.name}" :`, JSON.stringify(res.body, null, 2));
+        process.exit(1);
+      }
+      console.log(
+        `✓ Collection "${col.name}" mise à jour (${missingFields.map((f) => f.name).join(", ")})`
+      );
+    } else {
+      console.log(`• Collection "${col.name}" existe déjà — inchangée`);
+    }
     continue;
   }
   const res = await pb("/collections", { method: "POST", body: JSON.stringify(col) });
@@ -204,6 +252,7 @@ if (process.env.SEED_DEMO_PRODUCTS === "1") {
       active: p.active,
       isNew: p.isNew,
       preorder: Boolean(p.preorder),
+      namePersonalizationEnabled: Boolean(p.namePersonalizationEnabled),
     };
     const existing = await firstRecord("products", `slug='${p.slug}'`);
     const res = existing

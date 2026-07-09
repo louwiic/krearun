@@ -74,12 +74,12 @@ export default async function ProductPage({
   };
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
+    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <nav className="mb-8 text-sm text-ink-faint">
+      <nav className="mb-5 truncate text-xs text-ink-faint sm:mb-8 sm:text-sm">
         <Link href="/boutique" className="hover:text-terra">
           Boutique
         </Link>
@@ -94,7 +94,7 @@ export default async function ProductPage({
         <span className="text-ink-soft">{product.name}</span>
       </nav>
 
-      <div className="grid gap-12 md:grid-cols-2">
+      <div className="grid gap-8 md:grid-cols-2 md:gap-12">
         <Gallery images={product.images} videoUrl={product.videoUrl} name={product.name} />
 
         <div>
@@ -110,13 +110,13 @@ export default async function ProductPage({
               </span>
             )}
           </div>
-          <h1 className="font-display text-4xl font-semibold tracking-tight">
+          <h1 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">
             {product.name}
           </h1>
-          <p className="mt-2 text-lg italic text-ink-soft">{product.tagline}</p>
+          <p className="mt-2 text-base italic text-ink-soft sm:text-lg">{product.tagline}</p>
 
           <div className="mt-5 flex items-baseline gap-3">
-            <p className="font-display text-3xl font-semibold">
+            <p className="font-display text-2xl font-semibold sm:text-3xl">
               {formatPrice(product.priceCents)}
             </p>
             {product.compareAtCents && (
@@ -126,11 +126,11 @@ export default async function ProductPage({
             )}
           </div>
 
-          <div className="mt-8">
+          <div className="mt-6 sm:mt-8">
             <AddToCart product={product} />
           </div>
 
-          <div className="mt-10 space-y-4 border-t border-sand/70 pt-8">
+          <div className="mt-8 space-y-4 border-t border-sand/70 pt-6 sm:mt-10 sm:pt-8">
             {product.description.split("\n\n").map((para, i) => (
               <p
                 key={i}
@@ -141,7 +141,7 @@ export default async function ProductPage({
             ))}
           </div>
 
-          <div className="mt-8 grid gap-3 rounded-blob bg-cream p-6 text-sm shadow-soft">
+          <div className="mt-8 grid gap-3 rounded-blob bg-cream p-5 text-sm shadow-soft sm:p-6">
             {[
               [
                 "🖨️",
@@ -162,11 +162,11 @@ export default async function ProductPage({
       </div>
 
       {related.length > 0 && (
-        <section className="mt-24">
-          <h2 className="mb-8 font-display text-2xl font-semibold">
+        <section className="mt-16 sm:mt-24">
+          <h2 className="mb-5 font-display text-2xl font-semibold sm:mb-8">
             Dans le même univers
           </h2>
-          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-2 gap-4 sm:gap-8 lg:grid-cols-3">
             {related.map((p) => (
               <ProductCard key={p.id} product={p} />
             ))}

@@ -23,7 +23,7 @@ export default function Navbar() {
       <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
         <Link
           href="/"
-          className="font-display text-2xl font-semibold tracking-tight text-ink"
+          className="font-display text-xl font-semibold tracking-tight text-ink sm:text-2xl"
         >
           Krearun<span className="text-terra">·</span>Studio
         </Link>

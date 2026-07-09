@@ -48,6 +48,7 @@ export interface Product {
   active: boolean;
   isNew: boolean;
   preorder: boolean;
+  namePersonalizationEnabled: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -75,6 +76,7 @@ export interface OrderItem {
   priceCents: number;
   quantity: number;
   color: string;
+  customName?: string;
   image: string;
   weightGrams?: number;
 }
@@ -126,8 +128,21 @@ export interface CartItem {
   priceCents: number;
   quantity: number;
   color: string;
+  customName?: string;
   image: string;
   stock: number;
   weightGrams: number;
   preorder?: boolean;
+}
+
+export interface CheckoutCustomer {
+  email: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+  addressLine1: string;
+  addressLine2: string;
+  postalCode: string;
+  city: string;
+  country: string;
 }

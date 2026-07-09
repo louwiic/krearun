@@ -1,7 +1,15 @@
 // Couche de persistance branchée sur PocketBase (collections : products,
 // orders, newsletter, settings — règles null, accès superuser uniquement).
 // Tout le site passe par ces fonctions, exécutées côté serveur seulement.
-import type { InventoryColor, Order, OrderStatus, Product, Settings } from "./types";
+import crypto from "node:crypto";
+import type {
+  CheckoutCustomer,
+  InventoryColor,
+  Order,
+  OrderStatus,
+  Product,
+  Settings,
+} from "./types";
 import { uploadProductImageToR2, uploadProductMediaToR2 } from "./r2";
 import { DEFAULT_REUNION_SHIPPING_RATES } from "./shipping";
 
@@ -62,6 +70,10 @@ function escapeFilter(value: string): string {
   return value.replace(/'/g, "\\'");
 }
 
+function normalizeEmail(email: string): string {
+  return email.trim().toLowerCase();
+}
+
 function toIso(pbDate: string): string {
   return pbDate ? new Date(pbDate).toISOString() : new Date(0).toISOString();
 }
@@ -91,6 +103,7 @@ interface PbProduct {
   active: boolean;
   isNew: boolean;
   preorder: boolean;
+  namePersonalizationEnabled: boolean;
   created: string;
   updated: string;
 }
@@ -114,6 +127,7 @@ function mapProduct(r: PbProduct): Product {
     active: Boolean(r.active),
     isNew: Boolean(r.isNew),
     preorder: Boolean(r.preorder),
+    namePersonalizationEnabled: Boolean(r.namePersonalizationEnabled),
     createdAt: toIso(r.created),
     updatedAt: toIso(r.updated),
   };
@@ -392,6 +406,134 @@ export async function getOrderByNumberAndEmail(
     )}`
   );
   return res.items[0] ? mapOrder(res.items[0]) : null;
+}
+
+// ─── Comptes clients ────────────────────────────────────────
+
+interface PbCustomer {
+  id: string;
+  email: string;
+  name: string;
+  phone: string;
+  addressLine1: string;
+  addressLine2: string;
+  city: string;
+  postalCode: string;
+  country: string;
+  created: string;
+  updated: string;
+}
+
+interface PbCustomerActivation {
+  id: string;
+  email: string;
+  tokenHash: string;
+  expiresAt: string;
+  usedAt: string;
+}
+
+function hashToken(token: string): string {
+  return crypto.createHash("sha256").update(token).digest("hex");
+}
+
+function randomPassword(): string {
+  return crypto.randomBytes(24).toString("base64url");
+}
+
+export async function ensureCustomerAccount(
+  customer: CheckoutCustomer
+): Promise<{ email: string; created: boolean }> {
+  const email = normalizeEmail(customer.email);
+  const name = `${customer.firstName} ${customer.lastName}`.trim();
+  const found = await pb<ListResult<PbCustomer>>(
+    `/collections/customers/records?perPage=1&filter=${encodeURIComponent(
+      `email='${escapeFilter(email)}'`
+    )}`
+  );
+  const existing = found.items[0];
+  const payload = {
+    email,
+    name,
+    phone: customer.phone,
+    addressLine1: customer.addressLine1,
+    addressLine2: customer.addressLine2,
+    city: customer.city,
+    postalCode: customer.postalCode,
+    country: customer.country,
+    verified: true,
+  };
+
+  if (existing) {
+    await pb(`/collections/customers/records/${existing.id}`, {
+      method: "PATCH",
+      body: payload,
+    });
+    return { email, created: false };
+  }
+
+  const password = randomPassword();
+  await pb(`/collections/customers/records`, {
+    method: "POST",
+    body: {
+      ...payload,
+      password,
+      passwordConfirm: password,
+    },
+  });
+  return { email, created: true };
+}
+
+export async function createCustomerActivationToken(email: string): Promise<string> {
+  const token = crypto.randomBytes(32).toString("base64url");
+  const normalized = normalizeEmail(email);
+  await pb(`/collections/customer_activation_tokens/records`, {
+    method: "POST",
+    body: {
+      email: normalized,
+      tokenHash: hashToken(token),
+      expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7).toISOString(),
+    },
+  });
+  return token;
+}
+
+export async function activateCustomerPassword(
+  token: string,
+  password: string
+): Promise<{ ok: boolean; reason?: string }> {
+  if (password.length < 10) {
+    return { ok: false, reason: "Le mot de passe doit contenir au moins 10 caractères." };
+  }
+  const tokenHash = hashToken(token);
+  const found = await pb<ListResult<PbCustomerActivation>>(
+    `/collections/customer_activation_tokens/records?perPage=1&filter=${encodeURIComponent(
+      `tokenHash='${escapeFilter(tokenHash)}' && usedAt=''`
+    )}`
+  );
+  const activation = found.items[0];
+  if (!activation) return { ok: false, reason: "Ce lien n'est plus valide." };
+  if (new Date(activation.expiresAt).getTime() < Date.now()) {
+    return { ok: false, reason: "Ce lien a expiré." };
+  }
+
+  const email = normalizeEmail(activation.email);
+  const customers = await pb<ListResult<PbCustomer>>(
+    `/collections/customers/records?perPage=1&filter=${encodeURIComponent(
+      `email='${escapeFilter(email)}'`
+    )}`
+  );
+  const customer = customers.items[0];
+  if (!customer) return { ok: false, reason: "Compte client introuvable." };
+
+  await pb(`/collections/customers/records/${customer.id}`, {
+    method: "PATCH",
+    body: { password, passwordConfirm: password, verified: true },
+  });
+  await pb(`/collections/customer_activation_tokens/records/${activation.id}`, {
+    method: "PATCH",
+    body: { usedAt: new Date().toISOString() },
+  });
+  return { ok: true };
 }
 
 // ─── Newsletter ─────────────────────────────────────────────

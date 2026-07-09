@@ -26,6 +26,15 @@ async function sendEmail(to: string, subject: string, html: string) {
   }
 }
 
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 // ─── Gabarit commun, aux couleurs du site ───────────────────
 
 function layout(content: string): string {
@@ -52,13 +61,14 @@ ${content}
 
 function itemsTable(order: Order): string {
   const rows = order.items
-    .map(
-      (i) => `<tr>
-<td style="padding:10px 0;border-bottom:1px solid #f2ebde;">${i.name}${i.color ? ` <span style="color:#b3a695;">— ${i.color}</span>` : ""}</td>
+    .map((i) => {
+      const customName = i.customName ? escapeHtml(i.customName) : "";
+      return `<tr>
+<td style="padding:10px 0;border-bottom:1px solid #f2ebde;">${i.name}${i.color ? ` <span style="color:#b3a695;">— ${i.color}</span>` : ""}${customName ? `<br/><span style="color:#a4623c;font-size:12px;">Prénom : ${customName}</span>` : ""}</td>
 <td style="padding:10px 0;border-bottom:1px solid #f2ebde;text-align:center;color:#877867;">× ${i.quantity}</td>
 <td style="padding:10px 0;border-bottom:1px solid #f2ebde;text-align:right;">${formatPrice(i.priceCents * i.quantity)}</td>
-</tr>`
-    )
+</tr>`;
+    })
     .join("");
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size:14px;margin:20px 0;">
 ${rows}
@@ -93,6 +103,23 @@ ${itemsTable(order)}
 <p style="color:#877867;font-size:13px;">Livraison : ${order.addressLine1}${order.addressLine2 ? ", " + order.addressLine2 : ""}, ${order.postalCode} ${order.city}</p>
 ${suiviButton(order)}
 <p>On vous écrit dès que votre colis prend la route. D'ici là, prenez soin de vous ✿</p>`)
+  );
+}
+
+export async function sendCustomerActivation(email: string, name: string, token: string) {
+  const prenom = name.split(" ")[0] || "vous";
+  const url = `${process.env.NEXT_PUBLIC_SITE_URL || ""}/compte/activer?token=${encodeURIComponent(token)}`;
+  await sendEmail(
+    email,
+    "Activez votre espace client Krearun Studio",
+    layout(`
+<h1 style="font-size:24px;margin:0 0 16px;">Votre espace client est prêt, ${prenom}.</h1>
+<p>Nous avons créé votre compte client pour retrouver vos commandes et suivre leur préparation.</p>
+<p>Il ne reste qu'à définir votre mot de passe. Ce lien est valable 7 jours.</p>
+<p style="text-align:center;margin:28px 0;">
+<a href="${url}" style="background:#c07a50;color:#fdfaf4;text-decoration:none;padding:14px 32px;border-radius:999px;font-size:14px;font-weight:bold;">Définir mon mot de passe</a>
+</p>
+<p style="color:#877867;font-size:13px;">Si vous n'êtes pas à l'origine de cette commande, ignorez simplement ce message.</p>`)
   );
 }
 

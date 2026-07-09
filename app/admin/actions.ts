@@ -194,6 +194,7 @@ export async function saveProductAction(formData: FormData) {
     active: formData.get("active") === "on",
     isNew: formData.get("isNew") === "on",
     preorder: formData.get("preorder") === "on",
+    namePersonalizationEnabled: formData.get("namePersonalizationEnabled") === "on",
   };
 
   const product = id ? await updateProduct(id, data) : await createProduct(data);
