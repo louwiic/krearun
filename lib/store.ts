@@ -8,6 +8,7 @@ import type {
   Order,
   OrderStatus,
   Product,
+  Review,
   Settings,
 } from "./types";
 import { uploadProductImageToR2, uploadProductMediaToR2 } from "./r2";
@@ -220,6 +221,100 @@ export async function decrementStock(items: { productId: string; quantity: numbe
       body: { stock: Math.max(0, product.stock - item.quantity) },
     });
   }
+}
+
+// ─── Avis clients ───────────────────────────────────────────
+
+interface PbReview {
+  id: string;
+  productId: string;
+  productName: string;
+  authorName: string;
+  email: string;
+  rating: number;
+  message: string;
+  approved: boolean;
+  created: string;
+  updated: string;
+}
+
+function mapReview(r: PbReview): Review {
+  return {
+    id: r.id,
+    productId: r.productId ?? "",
+    productName: r.productName ?? "",
+    authorName: r.authorName ?? "",
+    email: r.email ?? "",
+    rating: r.rating ?? 5,
+    message: r.message ?? "",
+    approved: Boolean(r.approved),
+    createdAt: toIso(r.created),
+    updatedAt: toIso(r.updated),
+  };
+}
+
+export async function getApprovedReviews(productId?: string): Promise<Review[]> {
+  const filters = ["approved=true"];
+  if (productId) filters.push(`productId='${escapeFilter(productId)}'`);
+  try {
+    const res = await pb<ListResult<PbReview>>(
+      `/collections/reviews/records?perPage=100&sort=-created&filter=${encodeURIComponent(
+        filters.join(" && ")
+      )}`
+    );
+    return res.items.map(mapReview);
+  } catch {
+    return [];
+  }
+}
+
+export async function getReviews(): Promise<Review[]> {
+  try {
+    const res = await pb<ListResult<PbReview>>(
+      `/collections/reviews/records?perPage=500&sort=-created`
+    );
+    return res.items.map(mapReview);
+  } catch {
+    return [];
+  }
+}
+
+export async function createReview(input: {
+  productId: string;
+  productName: string;
+  authorName: string;
+  email: string;
+  rating: number;
+  message: string;
+}): Promise<Review> {
+  const record = await pb<PbReview>(`/collections/reviews/records`, {
+    method: "POST",
+    body: {
+      ...input,
+      email: normalizeEmail(input.email),
+      approved: false,
+    },
+  });
+  return mapReview(record);
+}
+
+export async function updateReviewApproval(
+  id: string,
+  approved: boolean
+): Promise<Review | null> {
+  try {
+    const record = await pb<PbReview>(`/collections/reviews/records/${id}`, {
+      method: "PATCH",
+      body: { approved },
+    });
+    return mapReview(record);
+  } catch {
+    return null;
+  }
+}
+
+export async function deleteReview(id: string): Promise<void> {
+  await pb(`/collections/reviews/records/${id}`, { method: "DELETE" });
 }
 
 // ─── Inventaire matière ────────────────────────────────────
@@ -567,7 +662,7 @@ const DEFAULT_SETTINGS: Settings = {
   shipping_rates_json: JSON.stringify(DEFAULT_REUNION_SHIPPING_RATES),
   pickup_points_json: JSON.stringify(DEFAULT_PICKUP_POINTS, null, 2),
   store_name: "Krearun Studio",
-  contact_email: "bonjour@krearun.studio",
+  contact_email: "stdcreativ974@gmail.com",
   instagram: "",
   hero_image_url: "/home/hero-monster-product.webp",
   hero_image_alt: "Porte-canette Monster avec mousqueton offert au bord d'une piscine",

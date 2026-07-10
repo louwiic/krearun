@@ -1,11 +1,11 @@
 {
-  "announcement": "✿ La Collection Été est arrivée — livraison offerte dès 60 €",
+  "announcement": "Livraison sur toute l’île",
   "shipping_flat_cents": 590,
   "free_shipping_threshold_cents": 0,
   "shipping_rates_json": "[{\"label\":\"0 - 250 g\",\"maxGrams\":250,\"priceCents\":525},{\"label\":\"250 - 500 g\",\"maxGrams\":500,\"priceCents\":735},{\"label\":\"500 - 750 g\",\"maxGrams\":750,\"priceCents\":865},{\"label\":\"750 g - 1 kg\",\"maxGrams\":1000,\"priceCents\":940},{\"label\":\"1 - 2 kg\",\"maxGrams\":2000,\"priceCents\":1070},{\"label\":\"2 - 5 kg\",\"maxGrams\":5000,\"priceCents\":1660}]",
   "pickup_points_json": "[{\"id\":\"saint-pierre-mon-caprice\",\"name\":\"Saint-Pierre Mon Caprice\",\"address\":\"Saint-Pierre, quartier Mon Caprice\",\"schedule\":\"Samedi et dimanche, sur rendez-vous\",\"note\":\"Créneau confirmé par message après la commande.\",\"active\":true},{\"id\":\"saint-leu-portail\",\"name\":\"Saint-Leu Portail\",\"address\":\"Saint-Leu, secteur Portail\",\"schedule\":\"Samedi et dimanche, sur rendez-vous\",\"note\":\"Créneau confirmé par message après la commande.\",\"active\":true},{\"id\":\"le-port-sacre-coeur\",\"name\":\"Le Port Sacré Cœur\",\"address\":\"Le Port, secteur Sacré Cœur\",\"schedule\":\"Samedi et dimanche, sur rendez-vous\",\"note\":\"Créneau confirmé par message après la commande.\",\"active\":true}]",
   "store_name": "Krearun Studio",
-  "contact_email": "bonjour@krearun.studio",
+  "contact_email": "stdcreativ974@gmail.com",
   "instagram": "",
   "hero_image_url": "/home/hero-monster-product.webp",
   "hero_image_alt": "Porte-canette Monster avec mousqueton offert au bord d'une piscine",

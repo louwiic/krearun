@@ -9,6 +9,7 @@ const nav = [
   { href: "/admin/inventaire", label: "Inventaire", icon: "🎨" },
   { href: "/admin/calculateur", label: "Calculateur", icon: "🧮" },
   { href: "/admin/commandes", label: "Commandes", icon: "📦" },
+  { href: "/admin/avis", label: "Avis", icon: "⭐" },
   { href: "/admin/newsletter", label: "Newsletter", icon: "💌" },
   { href: "/admin/parametres", label: "Réglages", icon: "⚙️" },
 ];

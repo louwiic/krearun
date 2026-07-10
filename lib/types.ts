@@ -53,6 +53,19 @@ export interface Product {
   updatedAt: string;
 }
 
+export interface Review {
+  id: string;
+  productId: string;
+  productName: string;
+  authorName: string;
+  email: string;
+  rating: number;
+  message: string;
+  approved: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export type OrderStatus =
   | "pending"
   | "paid"

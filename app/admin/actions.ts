@@ -10,11 +10,13 @@ import {
 } from "@/lib/auth";
 import {
   createProduct,
+  deleteReview,
   createInventoryColor,
   deleteProduct,
   getInventoryColors,
   getOrderById,
   getProductById,
+  updateReviewApproval,
   saveSettings,
   updateInventoryColor,
   updateOrderStatus,
@@ -295,6 +297,35 @@ export async function updateOrderStatusAction(formData: FormData) {
 
   revalidatePath("/admin/commandes");
   redirect(`/admin/commandes/${id}`);
+}
+
+// ─── Avis clients ───────────────────────────────────────────
+
+export async function approveReviewAction(formData: FormData) {
+  await requireAdmin();
+  const id = String(formData.get("id") ?? "");
+  if (id) await updateReviewApproval(id, true);
+  revalidatePath("/", "layout");
+  revalidatePath("/admin/avis");
+  redirect("/admin/avis");
+}
+
+export async function hideReviewAction(formData: FormData) {
+  await requireAdmin();
+  const id = String(formData.get("id") ?? "");
+  if (id) await updateReviewApproval(id, false);
+  revalidatePath("/", "layout");
+  revalidatePath("/admin/avis");
+  redirect("/admin/avis");
+}
+
+export async function deleteReviewAction(formData: FormData) {
+  await requireAdmin();
+  const id = String(formData.get("id") ?? "");
+  if (id) await deleteReview(id);
+  revalidatePath("/", "layout");
+  revalidatePath("/admin/avis");
+  redirect("/admin/avis");
 }
 
 // ─── Réglages ───────────────────────────────────────────────

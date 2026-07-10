@@ -12,11 +12,11 @@ export default function MentionsLegalesPage() {
         <section>
           <h2 className="font-display text-xl font-semibold text-ink">Éditeur du site</h2>
           <p className="mt-2">
-            Krearun Studio — [Raison sociale à compléter]
+            Krearun Studio
             <br />
             [Adresse à compléter]
             <br />
-            SIRET : [à compléter] · E-mail : bonjour@krearun.studio
+            SIRET : 85221187900022 · E-mail : stdcreativ974@gmail.com
           </p>
         </section>
         <section>
@@ -30,7 +30,7 @@ export default function MentionsLegalesPage() {
             uniquement au traitement des commandes et, avec votre accord, à
             l'envoi de notre lettre d'information. Conformément au RGPD, vous
             disposez d'un droit d'accès, de rectification et de suppression de
-            vos données : écrivez-nous à bonjour@krearun.studio.
+            vos données : écrivez-nous à stdcreativ974@gmail.com.
           </p>
         </section>
         <section>

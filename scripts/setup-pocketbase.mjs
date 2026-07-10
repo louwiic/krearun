@@ -110,6 +110,23 @@ const collections = [
     indexes: ["CREATE UNIQUE INDEX `idx_newsletter_email` ON `newsletter` (`email`)"],
   },
   {
+    name: "reviews",
+    type: "base",
+    fields: [
+      { name: "productId", type: "text", required: true },
+      { name: "productName", type: "text", required: true },
+      { name: "authorName", type: "text", required: true },
+      { name: "email", type: "text", required: true },
+      { name: "rating", type: "number", onlyInt: true, required: true },
+      { name: "message", type: "text", max: 5000, required: true },
+      { name: "approved", type: "bool" },
+      ...autodates,
+    ],
+    indexes: [
+      "CREATE INDEX `idx_reviews_product_approved` ON `reviews` (`productId`, `approved`)",
+    ],
+  },
+  {
     name: "customers",
     type: "auth",
     passwordAuth: { enabled: true, identityFields: ["email"] },

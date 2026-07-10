@@ -4,7 +4,8 @@ import type { Metadata } from "next";
 import Gallery from "@/components/product/Gallery";
 import AddToCart from "@/components/product/AddToCart";
 import ProductCard from "@/components/product/ProductCard";
-import { getProductBySlug, getProducts } from "@/lib/store";
+import ReviewForm from "@/components/product/ReviewForm";
+import { getApprovedReviews, getProductBySlug, getProducts } from "@/lib/store";
 import { formatPrice } from "@/lib/format";
 import { hasFreeShipping } from "@/lib/free-shipping";
 import { publicProductCopy } from "@/lib/public-copy";
@@ -42,7 +43,10 @@ export default async function ProductPage({
   const product = await getProductBySlug(slug);
   if (!product || !product.active) notFound();
 
-  const all = await getProducts();
+  const [all, reviews] = await Promise.all([
+    getProducts(),
+    getApprovedReviews(product.id),
+  ]);
   const related = all
     .filter((p) => p.category === product.category && p.id !== product.id)
     .slice(0, 3);
@@ -182,6 +186,39 @@ export default async function ProductPage({
           </div>
         </section>
       )}
+
+      <section className="mt-16 grid gap-8 sm:mt-24 lg:grid-cols-[1fr_0.9fr]">
+        <div>
+          <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.14em] text-terra sm:text-xs sm:tracking-[0.18em]">
+            Avis clients
+          </p>
+          <h2 className="font-display text-2xl font-semibold sm:text-3xl">
+            Votre retour nous aide à progresser
+          </h2>
+          {reviews.length > 0 ? (
+            <div className="mt-6 grid gap-4">
+              {reviews.map((review) => (
+                <figure key={review.id} className="rounded-blob bg-cream p-6 shadow-soft">
+                  <div className="mb-3 text-terra" aria-label={`${review.rating} sur 5`}>
+                    {"✿ ".repeat(review.rating).trim()}
+                  </div>
+                  <blockquote className="text-sm leading-relaxed text-ink-soft">
+                    « {review.message} »
+                  </blockquote>
+                  <figcaption className="mt-4 text-sm font-bold">
+                    {review.authorName}
+                  </figcaption>
+                </figure>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-4 max-w-xl text-sm leading-relaxed text-ink-soft">
+              Aucun avis publié pour ce produit pour le moment.
+            </p>
+          )}
+        </div>
+        <ReviewForm productId={product.id} productName={product.name} />
+      </section>
     </div>
   );
 }

@@ -1,27 +1,9 @@
 import Link from "next/link";
 import ProductCard from "@/components/product/ProductCard";
-import { getProducts, getSettings } from "@/lib/store";
+import { getApprovedReviews, getProducts, getSettings } from "@/lib/store";
 import { CATEGORIES } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
-
-const avis = [
-  {
-    text: "La lampe plissée trône sur mon buffet et tout le monde me demande d'où elle vient. La lumière du soir est d'une douceur incroyable.",
-    author: "Camille R.",
-    product: "Lampe Plissée Trépied",
-  },
-  {
-    text: "Emballage adorable, petit mot manuscrit, et le vase est encore plus beau qu'en photo. On sent l'amour du détail.",
-    author: "Mathieu L.",
-    product: "Vase Pétale",
-  },
-  {
-    text: "Le set Rivage a transformé notre salle de bain : tout est rangé, et les stries cachent vraiment les traces d'eau. Malin et beau.",
-    author: "Inès B.",
-    product: "Set Salle de Bain Rivage",
-  },
-];
 
 const CATEGORY_ART: Record<string, string> = {
   veilleuses: "/products/veilleuse-lune.svg",
@@ -33,7 +15,11 @@ const CATEGORY_ART: Record<string, string> = {
 };
 
 export default async function HomePage() {
-  const [products, settings] = await Promise.all([getProducts(), getSettings()]);
+  const [products, settings, reviews] = await Promise.all([
+    getProducts(),
+    getSettings(),
+    getApprovedReviews(),
+  ]);
   const featured = products.filter((p) => p.featured).slice(0, 4);
   const nouveautes = products.filter((p) => p.isNew).slice(0, 3);
   const heroMain = featured[0] ?? products[0];
@@ -274,36 +260,37 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ── Avis ─────────────────────────────────────── */}
-      <section className="mx-auto max-w-6xl px-4 pt-16 sm:px-6 sm:pt-24">
-        <div className="mb-8 text-center sm:mb-10">
-          <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.14em] text-terra sm:text-xs sm:tracking-[0.18em]">
-            Ils nous ont adoptés
-          </p>
-          <h2 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">
-            Des mots doux de nos clients
-          </h2>
-        </div>
-        <div className="grid gap-6 md:grid-cols-3">
-          {avis.map((a) => (
-            <figure
-              key={a.author}
-              className="flex flex-col rounded-blob bg-cream p-8 shadow-soft"
-            >
-              <div className="mb-4 text-terra" aria-label="5 étoiles sur 5">
-                ✿ ✿ ✿ ✿ ✿
-              </div>
-              <blockquote className="flex-1 text-sm leading-relaxed text-ink-soft">
-                « {a.text} »
-              </blockquote>
-              <figcaption className="mt-5 text-sm">
-                <span className="font-bold">{a.author}</span>
-                <span className="text-ink-faint"> — {a.product}</span>
-              </figcaption>
-            </figure>
-          ))}
-        </div>
-      </section>
+      {reviews.length > 0 && (
+        <section className="mx-auto max-w-6xl px-4 pt-16 sm:px-6 sm:pt-24">
+          <div className="mb-8 text-center sm:mb-10">
+            <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.14em] text-terra sm:text-xs sm:tracking-[0.18em]">
+              Avis vérifiés
+            </p>
+            <h2 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">
+              Retours clients
+            </h2>
+          </div>
+          <div className="grid gap-6 md:grid-cols-3">
+            {reviews.slice(0, 3).map((review) => (
+              <figure
+                key={review.id}
+                className="flex flex-col rounded-blob bg-cream p-8 shadow-soft"
+              >
+                <div className="mb-4 text-terra" aria-label={`${review.rating} sur 5`}>
+                  {"✿ ".repeat(review.rating).trim()}
+                </div>
+                <blockquote className="flex-1 text-sm leading-relaxed text-ink-soft">
+                  « {review.message} »
+                </blockquote>
+                <figcaption className="mt-5 text-sm">
+                  <span className="font-bold">{review.authorName}</span>
+                  <span className="text-ink-faint"> — {review.productName}</span>
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        </section>
+      )}
     </>
   );
 }

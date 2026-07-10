@@ -187,11 +187,11 @@ const products = [
 ];
 
 const settings = {
-  announcement: "✿ La Collection Été est arrivée — livraison offerte dès 60 €",
+  announcement: "Livraison sur toute l'île",
   shipping_flat_cents: 590,
-  free_shipping_threshold_cents: 6000,
+  free_shipping_threshold_cents: 0,
   store_name: "Krearun Studio",
-  contact_email: "bonjour@krearun.studio",
+  contact_email: "stdcreativ974@gmail.com",
   instagram: "https://instagram.com/coconstudio",
 };
 
