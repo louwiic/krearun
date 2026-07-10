@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { useCart } from "./CartContext";
+import { publicColorName } from "@/lib/colors";
 import { formatPrice } from "@/lib/format";
+import { billableWeight } from "@/lib/free-shipping";
 import { calculateShippingCents, formatWeight, parseShippingRates } from "@/lib/shipping";
 
 export default function CartDrawer({
@@ -12,15 +14,16 @@ export default function CartDrawer({
   freeShippingThresholdCents: number;
   shippingRatesJson: string;
 }) {
-  const { items, subtotalCents, totalWeightGrams, isOpen, closeCart, setQuantity, removeItem } =
+  const { items, subtotalCents, isOpen, closeCart, setQuantity, removeItem } =
     useCart();
 
   const freeShippingEnabled = freeShippingThresholdCents > 0;
   const remaining = freeShippingThresholdCents - subtotalCents;
+  const billableWeightGrams = billableWeight(items);
   const shippingRates = parseShippingRates(shippingRatesJson);
-  const shippingEstimate = calculateShippingCents(totalWeightGrams || 1, shippingRates);
+  const shippingEstimate = calculateShippingCents(billableWeightGrams || 1, shippingRates);
   const freeShipping = freeShippingEnabled && subtotalCents >= freeShippingThresholdCents;
-  const shippingCents = freeShipping ? 0 : shippingEstimate.priceCents;
+  const shippingCents = billableWeightGrams === 0 ? 0 : freeShipping ? 0 : shippingEstimate.priceCents;
   const totalCents = subtotalCents + shippingCents;
 
   return (
@@ -107,7 +110,7 @@ export default function CartDrawer({
                           {item.name}
                         </Link>
                         {item.color && (
-                          <p className="text-xs text-ink-soft">Coloris : {item.color}</p>
+                          <p className="text-xs text-ink-soft">Coloris : {publicColorName(item.color)}</p>
                         )}
                         {item.customName && (
                           <p className="text-xs font-semibold text-terra-deep">
@@ -181,7 +184,7 @@ export default function CartDrawer({
               </div>
               <div className="mb-2 flex items-start justify-between gap-3 text-sm">
                 <span className="text-ink-soft">
-                  Envoi · {formatWeight(totalWeightGrams)} · {shippingEstimate.label}
+                  Envoi · {formatWeight(billableWeightGrams)} · {billableWeightGrams === 0 ? "offert" : shippingEstimate.label}
                 </span>
                 <span className="font-semibold">
                   {shippingCents === 0 ? "Offerte" : formatPrice(shippingCents)}
@@ -200,9 +203,6 @@ export default function CartDrawer({
               >
                 Passer commande
               </Link>
-              <p className="mt-3 text-center text-[11px] text-ink-faint">
-                Paiement sécurisé · frais recalculés au paiement
-              </p>
             </div>
           </>
         )}

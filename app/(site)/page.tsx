@@ -70,14 +70,13 @@ export default async function HomePage() {
             <h1 className="reveal reveal-1 font-display text-4xl font-semibold leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl">
               Des objets
               <br />
-              imprimés en 3D,
+              faits pour vous,
               <br />
               <em className="text-terra">tout en douceur.</em>
             </h1>
             <p className="reveal reveal-2 mt-5 max-w-md text-base leading-relaxed text-ink-soft sm:mt-6 sm:text-lg">
-              Veilleuses, vases et petits compagnons du quotidien, imprimés
-              couche par couche à la commande — rien que pour vous, et pour
-              longtemps.
+              Veilleuses, vases et petits compagnons du quotidien, préparés à
+              la commande — rien que pour vous, et pour longtemps.
             </p>
             <div className="reveal reveal-3 mt-7 grid gap-3 sm:mt-9 sm:flex sm:flex-wrap sm:gap-4">
               <Link
@@ -135,7 +134,7 @@ export default async function HomePage() {
               </Link>
             )}
             <p className="absolute -right-2 top-6 hidden rotate-6 rounded-2xl bg-cream px-4 py-2 font-display text-sm italic text-ink-soft shadow-soft md:block">
-              imprimé pour vous ✿
+              préparé pour vous ✿
             </p>
           </div>
         </div>
@@ -145,8 +144,8 @@ export default async function HomePage() {
       <section className="border-y border-sand/60 bg-cream/70">
         <div className="mx-auto grid max-w-6xl gap-5 px-4 py-6 sm:px-6 sm:py-8 md:grid-cols-3">
           {[
-            ["🌱", "PLA biosourcé", "Un plastique d'origine végétale, imprimé sans gaspillage."],
-            ["🤲", "Fait à la commande", "Chaque pièce démarre son impression quand vous commandez."],
+            ["🌱", "Matière choisie", "Des matières légères, pensées pour durer au quotidien."],
+            ["🤲", "Fait à la commande", "Chaque pièce est préparée quand vous commandez."],
             ["📦", "Emballé avec soin", "Papier de soie, petit mot doux et carton recyclé."],
           ].map(([icon, title, text]) => (
             <div key={title as string} className="flex items-start gap-4">
@@ -166,7 +165,7 @@ export default async function HomePage() {
           <div className="mb-6 flex items-end justify-between sm:mb-10">
             <div>
               <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.14em] text-terra sm:text-xs sm:tracking-[0.18em]">
-                Fraîchement sorties de l'imprimante
+                Fraîchement sorties de l'atelier
               </p>
               <h2 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">
                 Les nouveautés
@@ -246,15 +245,15 @@ export default async function HomePage() {
                 De notre famille à la vôtre
               </p>
               <h2 className="font-display text-3xl font-semibold leading-snug sm:text-4xl">
-                Un petit atelier, deux imprimantes,
+                Un petit atelier familial,
                 <br className="hidden sm:block" /> et beaucoup de patience.
               </h2>
               <p className="mt-5 max-w-lg leading-relaxed text-ink-soft">
-                Krearun Studio est né dans un coin de salon, entre une bobine de
-                filament crème et une tasse de thé. Chaque objet est dessiné,
-                imprimé, poncé puis emballé à la main. On fabrique lentement, en
-                petites quantités — parce que les jolies choses prennent le
-                temps qu'il faut.
+                Krearun Studio est né dans un coin de salon, entre une tasse de
+                thé et l'envie de créer des objets utiles, doux et durables.
+                Chaque pièce est dessinée, préparée, finie puis emballée à la
+                main. On fabrique lentement, en petites quantités — parce que
+                les jolies choses prennent le temps qu'il faut.
               </p>
               <Link
                 href="/a-propos"

@@ -25,6 +25,7 @@ import {
 import { sendOrderDelivered, sendOrderShipped } from "@/lib/email";
 import { slugify } from "@/lib/format";
 import { uploadSiteImageToR2, uploadSiteMediaToR2 } from "@/lib/r2";
+import { DEFAULT_PICKUP_POINTS } from "@/lib/pickup";
 import type { Category, OrderStatus, ProductColor } from "@/lib/types";
 
 // ─── Auth ───────────────────────────────────────────────────
@@ -64,6 +65,10 @@ function parseColors(raw: string): ProductColor[] {
       return name && hex ? { name, hex } : null;
     })
     .filter((c): c is ProductColor => c !== null);
+}
+
+function slugPart(value: string): string {
+  return slugify(value || "point-retrait").slice(0, 80);
 }
 
 // Convertit les photos en WebP (max 1600 px, qualité 82) avant envoi
@@ -300,7 +305,17 @@ export async function saveSettingsAction(formData: FormData) {
   const flat = String(formData.get("shipping_flat") ?? "0").replace(",", ".");
   const threshold = String(formData.get("free_shipping_threshold") ?? "0").replace(",", ".");
   const shippingRatesJson = String(formData.get("shipping_rates_json") ?? "").trim();
-  const pickupPointsJson = String(formData.get("pickup_points_json") ?? "").trim();
+  const pickupPoints = DEFAULT_PICKUP_POINTS.map((fallback, index) => {
+    const name = String(formData.get(`pickup_name_${index}`) ?? fallback.name).trim();
+    return {
+      id: String(formData.get(`pickup_id_${index}`) ?? "").trim() || slugPart(name),
+      name,
+      address: String(formData.get(`pickup_address_${index}`) ?? fallback.address).trim(),
+      schedule: String(formData.get(`pickup_schedule_${index}`) ?? fallback.schedule).trim(),
+      note: String(formData.get(`pickup_note_${index}`) ?? fallback.note).trim(),
+      active: formData.get(`pickup_active_${index}`) === "on",
+    };
+  }).filter((point) => point.name);
   const heroFile = formData.get("hero_image_file");
   const secondaryFile = formData.get("hero_secondary_media_file");
   let heroImageUrl = String(formData.get("hero_image_url") ?? "").trim();
@@ -331,7 +346,7 @@ export async function saveSettingsAction(formData: FormData) {
     shipping_flat_cents: Math.round(parseFloat(flat || "0") * 100),
     free_shipping_threshold_cents: Math.round(parseFloat(threshold || "0") * 100),
     shipping_rates_json: shippingRatesJson,
-    pickup_points_json: pickupPointsJson,
+    pickup_points_json: JSON.stringify(pickupPoints),
     hero_image_url: heroImageUrl,
     hero_image_alt: String(formData.get("hero_image_alt") ?? "").trim(),
     hero_link_url: String(formData.get("hero_link_url") ?? "").trim(),

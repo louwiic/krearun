@@ -42,9 +42,20 @@ export default function MentionsLegalesPage() {
           </p>
         </section>
         <section>
+          <h2 className="font-display text-xl font-semibold text-ink">Matières et fabrication</h2>
+          <p className="mt-2">
+            Certains objets Krearun Studio sont fabriqués à partir de PLA, un
+            polymère biosourcé issu notamment d'amidon végétal. Cette matière
+            est légère, rigide et adaptée aux objets décoratifs. Elle reste
+            sensible aux fortes chaleurs : évitez le lave-vaisselle, l'eau
+            chaude, les flammes et l'exposition prolongée en plein soleil
+            derrière une vitre.
+          </p>
+        </section>
+        <section>
           <h2 className="font-display text-xl font-semibold text-ink">Propriété intellectuelle</h2>
           <p className="mt-2">
-            Les créations, visuels, textes et modèles 3D présentés sur ce site
+            Les créations, visuels, textes et modèles présentés sur ce site
             sont la propriété exclusive de Krearun Studio. Toute reproduction est
             interdite sans autorisation écrite.
           </p>

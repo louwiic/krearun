@@ -3,21 +3,21 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "FAQ & livraison",
   description:
-    "Délais de fabrication, livraison, retours, entretien : toutes les réponses sur nos objets imprimés en 3D.",
+    "Délais de fabrication, livraison, retours, entretien : toutes les réponses sur nos objets.",
 };
 
 const faqs = [
   {
     q: "Quels sont les délais de fabrication et de livraison ?",
-    a: "Chaque objet est imprimé à la commande : comptez 2 à 4 jours de fabrication, puis 2 à 4 jours de livraison suivie en France métropolitaine. Nous vous envoyons un e-mail à chaque étape, de l'imprimante à votre boîte aux lettres.",
+    a: "Chaque objet est fabriqué à la commande : comptez 2 à 4 jours de préparation, puis 2 à 4 jours de livraison suivie selon la destination. Nous vous envoyons un e-mail à chaque étape, de l'atelier à votre boîte aux lettres.",
   },
   {
     q: "En quoi sont fabriqués vos objets ?",
-    a: "Nous imprimons en PLA biosourcé, un matériau fabriqué à partir de fécule de maïs. Il est rigide, léger, sans odeur et agréable au toucher. Nos veilleuses utilisent des LED basse consommation qui ne chauffent pas.",
+    a: "Nous utilisons des matières légères, rigides et agréables au toucher. Les informations détaillées sur les matières sont disponibles dans les mentions légales. Nos veilleuses utilisent des LED basse consommation qui ne chauffent pas.",
   },
   {
     q: "Les couleurs sont-elles fidèles aux photos ?",
-    a: "Nous faisons de notre mieux ! Les teintes peuvent très légèrement varier selon les bobines de filament et votre écran. Chaque pièce étant fabriquée individuellement, de fines lignes d'impression sont visibles de près : c'est la signature du fait-main en 3D.",
+    a: "Nous faisons de notre mieux ! Les teintes peuvent très légèrement varier selon les lots de matière et votre écran. Chaque pièce étant fabriquée individuellement, de petites variations peuvent exister : c'est ce qui rend chaque objet unique.",
   },
   {
     q: "Puis-je retourner un article ?",
@@ -25,7 +25,7 @@ const faqs = [
   },
   {
     q: "Comment entretenir mes objets ?",
-    a: "Un chiffon doux et sec suffit. Évitez l'eau chaude (au-delà de 50 °C, le PLA peut se déformer) et l'exposition prolongée en plein soleil derrière une vitre. Vos objets vous le rendront pendant des années.",
+    a: "Un chiffon doux et sec suffit. Évitez l'eau chaude et l'exposition prolongée en plein soleil derrière une vitre. Vos objets vous le rendront pendant des années.",
   },
   {
     q: "Proposez-vous des personnalisations ?",

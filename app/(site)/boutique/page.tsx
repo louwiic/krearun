@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "La boutique",
   description:
-    "Tous nos objets imprimés en 3D : veilleuses, vases, accessoires de bureau et petites douceurs pour la maison.",
+    "Tous nos objets : veilleuses, vases, accessoires de bureau et petites douceurs pour la maison.",
 };
 
 export default async function BoutiquePage({
@@ -37,9 +37,8 @@ export default async function BoutiquePage({
           {currentLabel ?? "Tous nos petits objets"}
         </h1>
         <p className="mt-3 max-w-xl text-sm leading-relaxed text-ink-soft sm:text-base">
-          Chaque pièce est imprimée à la commande dans notre atelier — comptez
-          2 à 4 jours de fabrication, le temps que les couches se déposent en
-          douceur.
+          Chaque pièce est préparée à la commande dans notre atelier — comptez
+          2 à 4 jours de fabrication, le temps de faire les choses avec soin.
         </p>
       </div>
 
@@ -73,7 +72,7 @@ export default async function BoutiquePage({
         <div className="rounded-blob bg-cream px-8 py-20 text-center shadow-soft">
           <p className="font-display text-2xl">Rien par ici pour le moment</p>
           <p className="mt-2 text-ink-soft">
-            L'imprimante chauffe, revenez bientôt ✿
+            L'atelier prépare de nouvelles pièces, revenez bientôt ✿
           </p>
         </div>
       ) : (

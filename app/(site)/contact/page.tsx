@@ -50,7 +50,7 @@ export default async function ContactPage() {
               Sur Instagram
             </p>
             <p className="mt-1 text-sm text-ink-soft">
-              Les coulisses de l'atelier, en direct de l'imprimante.
+              Les coulisses de l'atelier, en direct de nos préparations.
             </p>
             <p className="mt-4 text-xs font-bold text-terra">Nous suivre →</p>
           </a>

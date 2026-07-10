@@ -20,11 +20,11 @@ const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").re
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Krearun Studio — Objets imprimés en 3D, tout en douceur",
+    default: "Krearun Studio — Objets doux fabriqués à la commande",
     template: "%s · Krearun Studio",
   },
   description:
-    "Veilleuses, vases et petits objets du quotidien imprimés en 3D dans notre atelier familial. Des pièces douces, fabriquées lentement, à la commande.",
+    "Veilleuses, vases et petits objets du quotidien fabriqués dans notre atelier familial. Des pièces douces, préparées lentement, à la commande.",
   openGraph: {
     type: "website",
     siteName: "Krearun Studio",

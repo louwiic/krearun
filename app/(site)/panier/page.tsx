@@ -14,7 +14,7 @@ export default async function CartPage() {
       </h1>
       <p className="mt-4 max-w-2xl text-sm leading-7 text-ink-soft sm:text-base">
         Renseignez vos coordonnées ici, choisissez votre mode de récupération,
-        puis passez au paiement sécurisé. Votre espace client sera préparé
+        puis validez votre commande. Votre espace client sera préparé
         automatiquement après validation.
       </p>
 

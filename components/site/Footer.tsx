@@ -17,7 +17,7 @@ export default function Footer({
               Des nouvelles douces, de temps en temps
             </p>
             <p className="mb-5 mt-2 max-w-sm text-sm text-ink-soft">
-              Nouveautés de l'atelier, coulisses d'impression et petites
+              Nouveautés de l'atelier, coulisses et petites
               attentions — jamais de spam, promis.
             </p>
             <Newsletter />
@@ -64,7 +64,7 @@ export default function Footer({
 
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-sand/60 pt-6 text-xs text-ink-faint sm:flex-row">
           <p>
-            © {new Date().getFullYear()} Krearun Studio — objets imprimés en 3D avec
+            © {new Date().getFullYear()} Krearun Studio — objets fabriqués avec
             amour, lentement.
           </p>
           <div className="flex gap-5">

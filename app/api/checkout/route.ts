@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { getProductById, getSettings } from "@/lib/store";
 import { getStripe, stripeConfigured } from "@/lib/stripe";
+import { publicColorName } from "@/lib/colors";
+import { billableProductWeight } from "@/lib/free-shipping";
 import { calculateShippingCents, parseShippingRates } from "@/lib/shipping";
 import { getPickupPoint } from "@/lib/pickup";
 import type { CheckoutCustomer, FulfillmentMethod } from "@/lib/types";
@@ -148,11 +150,11 @@ export async function POST(req: Request) {
       );
     }
     const optionParts = [
-      item.color,
+      publicColorName(item.color),
       customName ? `Prénom : ${customName}` : "",
     ].filter(Boolean);
     subtotalCents += product.priceCents * quantity;
-    totalWeightGrams += (product.weightGrams || 0) * quantity;
+    totalWeightGrams += billableProductWeight(product, quantity);
     lineItems.push({
       price_data: {
         currency: "eur",
@@ -172,7 +174,7 @@ export async function POST(req: Request) {
     metadataItems.push({
       p: product.id,
       q: quantity,
-      c: item.color || "",
+      c: publicColorName(item.color || ""),
       ...(customName ? { n: customName } : {}),
     });
   }
@@ -182,7 +184,7 @@ export async function POST(req: Request) {
   const freeShipping =
     settings.free_shipping_threshold_cents > 0 &&
     subtotalCents >= settings.free_shipping_threshold_cents;
-  const shippingCents = pickupPoint ? 0 : freeShipping ? 0 : shipping.priceCents;
+  const shippingCents = pickupPoint || totalWeightGrams === 0 ? 0 : freeShipping ? 0 : shipping.priceCents;
 
   const stripe = getStripe();
   const discounts: NonNullable<Stripe.Checkout.SessionCreateParams["discounts"]> = [];

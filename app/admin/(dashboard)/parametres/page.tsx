@@ -2,7 +2,7 @@ import { getSettings } from "@/lib/store";
 import { saveSettingsAction } from "@/app/admin/actions";
 import { stripeConfigured } from "@/lib/stripe";
 import { DEFAULT_REUNION_SHIPPING_RATES } from "@/lib/shipping";
-import { DEFAULT_PICKUP_POINTS } from "@/lib/pickup";
+import { DEFAULT_PICKUP_POINTS, parsePickupPoints } from "@/lib/pickup";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +14,10 @@ export default async function AdminParametresPage() {
   const settings = await getSettings();
   const stripeOk = stripeConfigured();
   const webhookOk = Boolean(process.env.STRIPE_WEBHOOK_SECRET);
+  const pickupPoints = parsePickupPoints(settings.pickup_points_json, { includeInactive: true });
+  const adminPickupPoints = DEFAULT_PICKUP_POINTS.map(
+    (fallback) => pickupPoints.find((point) => point.id === fallback.id) ?? fallback
+  );
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -205,22 +209,49 @@ export default async function AdminParametresPage() {
                 Format JSON. `priceCents` est en centimes. Mettez le seuil de gratuité à 0 pour toujours calculer les frais par poids.
               </span>
             </label>
-            <label className="sm:col-span-2">
+            <div className="sm:col-span-2">
               <span className={label}>Points de retrait</span>
-              <textarea
-                name="pickup_points_json"
-                rows={10}
-                defaultValue={
-                  settings.pickup_points_json ||
-                  JSON.stringify(DEFAULT_PICKUP_POINTS, null, 2)
-                }
-                className={`${field} font-mono text-xs`}
-              />
-              <span className="mt-1 block text-xs text-ink-faint">
-                Format JSON. Mettez `active: true` pour afficher un point au client.
-                Le retrait est gratuit et pensé pour les créneaux du week-end.
+              <div className="space-y-4">
+                {adminPickupPoints.map((point, index) => (
+                  <div key={point.id || index} className="rounded-2xl border border-sand bg-linen p-4">
+                    <input type="hidden" name={`pickup_id_${index}`} defaultValue={point.id} />
+                    <div className="mb-4 flex items-center gap-3">
+                      <input
+                        id={`pickup_active_${index}`}
+                        name={`pickup_active_${index}`}
+                        type="checkbox"
+                        defaultChecked={point.active}
+                        className="h-4 w-4 accent-terra"
+                      />
+                      <label htmlFor={`pickup_active_${index}`} className="text-sm font-bold">
+                        Afficher ce point au client
+                      </label>
+                    </div>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <label>
+                        <span className={label}>Nom du point</span>
+                        <input name={`pickup_name_${index}`} defaultValue={point.name} className={field} />
+                      </label>
+                      <label>
+                        <span className={label}>Créneau</span>
+                        <input name={`pickup_schedule_${index}`} defaultValue={point.schedule} className={field} />
+                      </label>
+                      <label className="sm:col-span-2">
+                        <span className={label}>Adresse / secteur</span>
+                        <input name={`pickup_address_${index}`} defaultValue={point.address} className={field} />
+                      </label>
+                      <label className="sm:col-span-2">
+                        <span className={label}>Note client</span>
+                        <input name={`pickup_note_${index}`} defaultValue={point.note} className={field} />
+                      </label>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <span className="mt-2 block text-xs text-ink-faint">
+                Le retrait est gratuit. Décochez un point pour le masquer sans le supprimer.
               </span>
-            </label>
+            </div>
           </div>
         </div>
 

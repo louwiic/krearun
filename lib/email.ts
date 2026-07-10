@@ -2,6 +2,7 @@
 // Tous les envois sont non-bloquants côté appelant : une erreur d'e-mail
 // ne doit jamais faire échouer un paiement ou une mise à jour de commande.
 import type { Order } from "./types";
+import { publicColorName } from "./colors";
 import { formatPrice } from "./format";
 
 const FROM = process.env.EMAIL_FROM || "Krearun Studio <onboarding@resend.dev>";
@@ -50,7 +51,7 @@ function layout(content: string): string {
 ${content}
 </td></tr>
 <tr><td style="padding:24px 40px;border-top:1px solid #e8dcc9;font-size:12px;color:#b3a695;">
-  Krearun Studio — objets imprimés en 3D avec amour, lentement. ✿<br/>
+  Krearun Studio — objets fabriqués avec amour, lentement. ✿<br/>
   Une question ? Répondez simplement à cet e-mail.
 </td></tr>
 </table>
@@ -64,7 +65,7 @@ function itemsTable(order: Order): string {
     .map((i) => {
       const customName = i.customName ? escapeHtml(i.customName) : "";
       return `<tr>
-<td style="padding:10px 0;border-bottom:1px solid #f2ebde;">${i.name}${i.color ? ` <span style="color:#b3a695;">— ${i.color}</span>` : ""}${customName ? `<br/><span style="color:#a4623c;font-size:12px;">Prénom : ${customName}</span>` : ""}</td>
+<td style="padding:10px 0;border-bottom:1px solid #f2ebde;">${i.name}${i.color ? ` <span style="color:#b3a695;">— ${publicColorName(i.color)}</span>` : ""}${customName ? `<br/><span style="color:#a4623c;font-size:12px;">Prénom : ${customName}</span>` : ""}</td>
 <td style="padding:10px 0;border-bottom:1px solid #f2ebde;text-align:center;color:#877867;">× ${i.quantity}</td>
 <td style="padding:10px 0;border-bottom:1px solid #f2ebde;text-align:right;">${formatPrice(i.priceCents * i.quantity)}</td>
 </tr>`;
@@ -96,9 +97,8 @@ export async function sendOrderConfirmation(order: Order) {
     layout(`
 <h1 style="font-size:24px;margin:0 0 16px;">Merci ${prenom}, du fond du cœur.</h1>
 <p>Votre commande <strong>#${order.number}</strong> est arrivée dans notre atelier.
-L'imprimante va bientôt se mettre à ronronner : chaque pièce est fabriquée
-rien que pour vous, couche par couche (comptez 2 à 4 jours), puis expédiée
-en colis suivi.</p>
+Chaque pièce est préparée rien que pour vous avec soin (comptez 2 à 4 jours),
+puis envoyée ou mise à disposition selon votre choix.</p>
 ${itemsTable(order)}
 <p style="color:#877867;font-size:13px;">Récupération : ${order.addressLine1}${order.addressLine2 ? ", " + order.addressLine2 : ""}, ${order.postalCode} ${order.city}</p>
 ${suiviButton(order)}

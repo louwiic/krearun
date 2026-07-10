@@ -65,7 +65,7 @@ export default async function SuccesPage({
             La commande est en cours de synchronisation.
           </>
         )}{" "}
-        L'imprimante va bientôt se mettre à ronronner — vous recevrez un e-mail
+        L'atelier va bientôt préparer votre commande — vous recevrez un e-mail
         à chaque étape, de la fabrication à la livraison.
       </p>
 
@@ -85,8 +85,8 @@ export default async function SuccesPage({
       <div className="mx-auto mt-10 max-w-md rounded-blob bg-cream p-8 text-left shadow-soft">
         <p className="font-display font-semibold">Et maintenant ?</p>
         <ol className="mt-4 space-y-3 text-sm text-ink-soft">
-          <li className="flex gap-3"><span>1.</span> Nous imprimons votre objet, couche par couche (2 à 4 jours).</li>
-          <li className="flex gap-3"><span>2.</span> Ponçage, vérification et emballage tout doux.</li>
+          <li className="flex gap-3"><span>1.</span> Nous préparons votre objet avec soin (2 à 4 jours).</li>
+          <li className="flex gap-3"><span>2.</span> Vérification, finition et emballage tout doux.</li>
           <li className="flex gap-3"><span>3.</span> Envoi suivi ou retrait selon le choix fait au panier.</li>
         </ol>
       </div>

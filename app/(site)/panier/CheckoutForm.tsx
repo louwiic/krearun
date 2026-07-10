@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useCart } from "@/components/cart/CartContext";
+import { publicColorName } from "@/lib/colors";
 import { formatPrice } from "@/lib/format";
+import { billableWeight } from "@/lib/free-shipping";
 import { calculateShippingCents, formatWeight, parseShippingRates } from "@/lib/shipping";
 import { parsePickupPoints } from "@/lib/pickup";
 import type { FulfillmentMethod } from "@/lib/types";
@@ -53,7 +55,7 @@ export default function CheckoutForm({
   shippingRatesJson: string;
   pickupPointsJson: string;
 }) {
-  const { items, subtotalCents, totalWeightGrams, setQuantity, removeItem } = useCart();
+  const { items, subtotalCents, setQuantity, removeItem } = useCart();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [promoCode, setPromoCode] = useState("");
@@ -72,14 +74,16 @@ export default function CheckoutForm({
     country: "RE",
   });
 
+  const billableWeightGrams = billableWeight(items);
   const shippingRates = useMemo(() => parseShippingRates(shippingRatesJson), [shippingRatesJson]);
-  const shippingEstimate = calculateShippingCents(totalWeightGrams || 1, shippingRates);
+  const shippingEstimate = calculateShippingCents(billableWeightGrams || 1, shippingRates);
   const freeShipping =
     freeShippingThresholdCents > 0 && subtotalCents >= freeShippingThresholdCents;
   const selectedPickupPoint =
     pickupPoints.find((point) => point.id === pickupPointId) ?? pickupPoints[0] ?? null;
   const isPickup = fulfillmentMethod === "pickup" && selectedPickupPoint;
-  const shippingCents = isPickup ? 0 : freeShipping ? 0 : shippingEstimate.priceCents;
+  const shippingCents =
+    isPickup || billableWeightGrams === 0 ? 0 : freeShipping ? 0 : shippingEstimate.priceCents;
   const totalCents = subtotalCents + shippingCents;
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
@@ -119,7 +123,7 @@ export default function CheckoutForm({
       <div className="mt-10 bg-cream px-6 py-16 text-center shadow-soft sm:px-10">
         <p className="font-display text-2xl font-semibold">Votre panier est vide</p>
         <p className="mt-3 text-sm text-ink-soft">
-          Ajoutez un objet imprimé en 3D avant de passer commande.
+          Ajoutez un objet à votre panier avant de passer commande.
         </p>
         <Link
           href="/boutique"
@@ -338,7 +342,7 @@ export default function CheckoutForm({
                   <div>
                     <p className="text-sm font-bold">{item.name}</p>
                     {item.color && (
-                      <p className="text-xs text-ink-soft">Coloris : {item.color}</p>
+                      <p className="text-xs text-ink-soft">Coloris : {publicColorName(item.color)}</p>
                     )}
                     {item.customName && (
                       <p className="text-xs text-terra-deep">Prénom : {item.customName}</p>
@@ -405,7 +409,9 @@ export default function CheckoutForm({
             <span className="text-ink-soft">
               {isPickup
                 ? `Retrait · ${selectedPickupPoint.name}`
-                : `Envoi · ${formatWeight(totalWeightGrams)} · ${shippingEstimate.label}`}
+                : `Envoi · ${formatWeight(billableWeightGrams)} · ${
+                    billableWeightGrams === 0 ? "offert" : shippingEstimate.label
+                  }`}
             </span>
             <span className="font-semibold">
               {shippingCents === 0 ? "Offerte" : formatPrice(shippingCents)}
@@ -430,10 +436,10 @@ export default function CheckoutForm({
           disabled={loading}
           className="mt-5 w-full rounded-full bg-terra px-8 py-4 text-sm font-bold text-cream transition-colors hover:bg-terra-deep disabled:opacity-60"
         >
-          {loading ? "Préparation du paiement..." : "Payer la commande"}
+          {loading ? "Préparation de la commande..." : "Valider la commande"}
         </button>
         <p className="mt-3 text-center text-[11px] text-ink-faint">
-          Paiement sécurisé. La commande est confirmée après validation.
+          La commande est confirmée après validation.
         </p>
       </aside>
     </form>

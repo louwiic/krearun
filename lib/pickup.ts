@@ -9,16 +9,35 @@ export interface PickupPoint {
 
 export const DEFAULT_PICKUP_POINTS: PickupPoint[] = [
   {
-    id: "atelier-weekend",
-    name: "Retrait atelier",
-    address: "Adresse communiquée après validation",
+    id: "saint-pierre-mon-caprice",
+    name: "Saint-Pierre Mon Caprice",
+    address: "Saint-Pierre, quartier Mon Caprice",
     schedule: "Samedi et dimanche, sur rendez-vous",
-    note: "Créneaux confirmés par message après la commande.",
+    note: "Créneau confirmé par message après la commande.",
+    active: true,
+  },
+  {
+    id: "saint-leu-portail",
+    name: "Saint-Leu Portail",
+    address: "Saint-Leu, secteur Portail",
+    schedule: "Samedi et dimanche, sur rendez-vous",
+    note: "Créneau confirmé par message après la commande.",
+    active: true,
+  },
+  {
+    id: "le-port-sacre-coeur",
+    name: "Le Port Sacré Cœur",
+    address: "Le Port, secteur Sacré Cœur",
+    schedule: "Samedi et dimanche, sur rendez-vous",
+    note: "Créneau confirmé par message après la commande.",
     active: true,
   },
 ];
 
-export function parsePickupPoints(raw?: string | null): PickupPoint[] {
+export function parsePickupPoints(
+  raw?: string | null,
+  opts?: { includeInactive?: boolean }
+): PickupPoint[] {
   if (!raw) return [];
   try {
     const parsed = JSON.parse(raw);
@@ -32,7 +51,7 @@ export function parsePickupPoints(raw?: string | null): PickupPoint[] {
         note: String(item.note ?? "").trim(),
         active: Boolean(item.active),
       }))
-      .filter((item) => item.id && item.name && item.active);
+      .filter((item) => item.id && item.name && (opts?.includeInactive || item.active));
   } catch {
     return [];
   }

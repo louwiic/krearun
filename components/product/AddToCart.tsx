@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useCart } from "@/components/cart/CartContext";
+import { publicColorName } from "@/lib/colors";
 import type { Product } from "@/lib/types";
 
 export default function AddToCart({ product }: { product: Product }) {
@@ -19,15 +20,15 @@ export default function AddToCart({ product }: { product: Product }) {
       {product.colors.length > 0 && (
         <div>
           <p className="mb-2 text-sm font-bold">
-            Coloris — <span className="font-semibold text-ink-soft">{color}</span>
+            Coloris — <span className="font-semibold text-ink-soft">{publicColorName(color)}</span>
           </p>
           <div className="flex gap-3">
             {product.colors.map((c) => (
               <button
                 key={c.name}
                 onClick={() => setColor(c.name)}
-                title={c.name}
-                aria-label={`Coloris ${c.name}`}
+                title={publicColorName(c.name)}
+                aria-label={`Coloris ${publicColorName(c.name)}`}
                 className={`h-9 w-9 rounded-full border-2 transition-all ${
                   color === c.name
                     ? "scale-110 border-terra shadow-soft"
@@ -52,7 +53,7 @@ export default function AddToCart({ product }: { product: Product }) {
             className="w-full rounded-2xl border border-sand bg-cream px-4 py-3 text-sm outline-none transition-colors placeholder:text-ink-faint focus:border-terra"
           />
           <span className="mt-2 block text-xs font-semibold text-ink-soft">
-            24 caractères maximum, exactement comme vous souhaitez l&apos;imprimer.
+            24 caractères maximum, exactement comme vous souhaitez le voir apparaître.
           </span>
         </label>
       )}
@@ -85,7 +86,7 @@ export default function AddToCart({ product }: { product: Product }) {
                 slug: product.slug,
                 name: product.name,
                 priceCents: product.priceCents,
-                color,
+                color: publicColorName(color),
                 customName: product.namePersonalizationEnabled
                   ? normalizedCustomName
                   : undefined,
@@ -119,7 +120,7 @@ export default function AddToCart({ product }: { product: Product }) {
       {!soldOut && !product.preorder && product.stock <= 5 && (
         <p className="text-xs font-semibold text-terra-deep">
           Plus que {product.stock} exemplaire{product.stock > 1 ? "s" : ""} — le
-          prochain lot est déjà sur l'imprimante ✿
+          prochain lot est déjà en préparation ✿
         </p>
       )}
     </div>

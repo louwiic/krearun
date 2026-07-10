@@ -6,6 +6,8 @@ import AddToCart from "@/components/product/AddToCart";
 import ProductCard from "@/components/product/ProductCard";
 import { getProductBySlug, getProducts } from "@/lib/store";
 import { formatPrice } from "@/lib/format";
+import { hasFreeShipping } from "@/lib/free-shipping";
+import { publicProductCopy } from "@/lib/public-copy";
 import { formatWeight } from "@/lib/shipping";
 import { CATEGORIES } from "@/lib/types";
 
@@ -21,11 +23,11 @@ export async function generateMetadata({
   if (!product) return { title: "Objet introuvable" };
   return {
     title: product.name,
-    description: product.tagline || product.description.slice(0, 155),
+    description: publicProductCopy(product.tagline || product.description.slice(0, 155)),
     alternates: { canonical: `/boutique/${product.slug}` },
     openGraph: {
       title: product.name,
-      description: product.tagline,
+      description: publicProductCopy(product.tagline),
       images: product.images[0] ? [{ url: product.images[0] }] : undefined,
     },
   };
@@ -52,7 +54,7 @@ export default async function ProductPage({
     "@context": "https://schema.org",
     "@type": "Product",
     name: product.name,
-    description: product.tagline || product.description.slice(0, 200),
+    description: publicProductCopy(product.tagline || product.description.slice(0, 200)),
     image: product.images.map((img) =>
       img.startsWith("http") ? img : `${siteUrl}${img}`
     ),
@@ -109,11 +111,18 @@ export default async function ProductPage({
                 Nouveau
               </span>
             )}
+            {hasFreeShipping(product.slug) && (
+              <span className="inline-block rounded-full bg-cream px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-terra-deep">
+                Livraison offerte
+              </span>
+            )}
           </div>
           <h1 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">
             {product.name}
           </h1>
-          <p className="mt-2 text-base italic text-ink-soft sm:text-lg">{product.tagline}</p>
+          <p className="mt-2 text-base italic text-ink-soft sm:text-lg">
+            {publicProductCopy(product.tagline)}
+          </p>
 
           <div className="mt-5 flex items-baseline gap-3">
             <p className="font-display text-2xl font-semibold sm:text-3xl">
@@ -131,7 +140,7 @@ export default async function ProductPage({
           </div>
 
           <div className="mt-8 space-y-4 border-t border-sand/70 pt-6 sm:mt-10 sm:pt-8">
-            {product.description.split("\n\n").map((para, i) => (
+            {publicProductCopy(product.description).split("\n\n").map((para, i) => (
               <p
                 key={i}
                 className="whitespace-pre-line text-sm leading-relaxed text-ink-soft"
@@ -144,14 +153,14 @@ export default async function ProductPage({
           <div className="mt-8 grid gap-3 rounded-blob bg-cream p-5 text-sm shadow-soft sm:p-6">
             {[
               [
-                "🖨️",
+                "⏳",
                 product.preorder
                   ? "Pré-commande — fabrication au lancement du prochain lot"
-                  : "Imprimé à la commande — 2 à 4 jours de fabrication",
+                  : "Fabriqué à la commande — 2 à 4 jours de préparation",
               ],
-              ["🚚", "Expédié en 48 h après impression, suivi inclus"],
+              ["🚚", hasFreeShipping(product.slug) ? "Livraison offerte sur ce produit" : "Préparé avec soin, suivi inclus"],
               ["⚖️", `Poids colis estimé : ${formatWeight(product.weightGrams)}`],
-              ["💚", "PLA biosourcé, emballage recyclé et recyclable"],
+              ["💚", "Matière légère, emballage recyclé et recyclable"],
             ].map(([icon, text]) => (
               <p key={text as string} className="flex items-center gap-3 text-ink-soft">
                 <span>{icon}</span> {text}

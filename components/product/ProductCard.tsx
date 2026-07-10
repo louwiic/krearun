@@ -1,6 +1,9 @@
 import Link from "next/link";
 import type { Product } from "@/lib/types";
 import { formatPrice } from "@/lib/format";
+import { publicColorName } from "@/lib/colors";
+import { hasFreeShipping } from "@/lib/free-shipping";
+import { publicProductCopy } from "@/lib/public-copy";
 
 export default function ProductCard({
   product,
@@ -53,6 +56,11 @@ export default function ProductCard({
               Petit prix
             </span>
           )}
+          {hasFreeShipping(product.slug) && !soldOut && (
+            <span className="rounded-full bg-cream px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-terra-deep sm:px-3 sm:text-[11px]">
+              Livraison offerte
+            </span>
+          )}
           {soldOut && (
             <span className="rounded-full bg-ink/70 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-cream sm:px-3 sm:text-[11px]">
               Épuisé
@@ -64,7 +72,7 @@ export default function ProductCard({
             {product.colors.map((c) => (
               <span
                 key={c.name}
-                title={c.name}
+                title={publicColorName(c.name)}
                 className="h-3.5 w-3.5 rounded-full border border-cream shadow-sm sm:h-4 sm:w-4"
                 style={{ backgroundColor: c.hex }}
               />
@@ -78,7 +86,7 @@ export default function ProductCard({
             {product.name}
           </h3>
           <p className="mt-0.5 line-clamp-2 text-xs leading-snug text-ink-soft sm:text-sm">
-            {product.tagline}
+            {publicProductCopy(product.tagline)}
           </p>
         </div>
         <div className="shrink-0 sm:text-right">

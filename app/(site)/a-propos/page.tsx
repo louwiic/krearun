@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Notre atelier",
   description:
-    "L'histoire de Krearun Studio : un petit atelier familial d'impression 3D, des objets doux fabriqués lentement et à la commande.",
+    "L'histoire de Krearun Studio : un petit atelier familial, des objets doux fabriqués lentement et à la commande.",
 };
 
 export default function AProposPage() {
@@ -14,7 +14,7 @@ export default function AProposPage() {
         Notre histoire
       </p>
       <h1 className="font-display text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">
-        Un petit studio, deux imprimantes,
+        Un petit studio familial,
         <br />
         et l'envie de faire doucement.
       </h1>
@@ -30,26 +30,23 @@ export default function AProposPage() {
 
       <div className="prose-krearun mt-12 space-y-6 leading-relaxed text-ink-soft">
         <p>
-          Tout a commencé un dimanche pluvieux, avec une première bobine de
-          filament crème et l'envie de fabriquer une veilleuse pour la chambre
-          de notre fille. La lune a mis quatorze heures à s'imprimer. On l'a
-          regardée grandir couche par couche, et quelque chose s'est allumé —
-          bien avant l'ampoule.
+          Tout a commencé un dimanche pluvieux, avec l'envie de fabriquer une
+          veilleuse douce pour la chambre de notre fille. La lune a demandé
+          patience et minutie. On l'a regardée prendre forme, et quelque chose
+          s'est allumé — bien avant l'ampoule.
         </p>
         <p>
-          Depuis, notre salon est devenu un petit atelier. Deux imprimantes y
-          ronronnent presque tous les jours, entourées de bobines aux couleurs
-          de saison : crème, sauge, blush, terracotta. On dessine chaque objet
-          nous-mêmes, on le teste longtemps, puis on l'imprime{" "}
+          Depuis, notre salon est devenu un petit atelier. Les couleurs changent
+          avec les saisons : crème, sauge, blush, terracotta. On dessine chaque
+          objet nous-mêmes, on le teste longtemps, puis on le fabrique{" "}
           <strong className="text-ink">uniquement à la commande</strong> — pas
           de stock qui dort, pas de gaspillage.
         </p>
         <p>
-          Nos matières sont des PLA biosourcés, issus de la fécule de maïs.
-          Chaque pièce est poncée et vérifiée à la main, puis emballée dans du
-          papier de soie avec un petit mot écrit pour vous. Si vous trouvez une
-          minuscule ligne d'impression en observant de près : c'est notre
-          signature, celle des objets qui prennent leur temps.
+          Chaque pièce est vérifiée et finie à la main, puis emballée dans du
+          papier de soie avec un petit mot écrit pour vous. Nous aimons les
+          objets qui gardent une trace de l'atelier : une légère variation, une
+          finition faite avec soin, quelque chose qui prend son temps.
         </p>
         <p>
           Merci d'être là. En choisissant Krearun Studio, vous soutenez une
