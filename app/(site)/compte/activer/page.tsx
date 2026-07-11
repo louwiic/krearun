@@ -31,14 +31,14 @@ export default async function ActivateAccountPage({
         <div className="mt-8 bg-cream p-6 shadow-soft">
           <p className="font-display text-2xl font-semibold">Votre compte est activé</p>
           <p className="mt-3 text-sm leading-6 text-ink-soft">
-            Votre mot de passe est enregistré. L'espace client pourra maintenant
-            utiliser cette connexion.
+            Votre mot de passe est enregistré. Vous pouvez maintenant vous
+            connecter et retrouver toutes vos commandes.
           </p>
           <Link
-            href="/suivi"
+            href="/compte"
             className="mt-6 inline-flex rounded-full bg-terra px-7 py-3 text-sm font-bold text-cream transition-colors hover:bg-terra-deep"
           >
-            Suivre une commande
+            Ouvrir mon espace client
           </Link>
         </div>
       ) : (

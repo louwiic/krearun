@@ -4,6 +4,7 @@
 import crypto from "node:crypto";
 import type {
   CheckoutCustomer,
+  Customer,
   InventoryColor,
   Order,
   OrderStatus,
@@ -518,6 +519,46 @@ interface PbCustomer {
   country: string;
   created: string;
   updated: string;
+}
+
+function mapCustomer(r: PbCustomer): Customer {
+  return {
+    id: r.id,
+    email: r.email,
+    name: r.name ?? "",
+    phone: r.phone ?? "",
+    addressLine1: r.addressLine1 ?? "",
+    addressLine2: r.addressLine2 ?? "",
+    city: r.city ?? "",
+    postalCode: r.postalCode ?? "",
+    country: r.country ?? "",
+    createdAt: toIso(r.created),
+    updatedAt: toIso(r.updated),
+  };
+}
+
+export async function getCustomers(): Promise<Customer[]> {
+  const result = await pb<ListResult<PbCustomer>>(
+    "/collections/customers/records?perPage=500&sort=-created"
+  );
+  return result.items.map(mapCustomer);
+}
+
+export async function getCustomerById(id: string): Promise<Customer | null> {
+  try {
+    return mapCustomer(await pb<PbCustomer>(`/collections/customers/records/${id}`));
+  } catch {
+    return null;
+  }
+}
+
+export async function getOrdersByCustomerEmail(email: string): Promise<Order[]> {
+  const result = await pb<ListResult<PbOrder>>(
+    `/collections/orders/records?perPage=500&sort=-created&filter=${encodeURIComponent(
+      `email='${escapeFilter(normalizeEmail(email))}'`
+    )}`
+  );
+  return result.items.map(mapOrder);
 }
 
 interface PbCustomerActivation {

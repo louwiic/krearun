@@ -43,6 +43,9 @@ export default function Navbar() {
         </ul>
 
         <div className="flex items-center gap-2">
+          <Link href="/compte" aria-label="Mon compte" className="flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-linen-deep">
+            <svg className="h-5 w-5 text-ink" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.5 20.1a7.5 7.5 0 0115 0A17.9 17.9 0 0112 21.75a17.9 17.9 0 01-7.5-1.65z" /></svg>
+          </Link>
           <button
             onClick={openCart}
             aria-label="Ouvrir le panier"

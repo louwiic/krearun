@@ -9,6 +9,7 @@ const nav = [
   { href: "/admin/inventaire", label: "Inventaire", icon: "🎨" },
   { href: "/admin/calculateur", label: "Calculateur", icon: "🧮" },
   { href: "/admin/commandes", label: "Commandes", icon: "📦" },
+  { href: "/admin/clients", label: "Clients", icon: "👥" },
   { href: "/admin/avis", label: "Avis", icon: "⭐" },
   { href: "/admin/newsletter", label: "Newsletter", icon: "💌" },
   { href: "/admin/parametres", label: "Réglages", icon: "⚙️" },
@@ -54,7 +55,7 @@ export default async function AdminLayout({
       </aside>
 
       {/* Barre mobile */}
-      <div className="fixed inset-x-0 bottom-0 z-40 flex justify-around border-t border-sand bg-cream py-2 md:hidden">
+      <div className="fixed inset-x-0 bottom-0 z-40 flex justify-start overflow-x-auto border-t border-sand bg-cream py-2 md:hidden">
         {nav.map((item) => (
           <Link
             key={item.href}

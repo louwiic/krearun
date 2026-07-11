@@ -161,4 +161,18 @@ export interface CheckoutCustomer {
   country: string;
 }
 
+export interface Customer {
+  id: string;
+  email: string;
+  name: string;
+  phone: string;
+  addressLine1: string;
+  addressLine2: string;
+  city: string;
+  postalCode: string;
+  country: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export type FulfillmentMethod = "delivery" | "pickup";
