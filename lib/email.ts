@@ -1,29 +1,56 @@
-// E-mails transactionnels via l'API Resend (aucune dépendance).
+// E-mails transactionnels via le serveur SMTP de la messagerie Krearun.
 // Tous les envois sont non-bloquants côté appelant : une erreur d'e-mail
 // ne doit jamais faire échouer un paiement ou une mise à jour de commande.
+import nodemailer from "nodemailer";
 import type { Order } from "./types";
 import { publicColorName } from "./colors";
 import { formatPrice } from "./format";
 
-const FROM = process.env.EMAIL_FROM || "Krearun Studio <onboarding@resend.dev>";
+const SMTP_HOST = process.env.SMTP_HOST || "mail95.lwspanel.com";
+const SMTP_PORT = Number(process.env.SMTP_PORT || "465");
+const SMTP_USER = process.env.SMTP_USER || "contact@krearun.re";
+const FROM = process.env.EMAIL_FROM || `Krearun Studio <${SMTP_USER}>`;
+const ADMIN_EMAIL =
+  process.env.ADMIN_NOTIFICATION_EMAIL || "loicbatonnet.dev@gmail.com";
+
+let transporter: ReturnType<typeof nodemailer.createTransport> | null = null;
+
+function getTransporter() {
+  const password = process.env.SMTP_PASSWORD;
+  if (!password) return null;
+
+  transporter ??= nodemailer.createTransport({
+    host: SMTP_HOST,
+    port: SMTP_PORT,
+    secure: SMTP_PORT === 465,
+    connectionTimeout: 15_000,
+    greetingTimeout: 15_000,
+    socketTimeout: 20_000,
+    auth: {
+      user: SMTP_USER,
+      pass: password,
+    },
+  });
+  return transporter;
+}
 
 async function sendEmail(to: string, subject: string, html: string) {
-  const key = process.env.RESEND_API_KEY;
-  if (!key || !to) return;
+  if (!to) return;
+  const smtp = getTransporter();
+  if (!smtp) {
+    console.error("SMTP : variable SMTP_PASSWORD manquante, e-mail non envoyé.");
+    return;
+  }
   try {
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${key}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ from: FROM, to: [to], subject, html }),
+    await smtp.sendMail({
+      from: FROM,
+      to,
+      replyTo: SMTP_USER,
+      subject,
+      html,
     });
-    if (!res.ok) {
-      console.error("Resend :", res.status, await res.text());
-    }
   } catch (e) {
-    console.error("Resend injoignable :", e);
+    console.error("SMTP : échec de l'envoi :", e);
   }
 }
 
@@ -162,9 +189,9 @@ et on répond toujours.</p>
 
 // ─── Notification admin ─────────────────────────────────────
 
-export async function sendAdminNewOrder(order: Order, adminEmail: string) {
+export async function sendAdminNewOrder(order: Order) {
   await sendEmail(
-    adminEmail,
+    ADMIN_EMAIL,
     `🛎 Nouvelle commande #${order.number} — ${formatPrice(order.totalCents)}`,
     layout(`
 <h1 style="font-size:22px;margin:0 0 16px;">Nouvelle commande !</h1>
@@ -173,6 +200,33 @@ ${order.addressLine1}${order.addressLine2 ? ", " + order.addressLine2 : ""}, ${o
 ${itemsTable(order)}
 <p style="text-align:center;margin:28px 0;">
 <a href="${process.env.NEXT_PUBLIC_SITE_URL || ""}/admin/commandes" style="background:#453a2f;color:#fdfaf4;text-decoration:none;padding:14px 32px;border-radius:999px;font-size:14px;font-weight:bold;">Ouvrir dans l'admin</a>
+</p>`)
+  );
+}
+
+export async function sendAdminOrderStatus(
+  order: Order,
+  previousStatus: Order["status"]
+) {
+  const labels: Record<Order["status"], string> = {
+    pending: "En attente",
+    paid: "Payée",
+    preparing: "En préparation",
+    shipped: "Expédiée",
+    delivered: "Livrée",
+    cancelled: "Annulée",
+  };
+  await sendEmail(
+    ADMIN_EMAIL,
+    `Commande #${order.number} — ${labels[order.status]}`,
+    layout(`
+<h1 style="font-size:22px;margin:0 0 16px;">Statut de commande modifié</h1>
+<p>La commande <strong>#${order.number}</strong> de <strong>${order.name}</strong>
+est passée de « ${labels[previousStatus]} » à <strong>« ${labels[order.status]} »</strong>.</p>
+<p>Client : ${order.email}${order.phone ? ` — ${order.phone}` : ""}</p>
+${order.trackingNumber ? `<p>Numéro de suivi : <strong>${order.trackingNumber}</strong></p>` : ""}
+<p style="text-align:center;margin:28px 0;">
+<a href="${process.env.NEXT_PUBLIC_SITE_URL || ""}/admin/commandes/${order.id}" style="background:#453a2f;color:#fdfaf4;text-decoration:none;padding:14px 32px;border-radius:999px;font-size:14px;font-weight:bold;">Voir la commande</a>
 </p>`)
   );
 }

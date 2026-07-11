@@ -34,16 +34,25 @@ Le checkout relit **toujours** les prix côté serveur (jamais ceux du client),
 la commande est créée par le webhook (idempotent) et le stock est décrémenté
 automatiquement.
 
-## E-mails transactionnels (Resend)
+## E-mails transactionnels (SMTP LWS)
 
-`RESEND_API_KEY` et `EMAIL_FROM` dans `.env`. Envois automatiques :
+Renseigner dans `.env` :
+
+```dotenv
+SMTP_HOST="mail95.lwspanel.com"
+SMTP_PORT="465"
+SMTP_USER="contact@krearun.re"
+SMTP_PASSWORD="mot-de-passe-de-la-boite-mail"
+EMAIL_FROM="Krearun Studio <contact@krearun.re>"
+ADMIN_NOTIFICATION_EMAIL="loicbatonnet.dev@gmail.com"
+```
+
+Le port 465 utilise SSL/TLS. Le serveur LWS direct est utilisé afin d'éviter
+le proxy Cloudflare du sous-domaine `mail.krearun.re`. Envois automatiques :
 confirmation de commande + notification admin (webhook Stripe), e-mail
 d'expédition avec n° de suivi (statut → Expédiée), petit mot de livraison
-(statut → Livrée). Suivi client public sur `/suivi`.
-
-⚠️ Tant qu'aucun domaine n'est vérifié sur resend.com/domains, Resend
-n'envoie que vers l'adresse du compte. Après vérification, mettre
-`EMAIL_FROM="Krearun Studio <bonjour@votredomaine.fr>"`.
+(statut → Livrée). L'administrateur reçoit aussi un e-mail à chaque changement
+de statut. Suivi client public sur `/suivi`.
 
 ## Données : PocketBase + R2
 

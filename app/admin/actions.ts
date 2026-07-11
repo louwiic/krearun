@@ -24,7 +24,11 @@ import {
   uploadProductPhotos,
   uploadProductVideo,
 } from "@/lib/store";
-import { sendOrderDelivered, sendOrderShipped } from "@/lib/email";
+import {
+  sendAdminOrderStatus,
+  sendOrderDelivered,
+  sendOrderShipped,
+} from "@/lib/email";
 import { slugify } from "@/lib/format";
 import { uploadSiteImageToR2, uploadSiteMediaToR2 } from "@/lib/r2";
 import { DEFAULT_PICKUP_POINTS } from "@/lib/pickup";
@@ -290,6 +294,7 @@ export async function updateOrderStatusAction(formData: FormData) {
     try {
       if (status === "shipped") await sendOrderShipped(order);
       if (status === "delivered") await sendOrderDelivered(order);
+      await sendAdminOrderStatus(order, previous.status);
     } catch (e) {
       console.error("E-mail de statut :", e);
     }

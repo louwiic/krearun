@@ -8,7 +8,6 @@ import {
   ensureCustomerAccount,
   getOrderByStripeSession,
   getProductById,
-  getSettings,
 } from "@/lib/store";
 import {
   sendAdminNewOrder,
@@ -143,7 +142,6 @@ export async function POST(req: Request) {
     // E-mails non bloquants : un échec d'envoi ne doit pas faire
     // rejouer le webhook (la commande est déjà enregistrée)
     try {
-      const settings = await getSettings();
       await sendOrderConfirmation(order);
       if (customer) {
         try {
@@ -156,7 +154,7 @@ export async function POST(req: Request) {
           console.error("Compte client :", e);
         }
       }
-      await sendAdminNewOrder(order, settings.contact_email);
+      await sendAdminNewOrder(order);
     } catch (e) {
       console.error("E-mails de commande :", e);
     }
