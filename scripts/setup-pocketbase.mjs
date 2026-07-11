@@ -69,6 +69,7 @@ const collections = [
       { name: "active", type: "bool" },
       { name: "isNew", type: "bool" },
       { name: "preorder", type: "bool" },
+      { name: "partnerShared", type: "bool" },
       { name: "namePersonalizationEnabled", type: "bool" },
       ...autodates,
     ],
@@ -270,6 +271,7 @@ if (process.env.SEED_DEMO_PRODUCTS === "1") {
       active: p.active,
       isNew: p.isNew,
       preorder: Boolean(p.preorder),
+      partnerShared: Boolean(p.partnerShared),
       namePersonalizationEnabled: Boolean(p.namePersonalizationEnabled),
     };
     const existing = await firstRecord("products", `slug='${p.slug}'`);

@@ -106,6 +106,7 @@ interface PbProduct {
   active: boolean;
   isNew: boolean;
   preorder: boolean;
+  partnerShared: boolean;
   namePersonalizationEnabled: boolean;
   created: string;
   updated: string;
@@ -130,6 +131,7 @@ function mapProduct(r: PbProduct): Product {
     active: Boolean(r.active),
     isNew: Boolean(r.isNew),
     preorder: Boolean(r.preorder),
+    partnerShared: Boolean(r.partnerShared),
     namePersonalizationEnabled: Boolean(r.namePersonalizationEnabled),
     createdAt: toIso(r.created),
     updatedAt: toIso(r.updated),
@@ -145,8 +147,15 @@ function productPayload(p: Partial<Omit<Product, "id" | "createdAt" | "updatedAt
 
 export async function getProducts(opts?: {
   includeInactive?: boolean;
+  partnerSharedOnly?: boolean;
 }): Promise<Product[]> {
-  const filter = opts?.includeInactive ? "" : `&filter=${encodeURIComponent("active=true")}`;
+  const conditions = [
+    ...(opts?.includeInactive ? [] : ["active=true"]),
+    ...(opts?.partnerSharedOnly ? ["partnerShared=true"] : []),
+  ];
+  const filter = conditions.length
+    ? `&filter=${encodeURIComponent(conditions.join(" && "))}`
+    : "";
   const res = await pb<ListResult<PbProduct>>(
     `/collections/products/records?perPage=500&sort=-created${filter}`
   );

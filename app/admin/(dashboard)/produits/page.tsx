@@ -48,6 +48,7 @@ export default async function AdminProduitsPage() {
                       {p.featured && <span className="ml-2" title="Coup de cœur">💛</span>}
                       {p.isNew && <span className="ml-1 rounded-full bg-sage/30 px-2 py-0.5 text-[10px] font-bold text-sage-deep">NEW</span>}
                       {p.preorder && <span className="ml-1 rounded-full bg-terra/15 px-2 py-0.5 text-[10px] font-bold text-terra-deep">PRÉCO</span>}
+                      {p.partnerShared && <span className="ml-1 rounded-full bg-sage/30 px-2 py-0.5 text-[10px] font-bold text-sage-deep">PARTENAIRE</span>}
                       {p.videoUrl && <span className="ml-1 rounded-full bg-ink/10 px-2 py-0.5 text-[10px] font-bold text-ink-soft">VIDÉO</span>}
                     </span>
                   </Link>

@@ -250,6 +250,10 @@ export default function ProductForm({
             Pré-commande / bientôt disponible
           </label>
           <label className="flex items-center gap-2.5">
+            <input type="checkbox" name="partnerShared" defaultChecked={product?.partnerShared} className="h-4 w-4 accent-terra" />
+            Partager avec les sites partenaires
+          </label>
+          <label className="flex items-center gap-2.5">
             <input
               type="checkbox"
               name="namePersonalizationEnabled"

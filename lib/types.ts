@@ -48,6 +48,7 @@ export interface Product {
   active: boolean;
   isNew: boolean;
   preorder: boolean;
+  partnerShared: boolean;
   namePersonalizationEnabled: boolean;
   createdAt: string;
   updatedAt: string;

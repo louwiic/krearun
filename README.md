@@ -96,3 +96,16 @@ data/              → seed JSON initial (backup, plus utilisé au runtime)
 public/products/   → visuels générés
 public/uploads/    → photos ajoutées depuis l'admin
 ```
+
+## API publique pour les sites partenaires
+
+`GET /api/partenaires/produits` renvoie en JSON uniquement les produits actifs
+cochés « Partager avec les sites partenaires » dans leur fiche d'administration.
+La route accepte les appels cross-origin (`CORS`) et expose les prix en centimes,
+les médias, les coloris, la disponibilité et l'URL de la fiche produit.
+
+Après déploiement initial de cette fonctionnalité, ajouter le champ PocketBase :
+
+```bash
+node scripts/setup-partner-products.mjs
+```

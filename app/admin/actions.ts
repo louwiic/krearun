@@ -205,6 +205,7 @@ export async function saveProductAction(formData: FormData) {
     active: formData.get("active") === "on",
     isNew: formData.get("isNew") === "on",
     preorder: formData.get("preorder") === "on",
+    partnerShared: formData.get("partnerShared") === "on",
     namePersonalizationEnabled: formData.get("namePersonalizationEnabled") === "on",
   };
 
@@ -223,6 +224,7 @@ export async function saveProductAction(formData: FormData) {
   }
 
   revalidatePath("/", "layout");
+  revalidatePath("/api/partenaires/produits");
   redirect("/admin/produits");
 }
 
