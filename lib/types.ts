@@ -134,6 +134,12 @@ export interface Settings {
   hero_secondary_media_type: "image" | "video";
   hero_secondary_media_alt: string;
   hero_secondary_link_url: string;
+  newsletter_popup_enabled: boolean;
+  newsletter_popup_discount_pct: number;
+  newsletter_popup_delay_seconds: number;
+  newsletter_popup_promo_code: string;
+  newsletter_popup_title: string;
+  newsletter_popup_text: string;
 }
 
 export interface CartItem {

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { addSubscriber } from "@/lib/store";
+import { addSubscriber, getSettings } from "@/lib/store";
 
 export async function POST(req: Request) {
   try {
@@ -8,7 +8,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "E-mail invalide" }, { status: 400 });
     }
     await addSubscriber(email.trim());
-    return NextResponse.json({ ok: true });
+    const settings = await getSettings();
+    return NextResponse.json({
+      ok: true,
+      code: settings.newsletter_popup_promo_code,
+      discountPct: settings.newsletter_popup_discount_pct,
+    });
   } catch {
     return NextResponse.json({ error: "Requête invalide" }, { status: 400 });
   }

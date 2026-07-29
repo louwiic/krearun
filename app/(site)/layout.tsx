@@ -1,6 +1,7 @@
 import Navbar from "@/components/site/Navbar";
 import Footer from "@/components/site/Footer";
 import CartDrawer from "@/components/cart/CartDrawer";
+import NewsletterPopup from "@/components/site/NewsletterPopup";
 import { getSettings } from "@/lib/store";
 
 export default async function SiteLayout({
@@ -46,6 +47,14 @@ export default async function SiteLayout({
       <CartDrawer
         freeShippingThresholdCents={settings.free_shipping_threshold_cents}
         shippingRatesJson={settings.shipping_rates_json}
+      />
+      <NewsletterPopup
+        enabled={settings.newsletter_popup_enabled}
+        discountPct={settings.newsletter_popup_discount_pct}
+        delaySeconds={settings.newsletter_popup_delay_seconds}
+        title={settings.newsletter_popup_title}
+        text={settings.newsletter_popup_text}
+        storeName={settings.store_name}
       />
     </div>
   );

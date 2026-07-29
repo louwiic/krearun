@@ -721,6 +721,13 @@ const DEFAULT_SETTINGS: Settings = {
   hero_secondary_media_type: "video",
   hero_secondary_media_alt: "Vidéo courte du produit Monster",
   hero_secondary_link_url: "/boutique",
+  newsletter_popup_enabled: true,
+  newsletter_popup_discount_pct: 10,
+  newsletter_popup_delay_seconds: 4,
+  newsletter_popup_promo_code: "BIENVENUE10",
+  newsletter_popup_title: "Une remise pour votre première commande",
+  newsletter_popup_text:
+    "Recevez nos nouveautés, offres et sélections Krearun directement par email.",
 };
 
 type PbSettings = Partial<Settings> & { id: string };
