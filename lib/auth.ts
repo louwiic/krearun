@@ -1,5 +1,6 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
+import { sessionCookieOptions } from "./session-cookie";
 
 const COOKIE_NAME = "krearun_admin";
 
@@ -17,18 +18,12 @@ export async function createAdminSession() {
     .sign(secret());
 
   const cookieStore = await cookies();
-  cookieStore.set(COOKIE_NAME, token, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    maxAge: 60 * 60 * 24 * 7,
-    path: "/",
-  });
+  cookieStore.set(COOKIE_NAME, token, sessionCookieOptions(60 * 60 * 24 * 7));
 }
 
 export async function destroyAdminSession() {
   const cookieStore = await cookies();
-  cookieStore.delete(COOKIE_NAME);
+  cookieStore.set(COOKIE_NAME, "", sessionCookieOptions(0));
 }
 
 export async function isAdmin(): Promise<boolean> {

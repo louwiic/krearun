@@ -1,5 +1,6 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
+import { sessionCookieOptions } from "./session-cookie";
 
 const COOKIE_NAME = "krearun_customer";
 
@@ -43,13 +44,7 @@ export async function createCustomerSession(customer: CustomerSession) {
     .setIssuedAt()
     .setExpirationTime("30d")
     .sign(secret());
-  (await cookies()).set(COOKIE_NAME, token, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    maxAge: 60 * 60 * 24 * 30,
-    path: "/",
-  });
+  (await cookies()).set(COOKIE_NAME, token, sessionCookieOptions());
 }
 
 export async function getCustomerSession(): Promise<CustomerSession | null> {
@@ -67,5 +62,5 @@ export async function getCustomerSession(): Promise<CustomerSession | null> {
 }
 
 export async function destroyCustomerSession() {
-  (await cookies()).delete(COOKIE_NAME);
+  (await cookies()).set(COOKIE_NAME, "", sessionCookieOptions(0));
 }
