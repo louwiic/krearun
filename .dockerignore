@@ -1,6 +1,7 @@
 .git
 .next
 node_modules
+carrelage-rs
 npm-debug.log
 .env
 .env*
