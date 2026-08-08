@@ -8,13 +8,21 @@ export default async function proxy(req: NextRequest) {
   if (canonicalUrl) {
     try {
       const canonical = new URL(canonicalUrl);
+      const forwardedHost =
+        req.headers.get("x-forwarded-host") ?? req.headers.get("host") ?? "";
+      const currentHost = forwardedHost
+        .split(",")[0]
+        .trim()
+        .split(":")[0]
+        .toLowerCase();
       if (
         canonical.hostname.endsWith("krearun.re") &&
-        req.nextUrl.hostname !== canonical.hostname
+        currentHost &&
+        currentHost !== canonical.hostname
       ) {
         const url = req.nextUrl.clone();
         url.protocol = canonical.protocol;
-        url.hostname = canonical.hostname;
+        url.host = canonical.host; // hostname + réinitialise le port (plus de :3000)
         return NextResponse.redirect(url, 308);
       }
     } catch {}
