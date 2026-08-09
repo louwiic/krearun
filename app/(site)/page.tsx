@@ -1,18 +1,9 @@
 import Link from "next/link";
 import ProductCard from "@/components/product/ProductCard";
+import { formatPrice } from "@/lib/format";
 import { getApprovedReviews, getProducts, getSettings } from "@/lib/store";
-import { CATEGORIES } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
-
-const CATEGORY_ART: Record<string, string> = {
-  veilleuses: "/products/veilleuse-lune.svg",
-  vases: "/products/vase-ondule.svg",
-  bureau: "/products/organiseur-dune.svg",
-  rangement: "/products/boite-coquillage.svg",
-  "salle-de-bain": "/products/vide-poche-galet.svg",
-  deco: "/products/dessous-verre-ondes.svg",
-};
 
 export default async function HomePage() {
   const [products, settings, reviews] = await Promise.all([
@@ -39,7 +30,7 @@ export default async function HomePage() {
   return (
     <>
       {/* ── Héro ─────────────────────────────────────── */}
-      <section className="relative overflow-hidden">
+      <section className="relative overflow-hidden bg-gradient-to-br from-cream via-linen to-blush/30">
         <div
           aria-hidden
           className="pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full bg-blush/40 blur-3xl"
@@ -48,43 +39,45 @@ export default async function HomePage() {
           aria-hidden
           className="pointer-events-none absolute -left-32 top-40 h-80 w-80 rounded-full bg-sage/30 blur-3xl"
         />
-        <div className="mx-auto grid max-w-6xl items-center gap-8 px-4 pb-14 pt-10 sm:px-6 sm:pb-20 sm:pt-16 md:grid-cols-2 md:gap-12 md:pt-24">
+        <div className="mx-auto grid max-w-6xl items-center gap-8 px-4 pb-12 pt-8 sm:px-6 sm:pb-20 sm:pt-16 md:grid-cols-2 md:gap-12 md:pt-20">
           <div>
             <p className="reveal mb-4 inline-flex items-center gap-2 rounded-full bg-sage/20 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-sage-deep sm:px-4 sm:text-xs sm:tracking-[0.15em]">
-              ✿ Fabriqué lentement, dans notre atelier
+              <span className="h-2 w-2 animate-pulse rounded-full bg-terra" />
+              Créé et fabriqué à La Réunion
             </p>
             <h1 className="reveal reveal-1 font-display text-4xl font-semibold leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl">
-              Des objets
+              Nos derniers
               <br />
-              faits pour vous,
-              <br />
-              <em className="text-terra">tout en douceur.</em>
+              <em className="text-terra">produits du moment</em>
             </h1>
             <p className="reveal reveal-2 mt-5 max-w-md text-base leading-relaxed text-ink-soft sm:mt-6 sm:text-lg">
-              Veilleuses, vases et petits compagnons du quotidien, préparés à
-              la commande — rien que pour vous, et pour longtemps.
+              Repérez votre coup de cœur, choisissez votre couleur et recevez
+              une création préparée spécialement pour vous.
             </p>
             <div className="reveal reveal-3 mt-7 grid gap-3 sm:mt-9 sm:flex sm:flex-wrap sm:gap-4">
               <Link
-                href="/boutique"
-                className="rounded-full bg-terra px-6 py-3.5 text-center text-sm font-bold text-cream transition-all hover:bg-terra-deep hover:shadow-lifted sm:px-8 sm:py-4"
+                href={heroHref}
+                className="rounded-full bg-terra-deep px-6 py-3.5 text-center text-sm font-bold text-cream shadow-soft transition-all hover:-translate-y-0.5 hover:bg-ink hover:shadow-lifted sm:px-8 sm:py-4"
               >
-                Découvrir la boutique
+                Je veux ce produit
               </Link>
               <Link
-                href="/a-propos"
+                href="/boutique"
                 className="rounded-full border border-sand bg-cream px-6 py-3.5 text-center text-sm font-bold text-ink transition-colors hover:border-terra hover:text-terra sm:px-8 sm:py-4"
               >
-                Visiter l'atelier
+                Voir tous les produits
               </Link>
             </div>
+            <p className="reveal reveal-3 mt-4 text-center text-xs font-semibold text-ink-faint sm:text-left">
+              Paiement sécurisé · Livraison sur toute l’île
+            </p>
           </div>
 
           <div className="reveal reveal-2 relative">
             {heroImage && (
               <Link
                 href={heroHref}
-                className="block animate-float overflow-hidden rounded-[3rem] shadow-lifted"
+                className="group relative block animate-float overflow-hidden rounded-[2rem] shadow-lifted sm:rounded-[3rem]"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -92,6 +85,21 @@ export default async function HomePage() {
                   alt={heroAlt}
                   className="aspect-square w-full object-cover"
                 />
+                {heroMain && (
+                  <span className="absolute inset-x-3 bottom-3 flex items-center justify-between gap-3 rounded-2xl bg-cream/95 p-3.5 shadow-soft backdrop-blur sm:inset-x-5 sm:bottom-5 sm:p-4">
+                    <span className="min-w-0">
+                      <span className="block truncate font-display font-semibold text-ink">
+                        {heroMain.name}
+                      </span>
+                      <span className="mt-0.5 block text-sm font-bold text-terra-deep">
+                        {formatPrice(heroMain.priceCents)}
+                      </span>
+                    </span>
+                    <span className="shrink-0 rounded-full bg-terra-deep px-4 py-2.5 text-xs font-bold text-cream transition-transform group-hover:scale-105 sm:text-sm">
+                      Découvrir →
+                    </span>
+                  </span>
+                )}
               </Link>
             )}
             {secondaryMedia && (
@@ -120,25 +128,25 @@ export default async function HomePage() {
               </Link>
             )}
             <p className="absolute -right-2 top-6 hidden rotate-6 rounded-2xl bg-cream px-4 py-2 font-display text-sm italic text-ink-soft shadow-soft md:block">
-              préparé pour vous ✿
+              le coup de cœur du moment ✿
             </p>
           </div>
         </div>
       </section>
 
       {/* ── Bande réassurance ────────────────────────── */}
-      <section className="border-y border-sand/60 bg-cream/70">
+      <section className="border-y border-ink/10 bg-ink text-cream">
         <div className="mx-auto grid max-w-6xl gap-5 px-4 py-6 sm:px-6 sm:py-8 md:grid-cols-3">
           {[
-            ["🌱", "Matière choisie", "Des matières légères, pensées pour durer au quotidien."],
-            ["🤲", "Fait à la commande", "Chaque pièce est préparée quand vous commandez."],
-            ["📦", "Emballé avec soin", "Papier de soie, petit mot doux et carton recyclé."],
+            ["📍", "Fabriqué à La Réunion", "Une création locale préparée avec soin."],
+            ["🔒", "Paiement sécurisé", "Commandez simplement et en toute confiance."],
+            ["📦", "Livraison sur toute l’île", "Votre commande arrive directement chez vous."],
           ].map(([icon, title, text]) => (
             <div key={title as string} className="flex items-start gap-4">
               <span className="text-2xl">{icon}</span>
               <div>
                 <p className="font-display font-semibold">{title}</p>
-                <p className="mt-1 text-sm text-ink-soft">{text}</p>
+                <p className="mt-1 text-sm text-cream/70">{text}</p>
               </div>
             </div>
           ))}
@@ -147,15 +155,18 @@ export default async function HomePage() {
 
       {/* ── Nouveautés ───────────────────────────────── */}
       {nouveautes.length > 0 && (
-        <section className="mx-auto max-w-6xl px-4 pt-14 sm:px-6 sm:pt-20">
+        <section className="mx-auto mt-10 max-w-6xl rounded-[2rem] bg-cream px-4 py-10 shadow-soft sm:mt-16 sm:rounded-[3rem] sm:px-8 sm:py-14">
           <div className="mb-6 flex items-end justify-between sm:mb-10">
             <div>
-              <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.14em] text-terra sm:text-xs sm:tracking-[0.18em]">
-                Fraîchement sorties de l'atelier
+              <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.14em] text-terra-deep sm:text-xs sm:tracking-[0.18em]">
+                À découvrir maintenant
               </p>
               <h2 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">
-                Les nouveautés
+                Les créations qui font craquer
               </h2>
+              <p className="mt-2 max-w-xl text-sm leading-relaxed text-ink-soft sm:text-base">
+                Cliquez sur votre préférée pour choisir les détails et commander.
+              </p>
             </div>
             <Link
               href="/boutique"
@@ -166,99 +177,30 @@ export default async function HomePage() {
           </div>
           <div className="grid grid-cols-2 gap-4 sm:gap-8 lg:grid-cols-3">
             {nouveautes.map((p) => (
-              <ProductCard key={p.id} product={p} />
+              <ProductCard key={p.id} product={p} showCta />
             ))}
           </div>
         </section>
       )}
-
-      {/* ── Catégories ───────────────────────────────── */}
-      <section className="mx-auto max-w-6xl px-4 pt-14 sm:px-6 sm:pt-20">
-        <h2 className="mb-5 font-display text-2xl font-semibold sm:mb-8">
-          Par petits univers
-        </h2>
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-          {CATEGORIES.map((c) => (
-            <Link
-              key={c.value}
-              href={`/boutique?categorie=${c.value}`}
-              className="group overflow-hidden rounded-blob bg-cream text-center shadow-soft transition-shadow hover:shadow-lifted"
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={CATEGORY_ART[c.value]}
-                alt=""
-                aria-hidden
-                className="aspect-square w-full object-cover transition-transform duration-500 group-hover:scale-105"
-              />
-              <p className="px-2 py-3 text-xs font-bold leading-tight text-ink-soft group-hover:text-terra sm:py-3.5 sm:text-sm">
-                {c.label}
-              </p>
-            </Link>
-          ))}
-        </div>
-      </section>
 
       {/* ── Coups de cœur ────────────────────────────── */}
       {featured.length > 0 && (
         <section className="mx-auto max-w-6xl px-4 pt-14 sm:px-6 sm:pt-20">
           <div className="mb-6 sm:mb-10">
             <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.14em] text-sage-deep sm:text-xs sm:tracking-[0.18em]">
-              Les préférés de l'atelier
+              Vous hésitez encore ?
             </p>
             <h2 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">
-              Nos coups de cœur
+              Les favoris de nos clients
             </h2>
           </div>
           <div className="grid grid-cols-2 gap-4 sm:gap-8 lg:grid-cols-4">
             {featured.map((p) => (
-              <ProductCard key={p.id} product={p} />
+              <ProductCard key={p.id} product={p} showCta />
             ))}
           </div>
         </section>
       )}
-
-      {/* ── Notre histoire ───────────────────────────── */}
-      <section className="mx-auto mt-16 max-w-6xl px-4 sm:mt-24 sm:px-6">
-        <div className="relative overflow-hidden rounded-[2rem] bg-sage/15 px-5 py-10 sm:rounded-[3rem] sm:px-16 sm:py-16">
-          <div
-            aria-hidden
-            className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-blush/30 blur-3xl"
-          />
-          <div className="relative grid items-center gap-10 md:grid-cols-[1.2fr_1fr]">
-            <div>
-              <p className="mb-3 text-xs font-bold uppercase tracking-[0.18em] text-sage-deep">
-                De notre famille à la vôtre
-              </p>
-              <h2 className="font-display text-3xl font-semibold leading-snug sm:text-4xl">
-                Un petit atelier familial,
-                <br className="hidden sm:block" /> et beaucoup de patience.
-              </h2>
-              <p className="mt-5 max-w-lg leading-relaxed text-ink-soft">
-                Krearun Studio est né dans un coin de salon, entre une tasse de
-                thé et l'envie de créer des objets utiles, doux et durables.
-                Chaque pièce est dessinée, préparée, finie puis emballée à la
-                main. On fabrique lentement, en petites quantités — parce que
-                les jolies choses prennent le temps qu'il faut.
-              </p>
-              <Link
-                href="/a-propos"
-                className="mt-7 inline-block rounded-full bg-ink px-7 py-3.5 text-sm font-bold text-cream transition-colors hover:bg-terra"
-              >
-                Lire notre histoire
-              </Link>
-            </div>
-            <div className="mx-auto w-full max-w-xs rotate-2 overflow-hidden rounded-[2.5rem] border-8 border-cream shadow-lifted">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/products/atelier.svg"
-                alt="L'atelier Krearun Studio"
-                className="aspect-square w-full object-cover"
-              />
-            </div>
-          </div>
-        </div>
-      </section>
 
       {reviews.length > 0 && (
         <section className="mx-auto max-w-6xl px-4 pt-16 sm:px-6 sm:pt-24">
@@ -291,6 +233,41 @@ export default async function HomePage() {
           </div>
         </section>
       )}
+
+      <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
+        <div className="relative overflow-hidden rounded-[2rem] bg-ink px-6 py-12 text-center text-cream shadow-lifted sm:rounded-[3rem] sm:px-12 sm:py-16">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full bg-terra/30 blur-3xl"
+          />
+          <div className="relative mx-auto max-w-2xl">
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-blush">
+              Votre coup de cœur vous attend
+            </p>
+            <h2 className="mt-3 font-display text-3xl font-semibold leading-tight sm:text-5xl">
+              Prêt à choisir votre création ?
+            </h2>
+            <p className="mx-auto mt-4 max-w-lg text-sm leading-relaxed text-cream/75 sm:text-base">
+              Découvrez les modèles disponibles et commandez celui qui vous ressemble.
+            </p>
+            <Link
+              href="/boutique"
+              className="mt-7 inline-flex items-center justify-center rounded-full bg-terra-deep px-8 py-4 text-sm font-bold text-cream shadow-soft transition-all hover:-translate-y-0.5 hover:bg-cream hover:text-ink hover:shadow-lifted"
+            >
+              Choisir mon produit
+              <span aria-hidden className="ml-2">→</span>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <Link
+        href="/boutique"
+        className="fixed inset-x-4 bottom-4 z-30 flex items-center justify-center rounded-full bg-terra-deep px-6 py-4 text-sm font-bold text-cream shadow-lifted md:hidden"
+      >
+        Voir les produits
+        <span aria-hidden className="ml-2">→</span>
+      </Link>
     </>
   );
 }

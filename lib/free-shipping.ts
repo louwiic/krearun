@@ -1,6 +1,9 @@
 import type { CartItem, Product } from "./types";
 
-const FREE_SHIPPING_SLUGS = new Set(["porte-cle-coupe-du-monde-fifa"]);
+const FREE_SHIPPING_SLUGS = new Set([
+  "porte-cle-coupe-du-monde-fifa",
+  "decapsuleur-a-levier",
+]);
 
 export function hasFreeShipping(slug: string): boolean {
   return FREE_SHIPPING_SLUGS.has(slug);

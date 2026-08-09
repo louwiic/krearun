@@ -8,9 +8,11 @@ import { publicProductCopy } from "@/lib/public-copy";
 export default function ProductCard({
   product,
   className = "",
+  showCta = false,
 }: {
   product: Product;
   className?: string;
+  showCta?: boolean;
 }) {
   const soldOut = product.stock <= 0 && !product.preorder;
 
@@ -98,6 +100,14 @@ export default function ProductCard({
           )}
         </div>
       </div>
+      {showCta && (
+        <span className="mt-3 flex w-full items-center justify-center rounded-full bg-ink px-4 py-3 text-xs font-bold text-cream transition-all group-hover:bg-terra-deep group-hover:shadow-soft sm:text-sm">
+          {soldOut ? "Voir le produit" : "Choisir ce produit"}
+          <span aria-hidden className="ml-2 transition-transform group-hover:translate-x-1">
+            →
+          </span>
+        </span>
+      )}
     </Link>
   );
 }
