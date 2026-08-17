@@ -18,24 +18,19 @@ export default async function SiteLayout({
   return (
     <div className="flex min-h-screen flex-col">
       {announcement && (
-        <div className="bg-ink px-4 py-2.5 text-center text-xs font-semibold tracking-wide text-cream">
-          <span className="inline-flex items-center justify-center gap-2">
-            <svg
-              aria-hidden
-              className="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={1.8}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M13.5 3.5l3 2.5-.7 3.3 2.7 2.4-1.9 3.1.6 3.7-3.7 1-2.3-1.8-3.3 1.1-1.7-3.4-2.9-1.7 1.4-3.4-.5-3.7 3.5-1.2 2.1-2.9 3.7 1z"
-              />
-            </svg>
-            {announcement}
-          </span>
+        <div className="marquee-mask bg-terra py-2 text-cream">
+          <div className="marquee-track text-[11px] font-bold uppercase tracking-[0.18em]">
+            {[0, 1].map((dup) => (
+              <span key={dup} aria-hidden={dup === 1} className="flex shrink-0 items-center">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <span key={i} className="flex items-center">
+                    <span className="px-6">{announcement}</span>
+                    <span className="text-cream/70">✦</span>
+                  </span>
+                ))}
+              </span>
+            ))}
+          </div>
         </div>
       )}
       <Navbar />

@@ -19,13 +19,13 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-sand/60 bg-linen/85 backdrop-blur-md">
+    <header className="sticky top-0 z-40 border-b-2 border-ink bg-linen/90 backdrop-blur-md">
       <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
         <Link
           href="/"
-          className="font-display text-xl font-semibold tracking-tight text-ink sm:text-2xl"
+          className="font-display text-2xl uppercase leading-none tracking-tight text-ink sm:text-[1.7rem]"
         >
-          Krearun<span className="text-terra">·</span>Studio
+          Krearun<span className="text-terra">.</span>
         </Link>
 
         <ul className="hidden items-center gap-7 md:flex">
@@ -34,7 +34,7 @@ export default function Navbar() {
               <Link
                 href={l.href}
                 data-active={pathname === l.href.split("?")[0] && !l.href.includes("?")}
-                className="nav-link text-sm font-semibold text-ink-soft transition-colors hover:text-ink"
+                className="nav-link text-[13px] font-bold uppercase tracking-[0.08em] text-ink-soft transition-colors hover:text-ink"
               >
                 {l.label}
               </Link>
@@ -42,17 +42,17 @@ export default function Navbar() {
           ))}
         </ul>
 
-        <div className="flex items-center gap-2">
-          <Link href="/compte" aria-label="Mon compte" className="flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-linen-deep">
-            <svg className="h-5 w-5 text-ink" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.5 20.1a7.5 7.5 0 0115 0A17.9 17.9 0 0112 21.75a17.9 17.9 0 01-7.5-1.65z" /></svg>
+        <div className="flex items-center gap-1">
+          <Link href="/compte" aria-label="Mon compte" className="flex h-10 w-10 items-center justify-center transition-colors hover:bg-ink hover:text-cream">
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.5 20.1a7.5 7.5 0 0115 0A17.9 17.9 0 0112 21.75a17.9 17.9 0 01-7.5-1.65z" /></svg>
           </Link>
           <button
             onClick={openCart}
             aria-label="Ouvrir le panier"
-            className="relative flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-linen-deep"
+            className="relative flex h-10 w-10 items-center justify-center transition-colors hover:bg-ink hover:text-cream"
           >
             <svg
-              className="h-5 w-5 text-ink"
+              className="h-5 w-5"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -74,10 +74,10 @@ export default function Navbar() {
           <button
             onClick={() => setMobileOpen((v) => !v)}
             aria-label="Menu"
-            className="flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-linen-deep md:hidden"
+            className="flex h-10 w-10 items-center justify-center transition-colors hover:bg-ink hover:text-cream md:hidden"
           >
             <svg
-              className="h-5 w-5 text-ink"
+              className="h-5 w-5"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -94,14 +94,14 @@ export default function Navbar() {
       </nav>
 
       {mobileOpen && (
-        <div className="border-t border-sand/60 bg-linen px-6 py-4 md:hidden">
-          <ul className="flex flex-col gap-3">
+        <div className="border-t-2 border-ink bg-linen px-6 py-4 md:hidden">
+          <ul className="flex flex-col divide-y divide-sand">
             {links.map((l) => (
               <li key={l.href}>
                 <Link
                   href={l.href}
                   onClick={() => setMobileOpen(false)}
-                  className="block py-1 font-semibold text-ink-soft hover:text-ink"
+                  className="block py-3 font-display text-lg uppercase tracking-tight text-ink hover:text-terra"
                 >
                   {l.label}
                 </Link>

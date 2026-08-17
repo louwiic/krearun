@@ -1,33 +1,36 @@
 @import "tailwindcss";
 
 @theme inline {
-  /* Palette Cocon — neutres chauds, verts apaisants, terracotta poudré */
-  --color-linen: #faf6ef;
-  --color-linen-deep: #f2ebde;
-  --color-cream: #fdfaf4;
-  --color-sand: #e8dcc9;
-  --color-ink: #453a2f;
-  --color-ink-soft: #877867;
-  --color-ink-faint: #b3a695;
-  --color-sage: #a8bb97;
-  --color-sage-deep: #75906a;
-  --color-blush: #e8c4b8;
-  --color-blush-deep: #d4a894;
-  --color-terra: #c07a50;
-  --color-terra-deep: #a4623c;
-  --color-lavande: #c5bcd8;
+  /* Palette Badass Péi — papier os, noir volcanique, orange lave & accents punchy */
+  --color-linen: #efeae0;      /* fond papier os */
+  --color-linen-deep: #e3ddd0; /* papier profond */
+  --color-cream: #ffffff;      /* cartes blanc pur */
+  --color-sand: #d6cfbf;       /* filets / bordures */
+  --color-ink: #16130f;        /* noir presque total */
+  --color-ink-soft: #4c463d;   /* texte secondaire */
+  --color-ink-faint: #8a8173;  /* texte discret */
+  --color-sage: #b8f13a;       /* lime acide */
+  --color-sage-deep: #7ba800;  /* lime profond */
+  --color-blush: #ff5a86;      /* rose flash */
+  --color-blush-deep: #e23e6a; /* rose profond */
+  --color-terra: #ff4b17;      /* orange volcanique (accent principal) */
+  --color-terra-deep: #db3400; /* lave profonde */
+  --color-lavande: #7b6bff;    /* violet électrique */
 
-  --font-display: var(--font-fraunces), Georgia, serif;
-  --font-body: var(--font-nunito), system-ui, sans-serif;
+  --font-display: var(--font-anton), "Arial Narrow", sans-serif;
+  --font-body: var(--font-inter), system-ui, sans-serif;
 
-  --radius-blob: 2rem;
+  --radius-blob: 0.375rem;
 
-  --shadow-soft: 0 2px 24px -6px rgb(69 58 47 / 0.1);
-  --shadow-lifted: 0 18px 45px -18px rgb(69 58 47 / 0.28);
+  --shadow-soft: 0 1px 2px rgb(22 19 15 / 0.06), 0 10px 26px -14px rgb(22 19 15 / 0.22);
+  --shadow-lifted: 0 16px 44px -18px rgb(22 19 15 / 0.34);
+  --shadow-hard: 5px 5px 0 0 rgb(22 19 15);
+  --shadow-hard-terra: 5px 5px 0 0 var(--color-terra);
 
   --animate-fade-up: fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
   --animate-float: float 7s ease-in-out infinite;
   --animate-drift: drift 10s ease-in-out infinite;
+  --animate-marquee: marquee 26s linear infinite;
 
   @keyframes fade-up {
     from {
@@ -51,10 +54,18 @@
   @keyframes drift {
     0%,
     100% {
-      transform: translate(0, 0) rotate(0deg);
+      transform: translate(0, 0) rotate(-2deg);
     }
     50% {
-      transform: translate(10px, -14px) rotate(3deg);
+      transform: translate(8px, -12px) rotate(1deg);
+    }
+  }
+  @keyframes marquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
     }
   }
 }
@@ -71,23 +82,30 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-::selection {
-  background: var(--color-blush);
-  color: var(--color-ink);
+/* Titres display : capitales serrées, allure poster */
+.font-display,
+h1.font-display,
+h2.font-display {
+  letter-spacing: -0.01em;
 }
 
-/* Grain textile très léger sur tout le site */
+::selection {
+  background: var(--color-terra);
+  color: #fff;
+}
+
+/* Grain textile léger sur tout le site */
 .grain::before {
   content: "";
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 60;
-  opacity: 0.035;
+  opacity: 0.05;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
-/* Soulignement doux au survol des liens de navigation */
+/* Soulignement franc au survol des liens de navigation */
 .nav-link {
   position: relative;
 }
@@ -96,15 +114,25 @@ body {
   position: absolute;
   left: 0;
   right: 100%;
-  bottom: -3px;
-  height: 2px;
-  border-radius: 2px;
+  bottom: -4px;
+  height: 3px;
   background: var(--color-terra);
-  transition: right 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: right 0.28s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .nav-link:hover::after,
 .nav-link[data-active="true"]::after {
   right: 0;
+}
+
+/* Bandeau défilant (ticker) */
+.marquee-mask {
+  overflow: hidden;
+  white-space: nowrap;
+}
+.marquee-track {
+  display: inline-flex;
+  animation: var(--animate-marquee);
+  will-change: transform;
 }
 
 /* Révélations décalées au chargement */
@@ -129,6 +157,6 @@ body {
   width: 6px;
 }
 .soft-scroll::-webkit-scrollbar-thumb {
-  background: var(--color-sand);
+  background: var(--color-ink);
   border-radius: 3px;
 }

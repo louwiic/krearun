@@ -21,7 +21,7 @@ export default function ProductCard({
       href={`/boutique/${product.slug}`}
       className={`group block ${className}`}
     >
-      <div className="relative overflow-hidden rounded-blob bg-cream shadow-soft transition-shadow duration-300 group-hover:shadow-lifted">
+      <div className="relative overflow-hidden border-2 border-ink bg-cream transition-all duration-200 group-hover:-translate-y-1 group-hover:shadow-hard">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={product.images[0] ?? "/products/hero.svg"}
@@ -38,33 +38,33 @@ export default function ProductCard({
           />
         )}
         {product.videoUrl && (
-          <span className="absolute bottom-3 right-3 rounded-full bg-ink/70 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-cream sm:bottom-4 sm:right-4 sm:px-3 sm:text-[11px]">
+          <span className="absolute bottom-3 right-3 border border-cream bg-ink px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-cream sm:bottom-4 sm:right-4 sm:px-3 sm:text-[11px]">
             Vidéo
           </span>
         )}
         <div className="absolute left-3 top-3 flex max-w-[calc(100%-1.5rem)] flex-wrap gap-1.5 sm:left-4 sm:top-4 sm:gap-2">
           {product.preorder && (
-            <span className="rounded-full bg-terra px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-cream sm:px-3 sm:text-[11px]">
+            <span className="border-2 border-ink bg-terra px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-cream sm:px-3 sm:text-[11px]">
               Pré-commande
             </span>
           )}
           {product.isNew && !soldOut && !product.preorder && (
-            <span className="rounded-full bg-sage px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-cream sm:px-3 sm:text-[11px]">
+            <span className="border-2 border-ink bg-sage px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-ink sm:px-3 sm:text-[11px]">
               Nouveau
             </span>
           )}
           {product.compareAtCents && !soldOut && (
-            <span className="rounded-full bg-blush-deep px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-cream sm:px-3 sm:text-[11px]">
+            <span className="border-2 border-ink bg-blush px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-ink sm:px-3 sm:text-[11px]">
               Petit prix
             </span>
           )}
           {hasFreeShipping(product.slug) && !soldOut && (
-            <span className="rounded-full bg-cream px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-terra-deep sm:px-3 sm:text-[11px]">
+            <span className="border-2 border-ink bg-cream px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-ink sm:px-3 sm:text-[11px]">
               Livraison offerte
             </span>
           )}
           {soldOut && (
-            <span className="rounded-full bg-ink/70 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-cream sm:px-3 sm:text-[11px]">
+            <span className="border-2 border-ink bg-ink px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-cream sm:px-3 sm:text-[11px]">
               Épuisé
             </span>
           )}
@@ -75,33 +75,33 @@ export default function ProductCard({
               <span
                 key={c.name}
                 title={publicColorName(c.name)}
-                className="h-3.5 w-3.5 rounded-full border border-cream shadow-sm sm:h-4 sm:w-4"
+                className="h-3.5 w-3.5 rounded-full border-2 border-ink sm:h-4 sm:w-4"
                 style={{ backgroundColor: c.hex }}
               />
             ))}
           </div>
         )}
       </div>
-      <div className="mt-3 flex flex-col gap-1 px-1 sm:mt-4 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
+      <div className="mt-3 flex flex-col gap-1 px-0.5 sm:mt-4 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
         <div className="min-w-0">
-          <h3 className="font-display text-base font-semibold leading-snug group-hover:text-terra sm:text-lg">
+          <h3 className="font-display text-lg uppercase leading-none text-ink transition-colors group-hover:text-terra sm:text-xl">
             {product.name}
           </h3>
-          <p className="mt-0.5 line-clamp-2 text-xs leading-snug text-ink-soft sm:text-sm">
+          <p className="mt-1.5 line-clamp-2 text-xs leading-snug text-ink-soft sm:text-sm">
             {publicProductCopy(product.tagline)}
           </p>
         </div>
         <div className="shrink-0 sm:text-right">
-          <p className="text-sm font-bold sm:text-base">{formatPrice(product.priceCents)}</p>
+          <p className="font-display text-lg leading-none text-terra sm:text-xl">{formatPrice(product.priceCents)}</p>
           {product.compareAtCents && (
-            <p className="text-xs text-ink-faint line-through">
+            <p className="mt-1 text-xs text-ink-faint line-through">
               {formatPrice(product.compareAtCents)}
             </p>
           )}
         </div>
       </div>
       {showCta && (
-        <span className="mt-3 flex w-full items-center justify-center rounded-full bg-ink px-4 py-3 text-xs font-bold text-cream transition-all group-hover:bg-terra-deep group-hover:shadow-soft sm:text-sm">
+        <span className="mt-3 flex w-full items-center justify-center border-2 border-ink bg-ink px-4 py-3 text-xs font-bold uppercase tracking-[0.06em] text-cream transition-all group-hover:bg-terra group-hover:border-terra sm:text-sm">
           {soldOut ? "Voir le produit" : "Choisir ce produit"}
           <span aria-hidden className="ml-2 transition-transform group-hover:translate-x-1">
             →

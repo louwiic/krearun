@@ -9,25 +9,28 @@ export default function Footer({
   contactEmail: string;
 }) {
   return (
-    <footer className="mt-24 border-t border-sand/60 bg-linen-deep/60">
-      <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
-        <div className="grid gap-10 md:grid-cols-[1.4fr_1fr_1fr]">
+    <footer className="mt-24 border-t-2 border-ink bg-ink text-cream">
+      <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+        <p className="font-display text-5xl uppercase leading-[0.85] text-cream sm:text-7xl">
+          Krearun<span className="text-terra">.</span>
+        </p>
+        <div className="mt-12 grid gap-10 md:grid-cols-[1.4fr_1fr_1fr]">
           <div>
-            <p className="font-display text-2xl font-semibold">
-              Des nouvelles douces, de temps en temps
+            <p className="font-display text-2xl uppercase leading-none">
+              Reste dan la boucle
             </p>
-            <p className="mb-5 mt-2 max-w-sm text-sm text-ink-soft">
-              Nouveautés de l'atelier, coulisses et petites
-              attentions — jamais de spam, promis.
+            <p className="mb-5 mt-3 max-w-sm text-sm text-cream/60">
+              Nouveautés de l&apos;atelier, coulisses et bons plans péi —
+              jamais de spam, promis.
             </p>
             <Newsletter />
           </div>
 
           <div>
-            <p className="mb-4 text-xs font-bold uppercase tracking-[0.18em] text-ink-faint">
+            <p className="mb-4 text-xs font-bold uppercase tracking-[0.18em] text-terra">
               Boutique
             </p>
-            <ul className="space-y-2.5 text-sm text-ink-soft">
+            <ul className="space-y-2.5 text-sm text-cream/70">
               <li><Link className="hover:text-terra" href="/boutique">Tous les objets</Link></li>
               <li><Link className="hover:text-terra" href="/boutique?categorie=veilleuses">Veilleuses & lampes</Link></li>
               <li><Link className="hover:text-terra" href="/boutique?categorie=vases">Vases</Link></li>
@@ -38,10 +41,10 @@ export default function Footer({
           </div>
 
           <div>
-            <p className="mb-4 text-xs font-bold uppercase tracking-[0.18em] text-ink-faint">
-              L'atelier
+            <p className="mb-4 text-xs font-bold uppercase tracking-[0.18em] text-terra">
+              L&apos;atelier
             </p>
-            <ul className="space-y-2.5 text-sm text-ink-soft">
+            <ul className="space-y-2.5 text-sm text-cream/70">
               <li><Link className="hover:text-terra" href="/a-propos">Notre histoire</Link></li>
               <li><Link className="hover:text-terra" href="/faq">FAQ & livraison</Link></li>
               <li><Link className="hover:text-terra" href="/suivi">Suivre ma commande</Link></li>
@@ -62,16 +65,15 @@ export default function Footer({
           </div>
         </div>
 
-        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-sand/60 pt-6 text-xs text-ink-faint sm:flex-row">
+        <div className="mt-14 flex flex-col items-center justify-between gap-4 border-t-2 border-cream/15 pt-6 text-xs text-cream/50 sm:flex-row">
           <p>
-            © {new Date().getFullYear()} Krearun Studio — objets fabriqués avec
-            amour, lentement.
+            © {new Date().getFullYear()} Krearun Studio — fabriké péi à La Réunion.
           </p>
-          <div className="flex gap-5">
-            <Link className="hover:text-ink" href="/cgv">CGV</Link>
-            <Link className="hover:text-ink" href="/confidentialite">Confidentialité</Link>
-            <Link className="hover:text-ink" href="/mentions-legales">Mentions légales</Link>
-            <Link className="hover:text-ink" href="/admin">Espace admin</Link>
+          <div className="flex flex-wrap gap-5 font-bold uppercase tracking-[0.08em]">
+            <Link className="hover:text-terra" href="/cgv">CGV</Link>
+            <Link className="hover:text-terra" href="/confidentialite">Confidentialité</Link>
+            <Link className="hover:text-terra" href="/mentions-legales">Mentions légales</Link>
+            <Link className="hover:text-terra" href="/admin">Admin</Link>
           </div>
         </div>
       </div>

@@ -30,46 +30,48 @@ export default async function HomePage() {
   return (
     <>
       {/* ── Héro ─────────────────────────────────────── */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-cream via-linen to-blush/30">
+      <section className="relative overflow-hidden border-b-2 border-ink bg-linen">
         <div
           aria-hidden
-          className="pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full bg-blush/40 blur-3xl"
+          className="pointer-events-none absolute -right-28 -top-28 h-[24rem] w-[24rem] rotate-12 bg-terra/15"
         />
         <div
           aria-hidden
-          className="pointer-events-none absolute -left-32 top-40 h-80 w-80 rounded-full bg-sage/30 blur-3xl"
+          className="pointer-events-none absolute -left-40 bottom-0 h-72 w-72 bg-sage/20"
         />
-        <div className="mx-auto grid max-w-6xl items-center gap-8 px-4 pb-12 pt-8 sm:px-6 sm:pb-20 sm:pt-16 md:grid-cols-2 md:gap-12 md:pt-20">
+        <div className="mx-auto grid max-w-6xl items-center gap-8 px-4 pb-14 pt-10 sm:px-6 sm:pb-24 sm:pt-16 md:grid-cols-2 md:gap-12 md:pt-20">
           <div>
-            <p className="reveal mb-4 inline-flex items-center gap-2 rounded-full bg-sage/20 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-sage-deep sm:px-4 sm:text-xs sm:tracking-[0.15em]">
-              <span className="h-2 w-2 animate-pulse rounded-full bg-terra" />
-              Créé et fabriqué à La Réunion
+            <p className="reveal mb-5 inline-flex items-center gap-2 border-2 border-ink bg-cream px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-ink">
+              <span className="h-2 w-2 animate-pulse bg-terra" />
+              Fabriké péi · La Rényon
             </p>
-            <h1 className="reveal reveal-1 font-display text-4xl font-semibold leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl">
-              Nos derniers
+            <h1 className="reveal reveal-1 font-display text-5xl uppercase leading-[0.9] text-ink sm:text-6xl lg:text-7xl">
+              Des objets
               <br />
-              <em className="text-terra">produits du moment</em>
+              qui ont du{" "}
+              <span className="text-terra">karaktèr</span>
             </h1>
-            <p className="reveal reveal-2 mt-5 max-w-md text-base leading-relaxed text-ink-soft sm:mt-6 sm:text-lg">
-              Repérez votre coup de cœur, choisissez votre couleur et recevez
-              une création préparée spécialement pour vous.
+            <p className="reveal reveal-2 mt-6 max-w-md text-base leading-relaxed text-ink-soft sm:text-lg">
+              Veilleuses, vases et déco imprimés en 3D dans notre atelier péi.
+              Repère ton modèle, choisis ta couleur — et affiche le style.
             </p>
-            <div className="reveal reveal-3 mt-7 grid gap-3 sm:mt-9 sm:flex sm:flex-wrap sm:gap-4">
+            <div className="reveal reveal-3 mt-8 grid gap-3 sm:flex sm:flex-wrap sm:gap-4">
               <Link
                 href={heroHref}
-                className="rounded-full bg-terra-deep px-6 py-3.5 text-center text-sm font-bold text-cream shadow-soft transition-all hover:-translate-y-0.5 hover:bg-ink hover:shadow-lifted sm:px-8 sm:py-4"
+                className="inline-flex items-center justify-center border-2 border-ink bg-ink px-7 py-3.5 text-center text-sm font-bold uppercase tracking-[0.06em] text-cream transition-all hover:bg-terra hover:border-terra sm:px-9 sm:py-4"
               >
-                Je veux ce produit
+                Je veux ça
+                <span aria-hidden className="ml-2">→</span>
               </Link>
               <Link
                 href="/boutique"
-                className="rounded-full border border-sand bg-cream px-6 py-3.5 text-center text-sm font-bold text-ink transition-colors hover:border-terra hover:text-terra sm:px-8 sm:py-4"
+                className="inline-flex items-center justify-center border-2 border-ink bg-cream px-7 py-3.5 text-center text-sm font-bold uppercase tracking-[0.06em] text-ink transition-colors hover:bg-ink hover:text-cream sm:px-9 sm:py-4"
               >
-                Voir tous les produits
+                Voir la boutique
               </Link>
             </div>
-            <p className="reveal reveal-3 mt-4 text-center text-xs font-semibold text-ink-faint sm:text-left">
-              Paiement sécurisé · Livraison sur toute l’île
+            <p className="reveal reveal-3 mt-5 text-center text-[11px] font-bold uppercase tracking-[0.12em] text-ink-faint sm:text-left">
+              Paiement sécurisé · Livraison partou dan lî
             </p>
           </div>
 
@@ -77,7 +79,7 @@ export default async function HomePage() {
             {heroImage && (
               <Link
                 href={heroHref}
-                className="group relative block animate-float overflow-hidden rounded-[2rem] shadow-lifted sm:rounded-[3rem]"
+                className="group relative block animate-float overflow-hidden border-2 border-ink shadow-hard"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -86,17 +88,17 @@ export default async function HomePage() {
                   className="aspect-square w-full object-cover"
                 />
                 {heroMain && (
-                  <span className="absolute inset-x-3 bottom-3 flex items-center justify-between gap-3 rounded-2xl bg-cream/95 p-3.5 shadow-soft backdrop-blur sm:inset-x-5 sm:bottom-5 sm:p-4">
+                  <span className="absolute inset-x-3 bottom-3 flex items-center justify-between gap-3 border-2 border-ink bg-cream p-3 sm:inset-x-4 sm:bottom-4 sm:p-3.5">
                     <span className="min-w-0">
-                      <span className="block truncate font-display font-semibold text-ink">
+                      <span className="block truncate font-display text-lg uppercase leading-none text-ink">
                         {heroMain.name}
                       </span>
-                      <span className="mt-0.5 block text-sm font-bold text-terra-deep">
+                      <span className="mt-1 block text-sm font-bold text-terra">
                         {formatPrice(heroMain.priceCents)}
                       </span>
                     </span>
-                    <span className="shrink-0 rounded-full bg-terra-deep px-4 py-2.5 text-xs font-bold text-cream transition-transform group-hover:scale-105 sm:text-sm">
-                      Découvrir →
+                    <span className="shrink-0 bg-terra px-4 py-2.5 text-xs font-bold uppercase text-cream transition-transform group-hover:scale-105 sm:text-sm">
+                      Voir →
                     </span>
                   </span>
                 )}
@@ -105,7 +107,7 @@ export default async function HomePage() {
             {secondaryMedia && (
               <Link
                 href={secondaryHref}
-                className="animate-drift absolute -bottom-8 -left-8 hidden w-40 overflow-hidden rounded-[2rem] border-4 border-linen shadow-lifted sm:block"
+                className="animate-drift absolute -bottom-7 -left-7 hidden w-40 overflow-hidden border-2 border-ink shadow-hard-terra sm:block"
               >
                 {secondaryIsVideo ? (
                   <video
@@ -127,26 +129,26 @@ export default async function HomePage() {
                 )}
               </Link>
             )}
-            <p className="absolute -right-2 top-6 hidden rotate-6 rounded-2xl bg-cream px-4 py-2 font-display text-sm italic text-ink-soft shadow-soft md:block">
-              le coup de cœur du moment ✿
+            <p className="absolute -right-3 top-5 hidden -rotate-3 border-2 border-ink bg-sage px-3 py-1.5 font-display text-sm uppercase text-ink shadow-hard md:block">
+              Kok la fé péi ✦
             </p>
           </div>
         </div>
       </section>
 
       {/* ── Bande réassurance ────────────────────────── */}
-      <section className="border-y border-ink/10 bg-ink text-cream">
-        <div className="mx-auto grid max-w-6xl gap-5 px-4 py-6 sm:px-6 sm:py-8 md:grid-cols-3">
+      <section className="border-b-2 border-ink bg-ink text-cream">
+        <div className="mx-auto grid max-w-6xl divide-y-2 divide-cream/15 px-4 sm:px-6 md:grid-cols-3 md:divide-x-2 md:divide-y-0">
           {[
-            ["📍", "Fabriqué à La Réunion", "Une création locale préparée avec soin."],
-            ["🔒", "Paiement sécurisé", "Commandez simplement et en toute confiance."],
-            ["📦", "Livraison sur toute l’île", "Votre commande arrive directement chez vous."],
-          ].map(([icon, title, text]) => (
-            <div key={title as string} className="flex items-start gap-4">
-              <span className="text-2xl">{icon}</span>
+            ["01", "Fabriké péi", "Chaque pièce sort de notre atelier à La Réunion."],
+            ["02", "Paiement sécurisé", "Commande simple, en toute confiance."],
+            ["03", "Livraison partou", "Ta commande arrive directement chez toi."],
+          ].map(([num, title, text]) => (
+            <div key={title} className="flex items-start gap-4 py-6 md:px-6 md:py-8">
+              <span className="font-display text-3xl leading-none text-terra">{num}</span>
               <div>
-                <p className="font-display font-semibold">{title}</p>
-                <p className="mt-1 text-sm text-cream/70">{text}</p>
+                <p className="font-display text-lg uppercase leading-none">{title}</p>
+                <p className="mt-2 text-sm text-cream/65">{text}</p>
               </div>
             </div>
           ))}
@@ -155,22 +157,22 @@ export default async function HomePage() {
 
       {/* ── Nouveautés ───────────────────────────────── */}
       {nouveautes.length > 0 && (
-        <section className="mx-auto mt-10 max-w-6xl rounded-[2rem] bg-cream px-4 py-10 shadow-soft sm:mt-16 sm:rounded-[3rem] sm:px-8 sm:py-14">
+        <section className="mx-auto mt-12 max-w-6xl px-4 sm:mt-20 sm:px-6">
           <div className="mb-6 flex items-end justify-between sm:mb-10">
             <div>
-              <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.14em] text-terra-deep sm:text-xs sm:tracking-[0.18em]">
-                À découvrir maintenant
-              </p>
-              <h2 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">
-                Les créations qui font craquer
+              <span className="mb-3 inline-block border-2 border-ink bg-terra px-3 py-1 text-[11px] font-bold uppercase tracking-[0.14em] text-cream">
+                Nouveauté
+              </span>
+              <h2 className="font-display text-4xl uppercase leading-[0.9] sm:text-5xl">
+                Frais sorti d’atelier
               </h2>
-              <p className="mt-2 max-w-xl text-sm leading-relaxed text-ink-soft sm:text-base">
-                Cliquez sur votre préférée pour choisir les détails et commander.
+              <p className="mt-3 max-w-xl text-sm leading-relaxed text-ink-soft sm:text-base">
+                Clique sur ta préférée pour choisir les détails et commander.
               </p>
             </div>
             <Link
               href="/boutique"
-              className="nav-link hidden text-sm font-bold text-ink-soft hover:text-ink sm:block"
+              className="nav-link hidden text-[13px] font-bold uppercase tracking-[0.08em] text-ink hover:text-terra sm:block"
             >
               Tout voir →
             </Link>
@@ -185,13 +187,13 @@ export default async function HomePage() {
 
       {/* ── Coups de cœur ────────────────────────────── */}
       {featured.length > 0 && (
-        <section className="mx-auto max-w-6xl px-4 pt-14 sm:px-6 sm:pt-20">
+        <section className="mx-auto max-w-6xl px-4 pt-16 sm:px-6 sm:pt-24">
           <div className="mb-6 sm:mb-10">
-            <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.14em] text-sage-deep sm:text-xs sm:tracking-[0.18em]">
-              Vous hésitez encore ?
-            </p>
-            <h2 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">
-              Les favoris de nos clients
+            <span className="mb-3 inline-block border-2 border-ink bg-sage px-3 py-1 text-[11px] font-bold uppercase tracking-[0.14em] text-ink">
+              Best-sellers
+            </span>
+            <h2 className="font-display text-4xl uppercase leading-[0.9] sm:text-5xl">
+              Les favoris du péi
             </h2>
           </div>
           <div className="grid grid-cols-2 gap-4 sm:gap-8 lg:grid-cols-4">
@@ -204,28 +206,28 @@ export default async function HomePage() {
 
       {reviews.length > 0 && (
         <section className="mx-auto max-w-6xl px-4 pt-16 sm:px-6 sm:pt-24">
-          <div className="mb-8 text-center sm:mb-10">
-            <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.14em] text-terra sm:text-xs sm:tracking-[0.18em]">
+          <div className="mb-8 sm:mb-10">
+            <span className="mb-3 inline-block border-2 border-ink bg-cream px-3 py-1 text-[11px] font-bold uppercase tracking-[0.14em] text-ink">
               Avis vérifiés
-            </p>
-            <h2 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">
-              Retours clients
+            </span>
+            <h2 className="font-display text-4xl uppercase leading-[0.9] sm:text-5xl">
+              Zot i koz pou nou
             </h2>
           </div>
           <div className="grid gap-6 md:grid-cols-3">
             {reviews.slice(0, 3).map((review) => (
               <figure
                 key={review.id}
-                className="flex flex-col rounded-blob bg-cream p-8 shadow-soft"
+                className="flex flex-col border-2 border-ink bg-cream p-7 shadow-hard"
               >
-                <div className="mb-4 text-terra" aria-label={`${review.rating} sur 5`}>
-                  {"✿ ".repeat(review.rating).trim()}
+                <div className="mb-4 text-lg text-terra" aria-label={`${review.rating} sur 5`}>
+                  {"★ ".repeat(review.rating).trim()}
                 </div>
                 <blockquote className="flex-1 text-sm leading-relaxed text-ink-soft">
                   « {review.message} »
                 </blockquote>
                 <figcaption className="mt-5 text-sm">
-                  <span className="font-bold">{review.authorName}</span>
+                  <span className="font-display text-base uppercase leading-none">{review.authorName}</span>
                   <span className="text-ink-faint"> — {review.productName}</span>
                 </figcaption>
               </figure>
@@ -235,24 +237,24 @@ export default async function HomePage() {
       )}
 
       <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
-        <div className="relative overflow-hidden rounded-[2rem] bg-ink px-6 py-12 text-center text-cream shadow-lifted sm:rounded-[3rem] sm:px-12 sm:py-16">
+        <div className="relative overflow-hidden border-2 border-ink bg-ink px-6 py-14 text-cream shadow-hard-terra sm:px-12 sm:py-20">
           <div
             aria-hidden
-            className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full bg-terra/30 blur-3xl"
+            className="pointer-events-none absolute -right-16 -top-24 h-72 w-72 rotate-12 bg-terra/25"
           />
-          <div className="relative mx-auto max-w-2xl">
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-blush">
-              Votre coup de cœur vous attend
+          <div className="relative max-w-2xl">
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-terra">
+              Ton coup de cœur t’attend
             </p>
-            <h2 className="mt-3 font-display text-3xl font-semibold leading-tight sm:text-5xl">
-              Prêt à choisir votre création ?
+            <h2 className="mt-3 font-display text-4xl uppercase leading-[0.9] sm:text-6xl">
+              Alé, choisis ton objet
             </h2>
-            <p className="mx-auto mt-4 max-w-lg text-sm leading-relaxed text-cream/75 sm:text-base">
-              Découvrez les modèles disponibles et commandez celui qui vous ressemble.
+            <p className="mt-5 max-w-lg text-sm leading-relaxed text-cream/70 sm:text-base">
+              Découvre les modèles dispos et commande celui qui te ressemble.
             </p>
             <Link
               href="/boutique"
-              className="mt-7 inline-flex items-center justify-center rounded-full bg-terra-deep px-8 py-4 text-sm font-bold text-cream shadow-soft transition-all hover:-translate-y-0.5 hover:bg-cream hover:text-ink hover:shadow-lifted"
+              className="mt-8 inline-flex items-center justify-center border-2 border-cream bg-terra px-8 py-4 text-sm font-bold uppercase tracking-[0.06em] text-cream transition-all hover:bg-cream hover:text-ink"
             >
               Choisir mon produit
               <span aria-hidden className="ml-2">→</span>
@@ -263,7 +265,7 @@ export default async function HomePage() {
 
       <Link
         href="/boutique"
-        className="fixed inset-x-4 bottom-4 z-30 flex items-center justify-center rounded-full bg-terra-deep px-6 py-4 text-sm font-bold text-cream shadow-lifted md:hidden"
+        className="fixed inset-x-4 bottom-4 z-30 flex items-center justify-center border-2 border-ink bg-terra px-6 py-4 text-sm font-bold uppercase tracking-[0.06em] text-cream shadow-hard md:hidden"
       >
         Voir les produits
         <span aria-hidden className="ml-2">→</span>
