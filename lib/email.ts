@@ -1,4 +1,4 @@
-// E-mails transactionnels via le serveur SMTP de la messagerie Krearun.
+// E-mails transactionnels via Resend, avec SMTP en solution de repli.
 // Tous les envois sont non-bloquants côté appelant : une erreur d'e-mail
 // ne doit jamais faire échouer un paiement ou une mise à jour de commande.
 import nodemailer from "nodemailer";
@@ -36,6 +36,32 @@ function getTransporter() {
 
 async function sendEmail(to: string, subject: string, html: string) {
   if (!to) return;
+  const resendKey = process.env.RESEND_API_KEY;
+  if (resendKey) {
+    try {
+      const response = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${resendKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          from: FROM,
+          to: [to],
+          reply_to: SMTP_USER,
+          subject,
+          html,
+        }),
+      });
+      if (!response.ok) {
+        throw new Error(`Resend ${response.status}: ${await response.text()}`);
+      }
+      return;
+    } catch (e) {
+      console.error("Resend : échec de l'envoi :", e);
+      return;
+    }
+  }
   const smtp = getTransporter();
   if (!smtp) {
     console.error("SMTP : variable SMTP_PASSWORD manquante, e-mail non envoyé.");
