@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import type { CartItem } from "@/lib/types";
+import { cartUnitPriceCents } from "@/lib/quantity-discounts";
 
 interface CartContextValue {
   items: CartItem[];
@@ -20,12 +21,13 @@ interface CartContextValue {
   openCart: () => void;
   closeCart: () => void;
   addItem: (item: Omit<CartItem, "quantity">, quantity?: number) => void;
-  removeItem: (productId: string, color: string, customName?: string) => void;
+  removeItem: (productId: string, color: string, customName?: string, variantId?: string) => void;
   setQuantity: (
     productId: string,
     color: string,
     customName: string | undefined,
-    quantity: number
+    quantity: number,
+    variantId?: string
   ) => void;
   clearCart: () => void;
 }
@@ -39,15 +41,17 @@ function maxQuantity(item: Pick<CartItem, "stock" | "preorder">) {
 }
 
 function sameLine(
-  item: Pick<CartItem, "productId" | "color" | "customName">,
+  item: Pick<CartItem, "productId" | "color" | "customName" | "variantId">,
   productId: string,
   color: string,
-  customName?: string
+  customName?: string,
+  variantId?: string
 ) {
   return (
     item.productId === productId &&
     item.color === color &&
-    (item.customName ?? "") === (customName ?? "")
+    (item.customName ?? "") === (customName ?? "") &&
+    (item.variantId ?? "") === (variantId ?? "")
   );
 }
 
@@ -59,7 +63,26 @@ export function CartProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) setItems(JSON.parse(raw));
+      if (raw) {
+        const saved = JSON.parse(raw) as CartItem[];
+        // Le panier persistant est restauré une seule fois après l'hydratation client.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setItems(
+          saved.map((item) =>
+            item.slug === "porte-canette-monster" && !item.quantityDiscounts
+              ? {
+                  ...item,
+                  quantityDiscounts: [
+                    { minQuantity: 2, percent: 5 },
+                    { minQuantity: 4, percent: 10 },
+                    { minQuantity: 8, percent: 20 },
+                    { minQuantity: 10, percent: 30 },
+                  ],
+                }
+              : item
+          )
+        );
+      }
     } catch {}
     setHydrated(true);
   }, []);
@@ -72,12 +95,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
     (item: Omit<CartItem, "quantity">, quantity = 1) => {
       setItems((prev) => {
         const existing = prev.find(
-          (i) => sameLine(i, item.productId, item.color, item.customName)
+          (i) => sameLine(i, item.productId, item.color, item.customName, item.variantId)
         );
         if (existing) {
           return prev.map((i) =>
             i === existing
-              ? { ...i, quantity: Math.min(i.quantity + quantity, maxQuantity(i)) }
+              ? {
+                  ...i,
+                  ...item,
+                  quantity: Math.min(i.quantity + quantity, maxQuantity(item)),
+                }
               : i
           );
         }
@@ -88,19 +115,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
     []
   );
 
-  const removeItem = useCallback((productId: string, color: string, customName?: string) => {
+  const removeItem = useCallback((productId: string, color: string, customName?: string, variantId?: string) => {
     setItems((prev) =>
-      prev.filter((i) => !sameLine(i, productId, color, customName))
+      prev.filter((i) => !sameLine(i, productId, color, customName, variantId))
     );
   }, []);
 
   const setQuantity = useCallback(
-    (productId: string, color: string, customName: string | undefined, quantity: number) => {
+    (productId: string, color: string, customName: string | undefined, quantity: number, variantId?: string) => {
       setItems((prev) =>
         quantity <= 0
-          ? prev.filter((i) => !sameLine(i, productId, color, customName))
+          ? prev.filter((i) => !sameLine(i, productId, color, customName, variantId))
           : prev.map((i) =>
-              sameLine(i, productId, color, customName)
+              sameLine(i, productId, color, customName, variantId)
                 ? { ...i, quantity: Math.min(quantity, maxQuantity(i)) }
                 : i
             )
@@ -115,7 +142,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     () => ({
       items,
       count: items.reduce((n, i) => n + i.quantity, 0),
-      subtotalCents: items.reduce((n, i) => n + i.priceCents * i.quantity, 0),
+      subtotalCents: items.reduce((n, i) => n + cartUnitPriceCents(i) * i.quantity, 0),
       totalWeightGrams: items.reduce((n, i) => n + (i.weightGrams ?? 0) * i.quantity, 0),
       isOpen,
       openCart: () => setIsOpen(true),

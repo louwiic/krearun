@@ -1,7 +1,9 @@
 import Link from "next/link";
+import SingleProductHome from "@/components/home/SingleProductHome";
 import ProductCard from "@/components/product/ProductCard";
 import { formatPrice } from "@/lib/format";
 import { getApprovedReviews, getProducts, getSettings } from "@/lib/store";
+import { getVisibleCategories } from "@/lib/categories";
 
 export const dynamic = "force-dynamic";
 
@@ -11,10 +13,14 @@ export default async function HomePage() {
     getSettings(),
     getApprovedReviews(),
   ]);
-  const featured = products.filter((p) => p.featured).slice(0, 4);
-  const nouveautes = products.filter((p) => p.isNew).slice(0, 3);
-  const heroMain = featured[0] ?? products[0];
-  const heroSecond = featured.find((p) => p.id !== heroMain?.id) ?? products[1];
+  const visibleValues = new Set(
+    getVisibleCategories(settings.categories_json).map((category) => category.value)
+  );
+  const visibleProducts = products.filter((product) => visibleValues.has(product.category));
+  const featured = visibleProducts.filter((p) => p.featured).slice(0, 4);
+  const nouveautes = visibleProducts.filter((p) => p.isNew).slice(0, 3);
+  const heroMain = featured[0] ?? visibleProducts[0];
+  const heroSecond = featured.find((p) => p.id !== heroMain?.id) ?? visibleProducts[1];
   const heroImage = settings.hero_image_url || heroMain?.images[0] || "/products/hero.svg";
   const heroAlt = settings.hero_image_alt || heroMain?.name || "Produit Krearun Studio";
   const heroHref = settings.hero_link_url || (heroMain ? `/boutique/${heroMain.slug}` : "/boutique");
@@ -26,6 +32,20 @@ export default async function HomePage() {
   const secondaryIsVideo =
     settings.hero_secondary_media_type === "video" ||
     /\.(mp4|webm|mov)(\?|#|$)/i.test(secondaryMedia);
+
+  const singleProduct =
+    visibleProducts.find((product) => product.slug === settings.homepage_featured_product_slug) ??
+    heroMain;
+
+  if (settings.homepage_mode === "single_product" && singleProduct) {
+    return (
+      <SingleProductHome
+        product={singleProduct}
+        settings={settings}
+        reviews={reviews.filter((review) => review.productId === singleProduct.id)}
+      />
+    );
+  }
 
   return (
     <>

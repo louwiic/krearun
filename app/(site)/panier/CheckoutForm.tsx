@@ -5,10 +5,11 @@ import { useMemo, useState } from "react";
 import { useCart } from "@/components/cart/CartContext";
 import { publicColorName } from "@/lib/colors";
 import { formatPrice } from "@/lib/format";
-import { billableWeight } from "@/lib/free-shipping";
+import { billableWeight, hasMissingBillableWeight } from "@/lib/free-shipping";
 import { calculateShippingCents, formatWeight, parseShippingRates } from "@/lib/shipping";
 import { parsePickupPoints } from "@/lib/pickup";
 import type { FulfillmentMethod } from "@/lib/types";
+import { cartUnitPriceCents, quantityDiscountPercent } from "@/lib/quantity-discounts";
 
 const inputClass =
   "w-full rounded-2xl border border-sand bg-cream px-4 py-3 text-sm outline-none transition-colors placeholder:text-ink-faint focus:border-terra";
@@ -48,10 +49,12 @@ function Field({
 
 export default function CheckoutForm({
   freeShippingThresholdCents,
+  shippingFlatCents,
   shippingRatesJson,
   pickupPointsJson,
 }: {
   freeShippingThresholdCents: number;
+  shippingFlatCents: number;
   shippingRatesJson: string;
   pickupPointsJson: string;
 }) {
@@ -75,6 +78,7 @@ export default function CheckoutForm({
   });
 
   const billableWeightGrams = billableWeight(items);
+  const missingBillableWeight = hasMissingBillableWeight(items);
   const shippingRates = useMemo(() => parseShippingRates(shippingRatesJson), [shippingRatesJson]);
   const shippingEstimate = calculateShippingCents(billableWeightGrams || 1, shippingRates);
   const freeShipping =
@@ -83,7 +87,13 @@ export default function CheckoutForm({
     pickupPoints.find((point) => point.id === pickupPointId) ?? pickupPoints[0] ?? null;
   const isPickup = fulfillmentMethod === "pickup" && selectedPickupPoint;
   const shippingCents =
-    isPickup || billableWeightGrams === 0 ? 0 : freeShipping ? 0 : shippingEstimate.priceCents;
+    isPickup || freeShipping
+      ? 0
+      : missingBillableWeight
+        ? Math.max(shippingFlatCents, shippingEstimate.priceCents)
+        : billableWeightGrams === 0
+          ? 0
+          : shippingEstimate.priceCents;
   const totalCents = subtotalCents + shippingCents;
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
@@ -104,6 +114,7 @@ export default function CheckoutForm({
             quantity: item.quantity,
             color: item.color,
             customName: item.customName,
+            variantId: item.variantId,
           })),
         }),
       });
@@ -326,9 +337,12 @@ export default function CheckoutForm({
       <aside className="h-max bg-cream p-5 shadow-soft sm:p-6">
         <h2 className="font-display text-2xl font-semibold">Récapitulatif</h2>
         <ul className="mt-5 divide-y divide-sand/60">
-          {items.map((item) => (
+          {items.map((item) => {
+            const unitPriceCents = cartUnitPriceCents(item);
+            const discountPercent = quantityDiscountPercent(item.quantityDiscounts, item.quantity);
+            return (
             <li
-              key={`${item.productId}-${item.color}-${item.customName ?? ""}`}
+              key={`${item.productId}-${item.variantId ?? ""}-${item.color}-${item.customName ?? ""}`}
               className="flex gap-3 py-4"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -344,13 +358,21 @@ export default function CheckoutForm({
                     {item.color && (
                       <p className="text-xs text-ink-soft">Coloris : {publicColorName(item.color)}</p>
                     )}
+                    {item.variantName && (
+                      <p className="text-xs font-semibold text-ink-soft">Modèle : {item.variantName}</p>
+                    )}
+                    {item.slug === "porte-canette-monster" && (
+                      <p className="mt-1 text-[11px] font-bold leading-snug text-terra-deep">
+                        Accessoires offerts : couvercle, décapsuleur griffes et mini porte-canette porte-clés
+                      </p>
+                    )}
                     {item.customName && (
                       <p className="text-xs text-terra-deep">Prénom : {item.customName}</p>
                     )}
                   </div>
                   <button
                     type="button"
-                    onClick={() => removeItem(item.productId, item.color, item.customName)}
+                    onClick={() => removeItem(item.productId, item.color, item.customName, item.variantId)}
                     className="text-sm text-ink-faint hover:text-terra"
                   >
                     Retirer
@@ -365,7 +387,8 @@ export default function CheckoutForm({
                           item.productId,
                           item.color,
                           item.customName,
-                          item.quantity - 1
+                          item.quantity - 1,
+                          item.variantId
                         )
                       }
                       className="px-3 py-1 text-ink-soft hover:text-ink"
@@ -382,7 +405,8 @@ export default function CheckoutForm({
                           item.productId,
                           item.color,
                           item.customName,
-                          item.quantity + 1
+                          item.quantity + 1,
+                          item.variantId
                         )
                       }
                       disabled={item.quantity >= (item.preorder ? 20 : item.stock)}
@@ -391,13 +415,22 @@ export default function CheckoutForm({
                       +
                     </button>
                   </div>
-                  <span className="text-sm font-bold">
-                    {formatPrice(item.priceCents * item.quantity)}
+                  <span className="text-right text-sm font-bold">
+                    {discountPercent > 0 && (
+                      <span className="mr-1.5 text-[10px] font-semibold text-ink-faint line-through">
+                        {formatPrice(item.priceCents * item.quantity)}
+                      </span>
+                    )}
+                    {formatPrice(unitPriceCents * item.quantity)}
+                    {discountPercent > 0 && (
+                      <span className="block text-[10px] text-terra-deep">−{discountPercent} % appliqué</span>
+                    )}
                   </span>
                 </div>
               </div>
             </li>
-          ))}
+            );
+          })}
         </ul>
 
         <div className="mt-5 space-y-3 border-t border-sand/70 pt-5 text-sm">
@@ -409,6 +442,8 @@ export default function CheckoutForm({
             <span className="text-ink-soft">
               {isPickup
                 ? `Retrait · ${selectedPickupPoint.name}`
+                : missingBillableWeight
+                  ? "Envoi · tarif standard"
                 : `Envoi · ${formatWeight(billableWeightGrams)} · ${
                     billableWeightGrams === 0 ? "offert" : shippingEstimate.label
                   }`}

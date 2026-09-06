@@ -3,13 +3,15 @@ import type Stripe from "stripe";
 import { getProductById, getSettings } from "@/lib/store";
 import { getStripe, stripeConfigured } from "@/lib/stripe";
 import { publicColorName } from "@/lib/colors";
-import { billableProductWeight } from "@/lib/free-shipping";
+import { billableProductWeight, hasMissingProductWeight } from "@/lib/free-shipping";
 import { calculateShippingCents, parseShippingRates } from "@/lib/shipping";
 import { getPickupPoint } from "@/lib/pickup";
 import type { CheckoutCustomer, FulfillmentMethod } from "@/lib/types";
+import { discountedUnitPriceCents } from "@/lib/quantity-discounts";
 
 interface CheckoutItem {
   productId: string;
+  variantId?: string;
   quantity: number;
   color: string;
   customName?: string;
@@ -120,9 +122,10 @@ export async function POST(req: Request) {
     };
     quantity: number;
   }[] = [];
-  const metadataItems: { p: string; q: number; c: string; n?: string }[] = [];
+  const metadataItems: { p: string; q: number; c: string; u: number; n?: string; v?: string }[] = [];
   let subtotalCents = 0;
   let totalWeightGrams = 0;
+  let missingBillableWeight = false;
 
   for (const item of items) {
     const product = await getProductById(item.productId);
@@ -132,9 +135,20 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
-    const maxQuantity = product.preorder ? 20 : product.stock;
+    const activeVariants = product.variants.filter((variant) => variant.active);
+    const variant = activeVariants.find((candidate) => candidate.id === text(item.variantId, 80));
+    if (activeVariants.length > 0 && !variant) {
+      return NextResponse.json(
+        { error: `Choisissez un modèle disponible pour « ${product.name} ».` },
+        { status: 400 }
+      );
+    }
+    const selectedStock = variant?.stock ?? product.stock;
+    const selectedWeight = variant?.weightGrams || product.weightGrams;
+    const selectedPrice = variant?.priceCents || product.priceCents;
+    const maxQuantity = product.preorder ? 20 : selectedStock;
     const quantity = Math.max(1, Math.min(Number(item.quantity) || 1, maxQuantity));
-    if (product.stock <= 0 && !product.preorder) {
+    if (selectedStock <= 0 && !product.preorder) {
       return NextResponse.json(
         { error: `« ${product.name} » est épuisé pour le moment.` },
         { status: 400 }
@@ -143,22 +157,22 @@ export async function POST(req: Request) {
     const customName = product.namePersonalizationEnabled
       ? normalizeCustomName(item.customName)
       : "";
-    if (product.namePersonalizationEnabled && !customName) {
-      return NextResponse.json(
-        { error: `Indiquez le prénom pour « ${product.name} ».` },
-        { status: 400 }
-      );
-    }
     const optionParts = [
+      variant?.name || "",
       publicColorName(item.color),
       customName ? `Prénom : ${customName}` : "",
     ].filter(Boolean);
-    subtotalCents += product.priceCents * quantity;
-    totalWeightGrams += billableProductWeight(product, quantity);
+    const unitAmount =
+      discountedUnitPriceCents(selectedPrice, product.quantityDiscounts, quantity) +
+      (customName ? product.namePersonalizationPriceCents : 0);
+    subtotalCents += unitAmount * quantity;
+    const pricedProduct = { ...product, weightGrams: selectedWeight };
+    totalWeightGrams += billableProductWeight(pricedProduct, quantity);
+    missingBillableWeight ||= hasMissingProductWeight(pricedProduct);
     lineItems.push({
       price_data: {
         currency: "eur",
-        unit_amount: product.priceCents,
+        unit_amount: unitAmount,
         product_data: {
           name: optionParts.length
             ? `${product.name} — ${optionParts.join(" · ")}`
@@ -175,7 +189,9 @@ export async function POST(req: Request) {
       p: product.id,
       q: quantity,
       c: publicColorName(item.color || ""),
+      u: unitAmount,
       ...(customName ? { n: customName } : {}),
+      ...(variant ? { v: variant.id } : {}),
     });
   }
 
@@ -184,7 +200,13 @@ export async function POST(req: Request) {
   const freeShipping =
     settings.free_shipping_threshold_cents > 0 &&
     subtotalCents >= settings.free_shipping_threshold_cents;
-  const shippingCents = pickupPoint || totalWeightGrams === 0 ? 0 : freeShipping ? 0 : shipping.priceCents;
+  const shippingCents = pickupPoint || freeShipping
+    ? 0
+    : missingBillableWeight
+      ? Math.max(settings.shipping_flat_cents, shipping.priceCents)
+      : totalWeightGrams === 0
+        ? 0
+        : shipping.priceCents;
 
   const stripe = getStripe();
   const discounts: NonNullable<Stripe.Checkout.SessionCreateParams["discounts"]> = [];
@@ -219,6 +241,8 @@ export async function POST(req: Request) {
               ? `Retrait · ${pickupPoint.name}`
               : freeShipping
                 ? "Envoi offert"
+                : missingBillableWeight
+                  ? "Envoi · tarif standard"
                 : `Envoi suivi · ${shipping.label}`,
             delivery_estimate: {
               minimum: { unit: "business_day", value: 4 },

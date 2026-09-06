@@ -15,6 +15,8 @@ import type {
 import { uploadProductImageToR2, uploadProductMediaToR2 } from "./r2";
 import { DEFAULT_REUNION_SHIPPING_RATES } from "./shipping";
 import { DEFAULT_PICKUP_POINTS } from "./pickup";
+import { DEFAULT_STORE_CATEGORIES } from "./categories";
+import { normalizeQuantityDiscounts } from "./quantity-discounts";
 
 const PB_URL = (process.env.POCKETBASE_URL ?? "").replace(/\/$/, "");
 const PB_EMAIL = process.env.POCKETBASE_ADMIN_EMAIL ?? "";
@@ -108,6 +110,9 @@ interface PbProduct {
   preorder: boolean;
   partnerShared: boolean;
   namePersonalizationEnabled: boolean;
+  namePersonalizationPriceCents: number;
+  variants: Product["variants"] | null;
+  quantityDiscounts: Product["quantityDiscounts"] | null;
   created: string;
   updated: string;
 }
@@ -133,6 +138,9 @@ function mapProduct(r: PbProduct): Product {
     preorder: Boolean(r.preorder),
     partnerShared: Boolean(r.partnerShared),
     namePersonalizationEnabled: Boolean(r.namePersonalizationEnabled),
+    namePersonalizationPriceCents: Math.max(0, r.namePersonalizationPriceCents ?? 0),
+    variants: Array.isArray(r.variants) ? r.variants : [],
+    quantityDiscounts: normalizeQuantityDiscounts(r.quantityDiscounts),
     createdAt: toIso(r.created),
     updatedAt: toIso(r.updated),
   };
@@ -221,11 +229,24 @@ export async function uploadProductVideo(productId: string, file: File): Promise
   return uploadProductMediaToR2(productId, file);
 }
 
-export async function decrementStock(items: { productId: string; quantity: number }[]) {
+export async function decrementStock(items: { productId: string; quantity: number; variantId?: string }[]) {
   for (const item of items) {
     const product = await getProductById(item.productId);
     if (!product) continue;
     if (product.preorder) continue;
+    const variant = product.variants.find((candidate) => candidate.id === item.variantId);
+    if (variant) {
+      const variants = product.variants.map((candidate) =>
+        candidate.id === variant.id
+          ? { ...candidate, stock: Math.max(0, candidate.stock - item.quantity) }
+          : candidate
+      );
+      await updateProduct(item.productId, {
+        variants,
+        stock: variants.filter((candidate) => candidate.active).reduce((sum, candidate) => sum + candidate.stock, 0),
+      });
+      continue;
+    }
     await pb(`/collections/products/records/${item.productId}`, {
       method: "PATCH",
       body: { stock: Math.max(0, product.stock - item.quantity) },
@@ -707,6 +728,9 @@ export async function addSubscriber(email: string): Promise<boolean> {
 
 const DEFAULT_SETTINGS: Settings = {
   announcement: "",
+  categories_json: JSON.stringify(DEFAULT_STORE_CATEGORIES),
+  homepage_mode: "single_product",
+  homepage_featured_product_slug: "porte-canette-monster",
   shipping_flat_cents: 590,
   free_shipping_threshold_cents: 0,
   shipping_rates_json: JSON.stringify(DEFAULT_REUNION_SHIPPING_RATES),
@@ -714,13 +738,13 @@ const DEFAULT_SETTINGS: Settings = {
   store_name: "Krearun Studio",
   contact_email: "stdcreativ974@gmail.com",
   instagram: "",
-  hero_image_url: "/home/hero-monster-product.webp",
-  hero_image_alt: "Porte-canette Monster avec mousqueton offert au bord d'une piscine",
-  hero_link_url: "/boutique",
-  hero_secondary_media_url: "/home/hero-secondary-video.mp4",
+  hero_image_url: "/api/r2/site/home/1788581406949-238774c7-142d-4a92-8c51-d277017e4fc8-porte-canette-monster-turquoise.webp",
+  hero_image_alt: "Porte-canette Monster noir et turquoise devant un lac de montagne",
+  hero_link_url: "/boutique/porte-canette-monster",
+  hero_secondary_media_url: "/api/r2/site/home/videos/1788627589225-42489653-145b-491c-8c04-273263bb79ea-demo-monster.mp4",
   hero_secondary_media_type: "video",
-  hero_secondary_media_alt: "Vidéo courte du produit Monster",
-  hero_secondary_link_url: "/boutique",
+  hero_secondary_media_alt: "Vidéo de démonstration du porte-canette Monster",
+  hero_secondary_link_url: "/boutique/porte-canette-monster",
   newsletter_popup_enabled: true,
   newsletter_popup_discount_pct: 10,
   newsletter_popup_delay_seconds: 4,

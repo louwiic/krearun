@@ -42,6 +42,7 @@ export default async function CommandeDetailPage({
                   )}
                   <div className="flex-1">
                     <p className="text-sm font-bold">{item.name}</p>
+                    {item.variantName && <p className="text-xs text-ink-soft">Modèle : {item.variantName}</p>}
                     {item.color && <p className="text-xs text-ink-soft">Coloris : {item.color}</p>}
                     {item.customName && (
                       <p className="text-xs font-semibold text-terra-deep">
@@ -136,7 +137,7 @@ export default async function CommandeDetailPage({
                 Mettre à jour
               </button>
               <p className="text-[11px] leading-relaxed text-ink-faint">
-                Passer en « Expédiée » envoie automatiquement l'e-mail avec le
+                Passer en « Expédiée » envoie automatiquement l&apos;e-mail avec le
                 n° de suivi au client. « Livrée » envoie le petit mot de fin.
               </p>
             </form>

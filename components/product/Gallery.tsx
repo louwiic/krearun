@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 export default function Gallery({
   images,
@@ -12,14 +12,27 @@ export default function Gallery({
   name: string;
 }) {
   const [active, setActive] = useState(0);
-  const media = [
-    ...(images.length > 0 ? images : ["/products/hero.svg"]).map((src) => ({
-      type: "image" as const,
-      src,
-    })),
-    ...(videoUrl ? [{ type: "video" as const, src: videoUrl }] : []),
-  ];
+  const media = useMemo(
+    () => [
+      ...(images.length > 0 ? images : ["/products/hero.svg"]).map((src) => ({
+        type: "image" as const,
+        src,
+      })),
+      ...(videoUrl ? [{ type: "video" as const, src: videoUrl }] : []),
+    ],
+    [images, videoUrl]
+  );
   const activeMedia = media[active] ?? media[0];
+
+  useEffect(() => {
+    const selectVariantImage = (event: Event) => {
+      const image = (event as CustomEvent<{ image?: string }>).detail?.image;
+      const index = image ? media.findIndex((item) => item.type === "image" && item.src === image) : -1;
+      if (index >= 0) setActive(index);
+    };
+    window.addEventListener("krearun:select-product-image", selectVariantImage);
+    return () => window.removeEventListener("krearun:select-product-image", selectVariantImage);
+  }, [media]);
 
   return (
     <div className="space-y-3 sm:space-y-4">
@@ -27,7 +40,7 @@ export default function Gallery({
         {activeMedia.type === "video" ? (
           <video
             src={activeMedia.src}
-            className="aspect-square w-full object-cover"
+            className="aspect-square max-h-[520px] w-full object-cover"
             controls
             muted
             playsInline
@@ -37,7 +50,7 @@ export default function Gallery({
           <img
             src={activeMedia.src}
             alt={name}
-            className="aspect-square w-full object-cover"
+            className="aspect-square max-h-[520px] w-full object-cover"
           />
         )}
       </div>
@@ -54,14 +67,14 @@ export default function Gallery({
             >
               {item.type === "video" ? (
                 <>
-                  <video src={item.src} muted playsInline className="h-16 w-16 object-cover sm:h-20 sm:w-20" />
+                  <video src={item.src} muted playsInline className="h-14 w-14 object-cover sm:h-16 sm:w-16" />
                   <span className="absolute inset-0 grid place-items-center bg-ink/25 text-xs font-bold text-cream">
                     ▶
                   </span>
                 </>
               ) : (
                 /* eslint-disable-next-line @next/next/no-img-element */
-                <img src={item.src} alt="" className="h-16 w-16 object-cover sm:h-20 sm:w-20" />
+                <img src={item.src} alt="" className="h-14 w-14 object-cover sm:h-16 sm:w-16" />
               )}
             </button>
           ))}

@@ -1,4 +1,4 @@
-import { getSettings } from "@/lib/store";
+import { getProducts, getSettings } from "@/lib/store";
 import { saveSettingsAction } from "@/app/admin/actions";
 import { stripeConfigured } from "@/lib/stripe";
 import { DEFAULT_REUNION_SHIPPING_RATES } from "@/lib/shipping";
@@ -11,7 +11,10 @@ const field =
 const label = "mb-1.5 block text-xs font-bold uppercase tracking-wide text-ink-soft";
 
 export default async function AdminParametresPage() {
-  const settings = await getSettings();
+  const [settings, products] = await Promise.all([
+    getSettings(),
+    getProducts({ includeInactive: true }),
+  ]);
   const stripeOk = stripeConfigured();
   const webhookOk = Boolean(process.env.STRIPE_WEBHOOK_SECRET);
   const pickupPoints = parsePickupPoints(settings.pickup_points_json, { includeInactive: true });
@@ -49,6 +52,37 @@ export default async function AdminParametresPage() {
         <div className="rounded-blob bg-cream p-7 shadow-soft">
           <h2 className="mb-5 font-display text-lg font-semibold">Accueil</h2>
           <div className="grid gap-5">
+            <div className="grid gap-5 sm:grid-cols-2">
+              <label>
+                <span className={label}>Mode de la page d’accueil</span>
+                <select
+                  name="homepage_mode"
+                  defaultValue={settings.homepage_mode}
+                  className={field}
+                >
+                  <option value="single_product">Mono-produit</option>
+                  <option value="catalog">Vitrine classique</option>
+                </select>
+              </label>
+              <label>
+                <span className={label}>Produit vedette</span>
+                <select
+                  name="homepage_featured_product_slug"
+                  defaultValue={settings.homepage_featured_product_slug}
+                  className={field}
+                >
+                  {products.map((product) => (
+                    <option key={product.id} value={product.slug}>
+                      {product.name}{product.active ? "" : " — masqué"}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            <p className="text-xs leading-relaxed text-ink-faint">
+              En mode mono-produit, l’accueil affiche directement le prix, les coloris,
+              l’ajout au panier, puis la vidéo et la description du produit sélectionné.
+            </p>
             {settings.hero_image_url ? (
               <div>
                 <span className={label}>Image actuelle du hero</span>
@@ -206,7 +240,7 @@ export default async function AdminParametresPage() {
                 className={`${field} font-mono text-xs`}
               />
               <span className="mt-1 block text-xs text-ink-faint">
-                Format JSON. `priceCents` est en centimes. Mettez le seuil de gratuité à 0 pour toujours calculer les frais par poids.
+                Lettre Services Plus (suivi inclus). Format JSON. `priceCents` est en centimes. Mettez le seuil de gratuité à 0 pour toujours calculer les frais par poids.
               </span>
             </label>
             <div className="sm:col-span-2">

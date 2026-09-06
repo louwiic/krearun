@@ -5,12 +5,12 @@ import Gallery from "@/components/product/Gallery";
 import AddToCart from "@/components/product/AddToCart";
 import ProductCard from "@/components/product/ProductCard";
 import ReviewForm from "@/components/product/ReviewForm";
-import { getApprovedReviews, getProductBySlug, getProducts } from "@/lib/store";
+import { getApprovedReviews, getProductBySlug, getProducts, getSettings } from "@/lib/store";
 import { formatPrice } from "@/lib/format";
 import { hasFreeShipping } from "@/lib/free-shipping";
 import { publicProductCopy } from "@/lib/public-copy";
 import { formatWeight } from "@/lib/shipping";
-import { CATEGORIES } from "@/lib/types";
+import { getVisibleCategories } from "@/lib/categories";
 
 export const dynamic = "force-dynamic";
 
@@ -20,8 +20,11 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const product = await getProductBySlug(slug);
-  if (!product) return { title: "Objet introuvable" };
+  const [product, settings] = await Promise.all([getProductBySlug(slug), getSettings()]);
+  const visibleCategories = getVisibleCategories(settings.categories_json);
+  if (!product || !visibleCategories.some((category) => category.value === product.category)) {
+    return { title: "Objet introuvable" };
+  }
   return {
     title: product.name,
     description: publicProductCopy(product.tagline || product.description.slice(0, 155)),
@@ -40,8 +43,13 @@ export default async function ProductPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const product = await getProductBySlug(slug);
-  if (!product || !product.active) notFound();
+  const [product, settings] = await Promise.all([getProductBySlug(slug), getSettings()]);
+  const categories = getVisibleCategories(settings.categories_json);
+  if (
+    !product ||
+    !product.active ||
+    !categories.some((category) => category.value === product.category)
+  ) notFound();
 
   const [all, reviews] = await Promise.all([
     getProducts(),
@@ -51,7 +59,10 @@ export default async function ProductPage({
     .filter((p) => p.category === product.category && p.id !== product.id)
     .slice(0, 3);
   const categoryLabel =
-    CATEGORIES.find((c) => c.value === product.category)?.label ?? product.category;
+    categories.find((c) => c.value === product.category)?.label ?? product.category;
+  const activeVariants = product.variants.filter((variant) => variant.active);
+  const variantPrices = activeVariants.map((variant) => variant.priceCents || product.priceCents);
+  const displayPrice = variantPrices.length > 0 ? Math.min(...variantPrices) : product.priceCents;
 
   const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/$/, "");
   const jsonLd = {
@@ -80,7 +91,7 @@ export default async function ProductPage({
   };
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
+    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -100,8 +111,15 @@ export default async function ProductPage({
         <span className="text-ink-soft">{product.name}</span>
       </nav>
 
-      <div className="grid gap-8 md:grid-cols-2 md:gap-12">
-        <Gallery images={product.images} videoUrl={product.videoUrl} name={product.name} />
+      <div className="grid gap-8 md:grid-cols-[0.9fr_1.1fr] md:gap-10">
+        <Gallery
+          images={[
+            ...product.images,
+            ...product.variants.map((variant) => variant.image).filter(Boolean),
+          ].filter((image, index, images) => images.indexOf(image) === index)}
+          videoUrl={product.videoUrl}
+          name={product.name}
+        />
 
         <div>
           <div className="mb-4 flex flex-wrap gap-2">
@@ -130,7 +148,8 @@ export default async function ProductPage({
 
           <div className="mt-5 flex items-baseline gap-3">
             <p className="font-display text-2xl font-semibold sm:text-3xl">
-              {formatPrice(product.priceCents)}
+              {variantPrices.length > 1 && <span className="mr-2 text-base text-ink-soft">Dès</span>}
+              {formatPrice(displayPrice)}
             </p>
             {product.compareAtCents && (
               <p className="text-lg text-ink-faint line-through">

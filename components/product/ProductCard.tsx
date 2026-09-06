@@ -14,7 +14,15 @@ export default function ProductCard({
   className?: string;
   showCta?: boolean;
 }) {
-  const soldOut = product.stock <= 0 && !product.preorder;
+  const activeVariants = product.variants.filter((variant) => variant.active);
+  const availableStock = activeVariants.length > 0
+    ? activeVariants.reduce((total, variant) => total + variant.stock, 0)
+    : product.stock;
+  const variantPrices = activeVariants
+    .map((variant) => variant.priceCents || product.priceCents)
+    .filter((price) => price > 0);
+  const displayPrice = variantPrices.length > 0 ? Math.min(...variantPrices) : product.priceCents;
+  const soldOut = availableStock <= 0 && !product.preorder;
 
   return (
     <Link
@@ -92,7 +100,9 @@ export default function ProductCard({
           </p>
         </div>
         <div className="shrink-0 sm:text-right">
-          <p className="font-display text-lg leading-none text-terra sm:text-xl">{formatPrice(product.priceCents)}</p>
+          <p className="font-display text-lg leading-none text-terra sm:text-xl">
+            {variantPrices.length > 1 && "Dès "}{formatPrice(displayPrice)}
+          </p>
           {product.compareAtCents && (
             <p className="mt-1 text-xs text-ink-faint line-through">
               {formatPrice(product.compareAtCents)}

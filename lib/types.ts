@@ -20,6 +20,21 @@ export interface ProductColor {
   hex: string;
 }
 
+export interface ProductVariant {
+  id: string;
+  name: string;
+  priceCents: number;
+  stock: number;
+  weightGrams: number;
+  image: string;
+  active: boolean;
+}
+
+export interface QuantityDiscount {
+  minQuantity: number;
+  percent: number;
+}
+
 export interface InventoryColor extends ProductColor {
   id: string;
   stockGrams: number;
@@ -50,6 +65,9 @@ export interface Product {
   preorder: boolean;
   partnerShared: boolean;
   namePersonalizationEnabled: boolean;
+  namePersonalizationPriceCents: number;
+  variants: ProductVariant[];
+  quantityDiscounts: QuantityDiscount[];
   createdAt: string;
   updatedAt: string;
 }
@@ -91,6 +109,8 @@ export interface OrderItem {
   quantity: number;
   color: string;
   customName?: string;
+  variantId?: string;
+  variantName?: string;
   image: string;
   weightGrams?: number;
 }
@@ -120,6 +140,9 @@ export interface Order {
 
 export interface Settings {
   announcement: string;
+  categories_json: string;
+  homepage_mode: "catalog" | "single_product";
+  homepage_featured_product_slug: string;
   shipping_flat_cents: number;
   free_shipping_threshold_cents: number;
   shipping_rates_json: string;
@@ -150,10 +173,14 @@ export interface CartItem {
   quantity: number;
   color: string;
   customName?: string;
+  variantId?: string;
+  variantName?: string;
   image: string;
   stock: number;
   weightGrams: number;
   preorder?: boolean;
+  personalizationPriceCents?: number;
+  quantityDiscounts?: QuantityDiscount[];
 }
 
 export interface CheckoutCustomer {

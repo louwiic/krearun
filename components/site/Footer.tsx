@@ -1,12 +1,15 @@
 import Link from "next/link";
 import Newsletter from "./Newsletter";
+import type { StoreCategory } from "@/lib/categories";
 
 export default function Footer({
   instagram,
   contactEmail,
+  categories,
 }: {
   instagram: string;
   contactEmail: string;
+  categories: StoreCategory[];
 }) {
   return (
     <footer className="mt-24 border-t-2 border-ink bg-ink text-cream">
@@ -32,11 +35,13 @@ export default function Footer({
             </p>
             <ul className="space-y-2.5 text-sm text-cream/70">
               <li><Link className="hover:text-terra" href="/boutique">Tous les objets</Link></li>
-              <li><Link className="hover:text-terra" href="/boutique?categorie=veilleuses">Veilleuses & lampes</Link></li>
-              <li><Link className="hover:text-terra" href="/boutique?categorie=vases">Vases</Link></li>
-              <li><Link className="hover:text-terra" href="/boutique?categorie=bureau">Bureau</Link></li>
-              <li><Link className="hover:text-terra" href="/boutique?categorie=salle-de-bain">Salle de bain</Link></li>
-              <li><Link className="hover:text-terra" href="/boutique?categorie=deco">Décoration</Link></li>
+              {categories.map((category) => (
+                <li key={category.value}>
+                  <Link className="hover:text-terra" href={`/boutique?categorie=${category.value}`}>
+                    {category.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
@@ -45,7 +50,6 @@ export default function Footer({
               L&apos;atelier
             </p>
             <ul className="space-y-2.5 text-sm text-cream/70">
-              <li><Link className="hover:text-terra" href="/a-propos">Notre histoire</Link></li>
               <li><Link className="hover:text-terra" href="/faq">FAQ & livraison</Link></li>
               <li><Link className="hover:text-terra" href="/suivi">Suivre ma commande</Link></li>
               <li><Link className="hover:text-terra" href="/contact">Nous écrire</Link></li>

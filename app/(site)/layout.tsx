@@ -3,6 +3,7 @@ import Footer from "@/components/site/Footer";
 import CartDrawer from "@/components/cart/CartDrawer";
 import NewsletterPopup from "@/components/site/NewsletterPopup";
 import { getSettings } from "@/lib/store";
+import { getVisibleCategories } from "@/lib/categories";
 
 export default async function SiteLayout({
   children,
@@ -10,6 +11,7 @@ export default async function SiteLayout({
   children: React.ReactNode;
 }) {
   const settings = await getSettings();
+  const categories = getVisibleCategories(settings.categories_json);
   const announcement =
     settings.announcement.includes("Collection") && settings.announcement.includes("60")
       ? "Livraison sur toute l'île"
@@ -33,14 +35,16 @@ export default async function SiteLayout({
           </div>
         </div>
       )}
-      <Navbar />
+      <Navbar categories={categories} />
       <main className="flex-1">{children}</main>
       <Footer
         instagram={settings.instagram}
         contactEmail={settings.contact_email}
+        categories={categories}
       />
       <CartDrawer
         freeShippingThresholdCents={settings.free_shipping_threshold_cents}
+        shippingFlatCents={settings.shipping_flat_cents}
         shippingRatesJson={settings.shipping_rates_json}
       />
       <NewsletterPopup

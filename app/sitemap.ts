@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
-import { getProducts } from "@/lib/store";
-import { CATEGORIES } from "@/lib/types";
+import { getProducts, getSettings } from "@/lib/store";
+import { getVisibleCategories } from "@/lib/categories";
 
 export const dynamic = "force-dynamic";
 
@@ -10,7 +10,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPages: MetadataRoute.Sitemap = [
     { url: base, changeFrequency: "weekly", priority: 1 },
     { url: `${base}/boutique`, changeFrequency: "weekly", priority: 0.9 },
-    { url: `${base}/a-propos`, changeFrequency: "monthly", priority: 0.6 },
     { url: `${base}/faq`, changeFrequency: "monthly", priority: 0.6 },
     { url: `${base}/contact`, changeFrequency: "yearly", priority: 0.4 },
     { url: `${base}/suivi`, changeFrequency: "yearly", priority: 0.3 },
@@ -19,19 +18,27 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/mentions-legales`, changeFrequency: "yearly", priority: 0.2 },
   ];
 
-  const categoryPages: MetadataRoute.Sitemap = CATEGORIES.map((c) => ({
+  const [products, settings] = await Promise.all([
+    getProducts().catch(() => []),
+    getSettings(),
+  ]);
+  const categories = getVisibleCategories(settings.categories_json);
+  const visibleValues = new Set(categories.map((category) => category.value));
+
+  const categoryPages: MetadataRoute.Sitemap = categories.map((c) => ({
     url: `${base}/boutique?categorie=${c.value}`,
     changeFrequency: "weekly" as const,
     priority: 0.7,
   }));
 
-  const products = await getProducts().catch(() => []);
-  const productPages: MetadataRoute.Sitemap = products.map((p) => ({
+  const productPages: MetadataRoute.Sitemap = products
+    .filter((product) => visibleValues.has(product.category))
+    .map((p) => ({
     url: `${base}/boutique/${p.slug}`,
     lastModified: new Date(p.updatedAt),
     changeFrequency: "weekly" as const,
     priority: 0.8,
-  }));
+    }));
 
   return [...staticPages, ...categoryPages, ...productPages];
 }

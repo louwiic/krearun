@@ -73,21 +73,29 @@ export async function POST(req: Request) {
     }
 
     const raw = session.metadata?.items;
-    const parsed: { p: string; q: number; c: string; n?: string }[] = raw
+    const parsed: { p: string; q: number; c: string; u?: number; n?: string; v?: string }[] = raw
       ? JSON.parse(raw)
       : [];
 
     const items: OrderItem[] = [];
     for (const it of parsed) {
       const product = await getProductById(it.p);
+      const variant = product?.variants.find((candidate) => candidate.id === it.v);
       items.push({
         productId: it.p,
         name: product?.name ?? "Article",
-        priceCents: product?.priceCents ?? 0,
+        priceCents: Math.max(
+          0,
+          Number(it.u) ||
+            (variant?.priceCents || product?.priceCents || 0) +
+              (it.n ? product?.namePersonalizationPriceCents ?? 0 : 0)
+        ),
         quantity: it.q,
         color: it.c,
         customName: it.n,
-        image: product?.images[0] ?? "",
+        variantId: variant?.id,
+        variantName: variant?.name,
+        image: variant?.image || product?.images[0] || "",
       });
     }
 
@@ -136,7 +144,7 @@ export async function POST(req: Request) {
     });
 
     await decrementStock(
-      parsed.map((it) => ({ productId: it.p, quantity: it.q }))
+      parsed.map((it) => ({ productId: it.p, quantity: it.q, variantId: it.v }))
     );
 
     // E-mails non bloquants : un échec d'envoi ne doit pas faire

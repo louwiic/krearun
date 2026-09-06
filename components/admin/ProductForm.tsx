@@ -1,5 +1,7 @@
 import { saveProductAction } from "@/app/admin/actions";
 import { CATEGORIES, type InventoryColor, type Product } from "@/lib/types";
+import ProductVariantsEditor from "./ProductVariantsEditor";
+import QuantityDiscountsEditor from "./QuantityDiscountsEditor";
 
 const field =
   "w-full rounded-2xl border border-sand bg-linen px-4 py-3 text-sm outline-none focus:border-terra";
@@ -37,10 +39,10 @@ export default function ProductForm({
       {product && <input type="hidden" name="id" value={product.id} />}
 
       <div className="rounded-blob bg-cream p-7 shadow-soft">
-        <h2 className="mb-5 font-display text-lg font-semibold">L'essentiel</h2>
+        <h2 className="mb-5 font-display text-lg font-semibold">L&apos;essentiel</h2>
         <div className="grid gap-5 sm:grid-cols-2">
           <label className="sm:col-span-2">
-            <span className={label}>Nom de l'objet *</span>
+            <span className={label}>Nom de l&apos;objet *</span>
             <input name="name" required defaultValue={product?.name} className={field} placeholder="Veilleuse Lune" />
           </label>
           <label>
@@ -72,9 +74,16 @@ export default function ProductForm({
         </div>
       </div>
 
+      <ProductVariantsEditor
+        initialVariants={product?.variants ?? []}
+        basePriceCents={product?.priceCents ?? 0}
+        baseStock={product?.stock ?? 10}
+        baseWeightGrams={product?.weightGrams ?? 120}
+      />
+
       <div className="rounded-blob bg-cream p-7 shadow-soft">
         <h2 className="mb-5 font-display text-lg font-semibold">Prix & stock</h2>
-        <div className="grid gap-5 sm:grid-cols-4">
+        <div className="grid gap-5 sm:grid-cols-5">
           <label>
             <span className={label}>Prix (€) *</span>
             <input
@@ -111,19 +120,39 @@ export default function ProductForm({
             />
           </label>
           <label>
-            <span className={label}>Poids (g)</span>
+            <span className={label}>Poids emballé (g)</span>
             <input
               name="weightGrams"
               type="number"
-              min="0"
+              min="1"
               step="1"
+              required
               defaultValue={product?.weightGrams ?? 120}
               className={field}
               placeholder="120"
             />
+            <span className="mt-1 block text-xs text-ink-faint">
+              Obligatoire pour calculer automatiquement les frais d’envoi du panier.
+            </span>
+          </label>
+          <label>
+            <span className={label}>Supplément prénom (€)</span>
+            <input
+              name="namePersonalizationPrice"
+              type="number"
+              min="0"
+              step="0.01"
+              defaultValue={((product?.namePersonalizationPriceCents ?? 0) / 100).toFixed(2)}
+              className={field}
+            />
+            <span className="mt-1 block text-xs text-ink-faint">
+              Ajouté au prix lorsque la personnalisation est activée. Mettez 0 si elle est offerte.
+            </span>
           </label>
         </div>
       </div>
+
+      <QuantityDiscountsEditor initialDiscounts={product?.quantityDiscounts ?? []} />
 
       <div className="rounded-blob bg-cream p-7 shadow-soft">
         <h2 className="mb-5 font-display text-lg font-semibold">Médias & coloris</h2>
@@ -137,17 +166,17 @@ export default function ProductForm({
             </div>
           )}
           <label>
-            <span className={label}>URLs des images (1 à 3, une par ligne)</span>
+            <span className={label}>URLs des images (1 à 8, une par ligne)</span>
             <textarea
               name="images"
               rows={3}
-              defaultValue={product?.images.slice(0, 3).join("\n")}
+              defaultValue={product?.images.slice(0, 8).join("\n")}
               className={`${field} font-mono text-xs`}
               placeholder={"/products/mon-objet.svg\n/uploads/photo.jpg"}
             />
           </label>
           <div>
-            <span className={label}>Ajouter des photos (max 3 au total, converties en WebP)</span>
+            <span className={label}>Ajouter des photos (max 8 au total, converties en WebP)</span>
             <input
               name="nouvelles_images"
               type="file"

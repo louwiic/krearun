@@ -102,6 +102,7 @@ function Timeline({ order }: { order: Order }) {
           <li key={i} className="flex justify-between">
             <span>
               {item.name}
+              {item.variantName ? ` — Modèle : ${item.variantName}` : ""}
               {item.color ? ` — ${item.color}` : ""}
               {item.customName ? ` — Prénom : ${item.customName}` : ""} × {item.quantity}
             </span>
@@ -136,7 +137,7 @@ export default async function SuiviPage({
       </h1>
       <p className="mt-4 text-ink-soft">
         Entrez le numéro de commande (reçu par e-mail, il commence par #) et
-        l'adresse e-mail utilisée lors de l'achat.
+        l&apos;adresse e-mail utilisée lors de l&apos;achat.
       </p>
 
       <form method="GET" className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -171,7 +172,7 @@ export default async function SuiviPage({
               Aucune commande trouvée avec ces informations
             </p>
             <p className="mt-2 text-sm text-ink-soft">
-              Vérifiez le numéro et l'e-mail (celui utilisé au moment du
+              Vérifiez le numéro et l&apos;e-mail (celui utilisé au moment du
               paiement) — ou écrivez-nous, on la retrouvera ensemble.
             </p>
           </div>

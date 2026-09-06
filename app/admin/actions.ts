@@ -32,7 +32,9 @@ import {
 import { slugify } from "@/lib/format";
 import { uploadSiteImageToR2, uploadSiteMediaToR2 } from "@/lib/r2";
 import { DEFAULT_PICKUP_POINTS } from "@/lib/pickup";
-import type { Category, OrderStatus, ProductColor } from "@/lib/types";
+import { DEFAULT_STORE_CATEGORIES } from "@/lib/categories";
+import { normalizeQuantityDiscounts } from "@/lib/quantity-discounts";
+import type { Category, OrderStatus, Product, ProductColor, ProductVariant, QuantityDiscount } from "@/lib/types";
 
 // ─── Auth ───────────────────────────────────────────────────
 
@@ -77,6 +79,29 @@ function slugPart(value: string): string {
   return slugify(value || "point-retrait").slice(0, 80);
 }
 
+function parseVariants(raw: string): ProductVariant[] {
+  try {
+    const parsed = JSON.parse(raw) as Partial<ProductVariant>[];
+    if (!Array.isArray(parsed)) return [];
+    return parsed.slice(0, 30).flatMap((variant) => {
+      const name = String(variant.name ?? "").trim().slice(0, 100);
+      if (!name) return [];
+      const rawId = String(variant.id ?? "");
+      return [{
+        id: /^[a-zA-Z0-9-]{8,80}$/.test(rawId) ? rawId : `variant-${crypto.randomUUID()}`,
+        name,
+        priceCents: Math.max(0, Math.round(Number(variant.priceCents) || 0)),
+        stock: Math.max(0, Math.floor(Number(variant.stock) || 0)),
+        weightGrams: Math.max(0, Math.floor(Number(variant.weightGrams) || 0)),
+        image: String(variant.image ?? "").trim().slice(0, 1000),
+        active: variant.active !== false,
+      }];
+    });
+  } catch {
+    return [];
+  }
+}
+
 // Convertit les photos en WebP (max 1600 px, qualité 82) avant envoi
 // vers R2. Les SVG restent tels quels (déjà légers, vectoriels).
 async function toWebp(files: File[]): Promise<File[]> {
@@ -106,11 +131,12 @@ function runFfmpeg(args: string[]) {
   return new Promise<void>((resolve, reject) => {
     // Dynamic import keeps Turbopack from tracing Node internals across the app.
     import("node:child_process").then(({ spawn }) => {
-    const child = spawn("ffmpeg", args, { stdio: "ignore" });
-    child.on("error", reject);
-    child.on("close", (code) => {
-      code === 0 ? resolve() : reject(new Error(`ffmpeg exited with ${code}`));
-    });
+      const child = spawn("ffmpeg", args, { stdio: "ignore" });
+      child.on("error", reject);
+      child.on("close", (code) => {
+        if (code === 0) resolve();
+        else reject(new Error(`ffmpeg exited with ${code}`));
+      });
     }, reject);
   });
 }
@@ -166,7 +192,7 @@ export async function saveProductAction(formData: FormData) {
     .split("\n")
     .map((s) => s.trim())
     .filter(Boolean)
-    .slice(0, 3);
+    .slice(0, 8);
   const newFiles = formData
     .getAll("nouvelles_images")
     .filter((f): f is File => f instanceof File && f.size > 0);
@@ -176,6 +202,15 @@ export async function saveProductAction(formData: FormData) {
   const compareAtRaw = String(formData.get("compareAt") ?? "").replace(",", ".");
   const priceRaw = String(formData.get("price") ?? "0").replace(",", ".");
   const inventoryColorIds = formData.getAll("inventoryColorIds").map(String);
+  let variants = parseVariants(String(formData.get("variantsJson") ?? "[]"));
+  let quantityDiscounts: QuantityDiscount[] = [];
+  try {
+    quantityDiscounts = normalizeQuantityDiscounts(
+      JSON.parse(String(formData.get("quantityDiscountsJson") ?? "[]"))
+    );
+  } catch {
+    quantityDiscounts = [];
+  }
   const inventoryColors =
     inventoryColorIds.length > 0
       ? (await getInventoryColors({ includeInactive: true }))
@@ -200,27 +235,51 @@ export async function saveProductAction(formData: FormData) {
       ...inventoryColors,
       ...parseColors(String(formData.get("colors") ?? "")),
     ],
-    stock: Math.max(0, parseInt(String(formData.get("stock") ?? "0"), 10) || 0),
+    stock: variants.length > 0
+      ? variants.filter((variant) => variant.active).reduce((total, variant) => total + variant.stock, 0)
+      : Math.max(0, parseInt(String(formData.get("stock") ?? "0"), 10) || 0),
     featured: formData.get("featured") === "on",
     active: formData.get("active") === "on",
     isNew: formData.get("isNew") === "on",
     preorder: formData.get("preorder") === "on",
     partnerShared: formData.get("partnerShared") === "on",
     namePersonalizationEnabled: formData.get("namePersonalizationEnabled") === "on",
+    namePersonalizationPriceCents: Math.max(
+      0,
+      Math.round(
+        (parseFloat(
+          String(formData.get("namePersonalizationPrice") ?? "0").replace(",", ".")
+        ) || 0) * 100
+      )
+    ),
+    variants,
+    quantityDiscounts,
   };
 
   const product = id ? await updateProduct(id, data) : await createProduct(data);
 
   // Les nouvelles photos sont compressées en WebP puis stockées dans R2.
   if (product && newFiles.length > 0) {
-    const slots = Math.max(0, 3 - existingImages.length);
+    const slots = Math.max(0, 8 - existingImages.length);
     const urls = await uploadProductPhotos(product.id, await toWebp(newFiles.slice(0, slots)));
-    await updateProduct(product.id, { images: [...existingImages, ...urls].slice(0, 3) });
+    await updateProduct(product.id, { images: [...existingImages, ...urls].slice(0, 8) });
   }
 
   if (product && videoFile instanceof File && videoFile.size > 0) {
     videoUrl = await uploadProductVideo(product.id, await toWebMp4(videoFile));
     await updateProduct(product.id, { videoUrl });
+  }
+
+  if (product && variants.length > 0) {
+    let changed = false;
+    variants = await Promise.all(variants.map(async (variant) => {
+      const imageFile = formData.get(`variant_image_${variant.id}`);
+      if (!(imageFile instanceof File) || imageFile.size === 0) return variant;
+      const [url] = await uploadProductPhotos(product.id, await toWebp([imageFile]));
+      changed = true;
+      return { ...variant, image: url };
+    }));
+    if (changed) await updateProduct(product.id, { variants });
   }
 
   revalidatePath("/", "layout");
@@ -235,6 +294,43 @@ export async function deleteProductAction(formData: FormData) {
     await deleteProduct(id);
   }
   revalidatePath("/", "layout");
+  redirect("/admin/produits");
+}
+
+export async function bulkUpdateProductsAction(formData: FormData) {
+  await requireAdmin();
+
+  const ids = [...new Set(formData.getAll("ids").map(String))]
+    .filter((id) => /^[a-z0-9]{15}$/.test(id))
+    .slice(0, 200);
+  const action = String(formData.get("bulk_action") ?? "");
+
+  let patch: Partial<
+    Pick<Product, "active" | "isNew" | "preorder" | "featured" | "partnerShared">
+  > | null = null;
+
+  switch (action) {
+    case "publish": patch = { active: true }; break;
+    case "hide": patch = { active: false }; break;
+    case "new_on": patch = { isNew: true }; break;
+    case "new_off": patch = { isNew: false }; break;
+    case "preorder_on": patch = { preorder: true }; break;
+    case "preorder_off": patch = { preorder: false }; break;
+    case "featured_on": patch = { featured: true }; break;
+    case "featured_off": patch = { featured: false }; break;
+    case "partner_on": patch = { partnerShared: true }; break;
+    case "partner_off": patch = { partnerShared: false }; break;
+  }
+
+  if (ids.length > 0 && patch) {
+    await Promise.all(ids.map(async (id) => {
+      if (await getProductById(id)) await updateProduct(id, patch);
+    }));
+  }
+
+  revalidatePath("/", "layout");
+  revalidatePath("/admin/produits");
+  revalidatePath("/api/partenaires/produits");
   redirect("/admin/produits");
 }
 
@@ -379,6 +475,11 @@ export async function saveSettingsAction(formData: FormData) {
   await saveSettings({
     store_name: String(formData.get("store_name") ?? "").trim(),
     announcement: String(formData.get("announcement") ?? "").trim(),
+    homepage_mode:
+      formData.get("homepage_mode") === "catalog" ? "catalog" : "single_product",
+    homepage_featured_product_slug: String(
+      formData.get("homepage_featured_product_slug") ?? ""
+    ).trim(),
     contact_email: String(formData.get("contact_email") ?? "").trim(),
     instagram: String(formData.get("instagram") ?? "").trim(),
     shipping_flat_cents: Math.round(parseFloat(flat || "0") * 100),
@@ -396,4 +497,22 @@ export async function saveSettingsAction(formData: FormData) {
 
   revalidatePath("/", "layout");
   redirect("/admin/parametres");
+}
+
+export async function saveCategoriesAction(formData: FormData) {
+  await requireAdmin();
+
+  const categories = DEFAULT_STORE_CATEGORIES.map((category) => ({
+    value: category.value,
+    label:
+      String(formData.get(`label_${category.value}`) ?? category.label)
+        .trim()
+        .slice(0, 80) || category.label,
+    active: formData.get(`active_${category.value}`) === "on",
+  }));
+
+  await saveSettings({ categories_json: JSON.stringify(categories) });
+  revalidatePath("/", "layout");
+  revalidatePath("/sitemap.xml");
+  redirect("/admin/categories");
 }

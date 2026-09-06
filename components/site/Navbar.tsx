@@ -4,19 +4,23 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useCart } from "@/components/cart/CartContext";
+import type { StoreCategory } from "@/lib/categories";
 
-const links = [
-  { href: "/boutique", label: "Boutique" },
-  { href: "/boutique?categorie=veilleuses", label: "Veilleuses" },
-  { href: "/a-propos", label: "Notre atelier" },
-  { href: "/faq", label: "FAQ" },
-  { href: "/contact", label: "Contact" },
-];
-
-export default function Navbar() {
+export default function Navbar({ categories }: { categories: StoreCategory[] }) {
   const { count, openCart } = useCart();
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const links = [
+    { href: "/boutique", label: "Boutique" },
+    ...categories
+      .filter((category) => category.value === "veilleuses")
+      .map((category) => ({
+        href: `/boutique?categorie=${category.value}`,
+        label: category.label.replace(/\s*&.*$/, ""),
+      })),
+    { href: "/faq", label: "FAQ" },
+    { href: "/contact", label: "Contact" },
+  ];
 
   return (
     <header className="sticky top-0 z-40 border-b-2 border-ink bg-linen/90 backdrop-blur-md">

@@ -9,7 +9,10 @@ export async function GET(
   const { key } = await context.params;
   const objectKey = key.join("/");
 
-  if (!objectKey.startsWith("products/")) {
+  const publicFolder =
+    objectKey.startsWith("products/") || objectKey.startsWith("site/");
+
+  if (!publicFolder) {
     return new Response("Forbidden", { status: 403 });
   }
 
@@ -30,4 +33,3 @@ export async function GET(
     return new Response("Not found", { status: 404 });
   }
 }
-

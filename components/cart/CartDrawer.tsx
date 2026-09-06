@@ -4,14 +4,17 @@ import Link from "next/link";
 import { useCart } from "./CartContext";
 import { publicColorName } from "@/lib/colors";
 import { formatPrice } from "@/lib/format";
-import { billableWeight } from "@/lib/free-shipping";
+import { billableWeight, hasMissingBillableWeight } from "@/lib/free-shipping";
 import { calculateShippingCents, formatWeight, parseShippingRates } from "@/lib/shipping";
+import { cartUnitPriceCents, quantityDiscountPercent } from "@/lib/quantity-discounts";
 
 export default function CartDrawer({
   freeShippingThresholdCents,
+  shippingFlatCents,
   shippingRatesJson,
 }: {
   freeShippingThresholdCents: number;
+  shippingFlatCents: number;
   shippingRatesJson: string;
 }) {
   const { items, subtotalCents, isOpen, closeCart, setQuantity, removeItem } =
@@ -20,10 +23,17 @@ export default function CartDrawer({
   const freeShippingEnabled = freeShippingThresholdCents > 0;
   const remaining = freeShippingThresholdCents - subtotalCents;
   const billableWeightGrams = billableWeight(items);
+  const missingBillableWeight = hasMissingBillableWeight(items);
   const shippingRates = parseShippingRates(shippingRatesJson);
   const shippingEstimate = calculateShippingCents(billableWeightGrams || 1, shippingRates);
   const freeShipping = freeShippingEnabled && subtotalCents >= freeShippingThresholdCents;
-  const shippingCents = billableWeightGrams === 0 ? 0 : freeShipping ? 0 : shippingEstimate.priceCents;
+  const shippingCents = freeShipping
+    ? 0
+    : missingBillableWeight
+      ? Math.max(shippingFlatCents, shippingEstimate.priceCents)
+      : billableWeightGrams === 0
+        ? 0
+        : shippingEstimate.priceCents;
   const totalCents = subtotalCents + shippingCents;
 
   return (
@@ -83,14 +93,17 @@ export default function CartDrawer({
               ) : freeShippingEnabled ? (
                 <>La livraison est offerte pour vous ✿</>
               ) : (
-                <>Frais d'envoi calculés par poids ✿</>
+                <>Frais d&apos;envoi calculés par poids ✿</>
               )}
             </div>
 
             <ul className="soft-scroll flex-1 divide-y divide-sand/50 overflow-y-auto px-4 sm:px-6">
-              {items.map((item) => (
+              {items.map((item) => {
+                const unitPriceCents = cartUnitPriceCents(item);
+                const discountPercent = quantityDiscountPercent(item.quantityDiscounts, item.quantity);
+                return (
                 <li
-                  key={`${item.productId}-${item.color}-${item.customName ?? ""}`}
+                  key={`${item.productId}-${item.variantId ?? ""}-${item.color}-${item.customName ?? ""}`}
                   className="flex gap-3 py-4 sm:gap-4 sm:py-5"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -112,6 +125,22 @@ export default function CartDrawer({
                         {item.color && (
                           <p className="text-xs text-ink-soft">Coloris : {publicColorName(item.color)}</p>
                         )}
+                        {item.variantName && (
+                          <p className="text-xs font-semibold text-ink-soft">Modèle : {item.variantName}</p>
+                        )}
+                        {item.slug === "porte-canette-monster" && (
+                          <div className="mt-1.5 flex items-center gap-2 rounded-lg bg-terra/5 p-1.5">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src="/api/r2/products/monster/accessoires-monster-assortis.png"
+                              alt=""
+                              className="h-8 w-8 shrink-0 rounded object-cover"
+                            />
+                            <p className="text-[10px] font-bold leading-tight text-terra-deep">
+                              Offerts : couvercle, décapsuleur griffes et mini porte-canette porte-clés
+                            </p>
+                          </div>
+                        )}
                         {item.customName && (
                           <p className="text-xs font-semibold text-terra-deep">
                             Prénom : {item.customName}
@@ -124,7 +153,7 @@ export default function CartDrawer({
                         )}
                       </div>
                       <button
-                        onClick={() => removeItem(item.productId, item.color, item.customName)}
+                        onClick={() => removeItem(item.productId, item.color, item.customName, item.variantId)}
                         aria-label="Retirer l'article"
                         className="text-ink-faint transition-colors hover:text-terra"
                       >
@@ -141,7 +170,8 @@ export default function CartDrawer({
                               item.productId,
                               item.color,
                               item.customName,
-                              item.quantity - 1
+                              item.quantity - 1,
+                              item.variantId
                             )
                           }
                           className="px-3 py-1 text-ink-soft hover:text-ink"
@@ -156,7 +186,8 @@ export default function CartDrawer({
                               item.productId,
                               item.color,
                               item.customName,
-                              item.quantity + 1
+                              item.quantity + 1,
+                              item.variantId
                             )
                           }
                           className="px-3 py-1 text-ink-soft hover:text-ink disabled:opacity-30"
@@ -166,13 +197,22 @@ export default function CartDrawer({
                           +
                         </button>
                       </div>
-                      <span className="text-sm font-bold">
-                        {formatPrice(item.priceCents * item.quantity)}
+                      <span className="text-right text-sm font-bold">
+                        {discountPercent > 0 && (
+                          <span className="mr-1.5 text-[10px] font-semibold text-ink-faint line-through">
+                            {formatPrice(item.priceCents * item.quantity)}
+                          </span>
+                        )}
+                        {formatPrice(unitPriceCents * item.quantity)}
+                        {discountPercent > 0 && (
+                          <span className="block text-[10px] text-terra-deep">−{discountPercent} % appliqué</span>
+                        )}
                       </span>
                     </div>
                   </div>
                 </li>
-              ))}
+                );
+              })}
             </ul>
 
             <div className="border-t border-sand/70 bg-cream px-4 py-4 sm:px-6 sm:py-5">
@@ -184,7 +224,11 @@ export default function CartDrawer({
               </div>
               <div className="mb-2 flex items-start justify-between gap-3 text-sm">
                 <span className="text-ink-soft">
-                  Envoi · {formatWeight(billableWeightGrams)} · {billableWeightGrams === 0 ? "offert" : shippingEstimate.label}
+                  {missingBillableWeight
+                    ? "Envoi · tarif standard"
+                    : `Envoi · ${formatWeight(billableWeightGrams)} · ${
+                        billableWeightGrams === 0 ? "offert" : shippingEstimate.label
+                      }`}
                 </span>
                 <span className="font-semibold">
                   {shippingCents === 0 ? "Offerte" : formatPrice(shippingCents)}

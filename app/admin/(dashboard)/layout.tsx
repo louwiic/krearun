@@ -6,9 +6,11 @@ import { logoutAction } from "../actions";
 const nav = [
   { href: "/admin", label: "Tableau de bord", icon: "🏠" },
   { href: "/admin/produits", label: "Produits", icon: "🧸" },
+  { href: "/admin/categories", label: "Catégories", icon: "🗂️" },
   { href: "/admin/inventaire", label: "Inventaire", icon: "🎨" },
   { href: "/admin/calculateur", label: "Calculateur", icon: "🧮" },
   { href: "/admin/commandes", label: "Commandes", icon: "📦" },
+  { href: "/admin/codes-promo", label: "Codes promo", icon: "🏷️" },
   { href: "/admin/clients", label: "Clients", icon: "👥" },
   { href: "/admin/avis", label: "Avis", icon: "⭐" },
   { href: "/admin/newsletter", label: "Newsletter", icon: "💌" },

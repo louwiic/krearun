@@ -63,6 +63,23 @@ function cleanFilename(name: string) {
     .slice(0, 80);
 }
 
+function publicObjectUrl(key: string) {
+  if (R2_PUBLIC_URL.startsWith("/")) {
+    return `${R2_PUBLIC_URL}/${key}`;
+  }
+
+  try {
+    const configuredUrl = new URL(R2_PUBLIC_URL);
+    if (configuredUrl.pathname.startsWith("/api/r2")) {
+      return `${configuredUrl.pathname.replace(/\/$/, "")}/${key}`;
+    }
+  } catch {
+    // Une URL publique externe valide restera traitée ci-dessous telle quelle.
+  }
+
+  return `${R2_PUBLIC_URL}/${key}`;
+}
+
 export async function uploadProductImageToR2(productId: string, file: File) {
   const contentType = file.type || "application/octet-stream";
   const baseName = cleanFilename(file.name) || "image";
@@ -80,7 +97,7 @@ export async function uploadProductImageToR2(productId: string, file: File) {
     })
   );
 
-  return `${R2_PUBLIC_URL}/${key}`;
+  return publicObjectUrl(key);
 }
 
 export async function uploadProductMediaToR2(productId: string, file: File) {
@@ -101,7 +118,7 @@ export async function uploadProductMediaToR2(productId: string, file: File) {
     })
   );
 
-  return `${R2_PUBLIC_URL}/${key}`;
+  return publicObjectUrl(key);
 }
 
 export async function uploadSiteImageToR2(folder: string, file: File) {
@@ -122,7 +139,7 @@ export async function uploadSiteImageToR2(folder: string, file: File) {
     })
   );
 
-  return `${R2_PUBLIC_URL}/${key}`;
+  return publicObjectUrl(key);
 }
 
 export async function uploadSiteMediaToR2(folder: string, file: File) {
@@ -144,7 +161,7 @@ export async function uploadSiteMediaToR2(folder: string, file: File) {
     })
   );
 
-  return `${R2_PUBLIC_URL}/${key}`;
+  return publicObjectUrl(key);
 }
 
 export async function getObjectFromR2(key: string) {

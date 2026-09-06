@@ -1,8 +1,9 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import ProductCard from "@/components/product/ProductCard";
-import { getProducts } from "@/lib/store";
-import { CATEGORIES, type Category } from "@/lib/types";
+import { getProducts, getSettings } from "@/lib/store";
+import { getVisibleCategories } from "@/lib/categories";
+import type { Category } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -18,13 +19,16 @@ export default async function BoutiquePage({
   searchParams: Promise<{ categorie?: string }>;
 }) {
   const { categorie } = await searchParams;
-  const products = await getProducts();
-  const valid = CATEGORIES.some((c) => c.value === categorie);
+  const [allProducts, settings] = await Promise.all([getProducts(), getSettings()]);
+  const categories = getVisibleCategories(settings.categories_json);
+  const visibleValues = new Set(categories.map((category) => category.value));
+  const products = allProducts.filter((product) => visibleValues.has(product.category));
+  const valid = categories.some((c) => c.value === categorie);
   const filtered = valid
     ? products.filter((p) => p.category === (categorie as Category))
     : products;
   const currentLabel = valid
-    ? CATEGORIES.find((c) => c.value === categorie)!.label
+    ? categories.find((c) => c.value === categorie)!.label
     : null;
 
   return (
@@ -53,7 +57,7 @@ export default async function BoutiquePage({
         >
           Tout
         </Link>
-        {CATEGORIES.map((c) => (
+        {categories.map((c) => (
           <Link
             key={c.value}
             href={`/boutique?categorie=${c.value}`}
@@ -72,7 +76,7 @@ export default async function BoutiquePage({
         <div className="rounded-blob bg-cream px-8 py-20 text-center shadow-soft">
           <p className="font-display text-2xl">Rien par ici pour le moment</p>
           <p className="mt-2 text-ink-soft">
-            L'atelier prépare de nouvelles pièces, revenez bientôt ✿
+            L&apos;atelier prépare de nouvelles pièces, revenez bientôt ✿
           </p>
         </div>
       ) : (
