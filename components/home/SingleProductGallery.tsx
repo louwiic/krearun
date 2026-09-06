@@ -24,7 +24,7 @@ export default function SingleProductGallery({
 
   return (
     <div className="space-y-3">
-      <div className="relative overflow-hidden border-2 border-ink bg-ink shadow-hard">
+      <div className="relative mb-8 border-2 border-ink bg-ink shadow-hard sm:mb-10">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={activeImage}
@@ -32,15 +32,15 @@ export default function SingleProductGallery({
           className="aspect-[3/4] w-full object-cover sm:aspect-[4/5] lg:max-h-[570px]"
         />
         {name.toLowerCase().includes("monster") ? (
-          <div className="absolute bottom-3 right-3 aspect-square w-20 overflow-hidden border-2 border-ink bg-cream shadow-hard-terra sm:bottom-4 sm:right-4 sm:w-24">
+          <div className="absolute -bottom-6 right-3 z-10 aspect-square w-20 overflow-hidden border-2 border-ink bg-cream shadow-hard-terra sm:-bottom-8 sm:right-5 sm:w-24">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/api/r2/products/monster/accessoires-monster-assortis.png"
               alt="Accessoires Monster offerts"
               className="h-full w-full object-cover"
             />
-            <p className="absolute inset-x-0 bottom-0 border-t-2 border-ink bg-cream px-1 py-1 text-center text-[8px] font-bold uppercase leading-tight text-ink sm:text-[9px]">
-              Accessoires offerts
+            <p className="absolute bottom-1 right-1 border-2 border-ink bg-cream px-1.5 py-0.5 text-center text-[8px] font-bold uppercase leading-none text-ink sm:text-[9px]">
+              Offert
             </p>
           </div>
         ) : null}
