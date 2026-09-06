@@ -43,6 +43,11 @@ export default async function CommandeDetailPage({
                   <div className="flex-1">
                     <p className="text-sm font-bold">{item.name}</p>
                     {item.variantName && <p className="text-xs text-ink-soft">Modèle : {item.variantName}</p>}
+                    {item.keychainChoice && (
+                      <p className="text-xs font-semibold text-terra-deep">
+                        Porte-clés offert : choix {item.keychainChoice}
+                      </p>
+                    )}
                     {item.color && <p className="text-xs text-ink-soft">Coloris : {item.color}</p>}
                     {item.customName && (
                       <p className="text-xs font-semibold text-terra-deep">

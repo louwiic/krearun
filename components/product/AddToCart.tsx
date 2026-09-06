@@ -15,6 +15,7 @@ export default function AddToCart({ product }: { product: Product }) {
   const [color, setColor] = useState(product.colors[0]?.name ?? "");
   const [addPersonalization, setAddPersonalization] = useState(false);
   const [customName, setCustomName] = useState("");
+  const [keychainChoice, setKeychainChoice] = useState<"1" | "2" | "">("");
   const [quantity, setQuantity] = useState(1);
   const selectedVariant = activeVariants.find((variant) => variant.id === variantId);
   const selectedStock = selectedVariant?.stock ?? product.stock;
@@ -27,6 +28,7 @@ export default function AddToCart({ product }: { product: Product }) {
     product.namePersonalizationEnabled && addPersonalization && !normalizedCustomName;
   const selectedColor = product.colors.find((item) => item.name === color) ?? product.colors[0];
   const showMonsterPreview = product.slug === "porte-canette-monster" && Boolean(selectedColor);
+  const missingKeychainChoice = product.slug === "porte-canette-monster" && !keychainChoice;
   const personalizationPriceCents = product.namePersonalizationEnabled && addPersonalization
     ? product.namePersonalizationPriceCents
     : 0;
@@ -109,20 +111,35 @@ export default function AddToCart({ product }: { product: Product }) {
                     Couvercle + décapsuleur griffes
                   </span>
                 </div>
-                <div className="flex min-w-0 items-center gap-2 rounded-lg bg-white/75 p-1.5">
-                  <span
-                    aria-hidden
-                    className="h-11 w-14 shrink-0 rounded-md bg-cover bg-no-repeat"
-                    style={{
-                      backgroundImage:
-                        "url('/api/r2/products/monster/accessoires-monster-assortis.png')",
-                      backgroundPosition: "86% 84%",
-                      backgroundSize: "175%",
-                    }}
-                  />
-                  <span className="min-w-0 text-[10px] font-bold leading-tight sm:text-[11px]">
-                    Mini porte-canette porte-clés offert
-                  </span>
+                <div className="min-w-0 rounded-lg bg-white/75 p-1.5">
+                  <p className="mb-1 text-[10px] font-bold leading-tight sm:text-[11px]">
+                    Porte-clés offert — choisissez votre modèle
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {(["1", "2"] as const).map((choice) => (
+                      <button
+                        key={choice}
+                        type="button"
+                        onClick={() => setKeychainChoice(choice)}
+                        aria-pressed={keychainChoice === choice}
+                        className={`relative aspect-square overflow-hidden rounded-md border-2 bg-no-repeat transition-all ${
+                          keychainChoice === choice
+                            ? "border-terra ring-1 ring-terra"
+                            : "border-sand hover:border-ink-faint"
+                        }`}
+                        style={{
+                          backgroundImage:
+                            "url('/api/r2/products/monster/choix-porte-cles-monster.png')",
+                          backgroundPosition: choice === "1" ? "left center" : "right center",
+                          backgroundSize: "200% auto",
+                        }}
+                      >
+                        <span className="absolute bottom-0.5 left-0.5 bg-ink px-1 py-0.5 text-[8px] font-bold uppercase leading-none text-cream">
+                          Choix {choice}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
@@ -265,6 +282,7 @@ export default function AddToCart({ product }: { product: Product }) {
                   : undefined,
                 variantId: selectedVariant?.id,
                 variantName: selectedVariant?.name,
+                keychainChoice: keychainChoice || undefined,
                 image: selectedImage,
                 stock: selectedStock,
                 weightGrams: selectedWeight,
@@ -275,13 +293,15 @@ export default function AddToCart({ product }: { product: Product }) {
               quantity
             )
           }
-          disabled={soldOut || missingCustomName}
+          disabled={soldOut || missingCustomName || missingKeychainChoice}
           className="w-full rounded-full bg-terra px-8 py-3.5 text-sm font-bold text-cream transition-all hover:bg-terra-deep hover:shadow-lifted disabled:cursor-not-allowed disabled:bg-ink-faint sm:flex-1"
         >
           {soldOut
             ? "Bientôt de retour"
             : missingCustomName
               ? "Indiquer le prénom"
+            : missingKeychainChoice
+              ? "Choisir le porte-clés offert"
             : product.preorder
               ? "Pré-commander"
               : `Ajouter au panier — ${formatPrice(discountedConfiguredPriceCents * quantity)}${

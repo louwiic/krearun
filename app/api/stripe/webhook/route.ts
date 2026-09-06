@@ -73,7 +73,7 @@ export async function POST(req: Request) {
     }
 
     const raw = session.metadata?.items;
-    const parsed: { p: string; q: number; c: string; u?: number; n?: string; v?: string }[] = raw
+    const parsed: { p: string; q: number; c: string; u?: number; n?: string; v?: string; k?: string }[] = raw
       ? JSON.parse(raw)
       : [];
 
@@ -95,6 +95,7 @@ export async function POST(req: Request) {
         customName: it.n,
         variantId: variant?.id,
         variantName: variant?.name,
+        keychainChoice: it.k,
         image: variant?.image || product?.images[0] || "",
       });
     }

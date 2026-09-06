@@ -15,6 +15,7 @@ interface CheckoutItem {
   quantity: number;
   color: string;
   customName?: string;
+  keychainChoice?: string;
 }
 
 interface CheckoutBody {
@@ -122,7 +123,7 @@ export async function POST(req: Request) {
     };
     quantity: number;
   }[] = [];
-  const metadataItems: { p: string; q: number; c: string; u: number; n?: string; v?: string }[] = [];
+  const metadataItems: { p: string; q: number; c: string; u: number; n?: string; v?: string; k?: string }[] = [];
   let subtotalCents = 0;
   let totalWeightGrams = 0;
   let missingBillableWeight = false;
@@ -157,10 +158,18 @@ export async function POST(req: Request) {
     const customName = product.namePersonalizationEnabled
       ? normalizeCustomName(item.customName)
       : "";
+    const keychainChoice = text(item.keychainChoice, 1);
+    if (product.slug === "porte-canette-monster" && !["1", "2"].includes(keychainChoice)) {
+      return NextResponse.json(
+        { error: "Choisissez le modèle du porte-clés offert." },
+        { status: 400 }
+      );
+    }
     const optionParts = [
       variant?.name || "",
       publicColorName(item.color),
       customName ? `Prénom : ${customName}` : "",
+      keychainChoice ? `Porte-clés offert : choix ${keychainChoice}` : "",
     ].filter(Boolean);
     const unitAmount =
       discountedUnitPriceCents(selectedPrice, product.quantityDiscounts, quantity) +
@@ -192,6 +201,7 @@ export async function POST(req: Request) {
       u: unitAmount,
       ...(customName ? { n: customName } : {}),
       ...(variant ? { v: variant.id } : {}),
+      ...(keychainChoice ? { k: keychainChoice } : {}),
     });
   }
 

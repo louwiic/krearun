@@ -115,6 +115,7 @@ export default function CheckoutForm({
             color: item.color,
             customName: item.customName,
             variantId: item.variantId,
+            keychainChoice: item.keychainChoice,
           })),
         }),
       });
@@ -342,7 +343,7 @@ export default function CheckoutForm({
             const discountPercent = quantityDiscountPercent(item.quantityDiscounts, item.quantity);
             return (
             <li
-              key={`${item.productId}-${item.variantId ?? ""}-${item.color}-${item.customName ?? ""}`}
+              key={`${item.productId}-${item.variantId ?? ""}-${item.color}-${item.customName ?? ""}-${item.keychainChoice ?? ""}`}
               className="flex gap-3 py-4"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -361,6 +362,11 @@ export default function CheckoutForm({
                     {item.variantName && (
                       <p className="text-xs font-semibold text-ink-soft">Modèle : {item.variantName}</p>
                     )}
+                    {item.keychainChoice && (
+                      <p className="text-xs font-semibold text-terra-deep">
+                        Porte-clés offert : choix {item.keychainChoice}
+                      </p>
+                    )}
                     {item.slug === "porte-canette-monster" && (
                       <p className="mt-1 text-[11px] font-bold leading-snug text-terra-deep">
                         Accessoires offerts : couvercle, décapsuleur griffes et mini porte-canette porte-clés
@@ -372,7 +378,7 @@ export default function CheckoutForm({
                   </div>
                   <button
                     type="button"
-                    onClick={() => removeItem(item.productId, item.color, item.customName, item.variantId)}
+                    onClick={() => removeItem(item.productId, item.color, item.customName, item.variantId, item.keychainChoice)}
                     className="text-sm text-ink-faint hover:text-terra"
                   >
                     Retirer
@@ -388,7 +394,8 @@ export default function CheckoutForm({
                           item.color,
                           item.customName,
                           item.quantity - 1,
-                          item.variantId
+                          item.variantId,
+                          item.keychainChoice
                         )
                       }
                       className="px-3 py-1 text-ink-soft hover:text-ink"
@@ -406,7 +413,8 @@ export default function CheckoutForm({
                           item.color,
                           item.customName,
                           item.quantity + 1,
-                          item.variantId
+                          item.variantId,
+                          item.keychainChoice
                         )
                       }
                       disabled={item.quantity >= (item.preorder ? 20 : item.stock)}

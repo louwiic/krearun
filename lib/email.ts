@@ -92,7 +92,7 @@ function itemsTable(order: Order): string {
     .map((i) => {
       const customName = i.customName ? escapeHtml(i.customName) : "";
       return `<tr>
-<td style="padding:10px 0;border-bottom:1px solid #f2ebde;">${i.name}${i.variantName ? ` <span style="color:#b3a695;">— ${escapeHtml(i.variantName)}</span>` : ""}${i.color ? ` <span style="color:#b3a695;">— ${publicColorName(i.color)}</span>` : ""}${customName ? `<br/><span style="color:#a4623c;font-size:12px;">Prénom : ${customName}</span>` : ""}</td>
+<td style="padding:10px 0;border-bottom:1px solid #f2ebde;">${i.name}${i.variantName ? ` <span style="color:#b3a695;">— ${escapeHtml(i.variantName)}</span>` : ""}${i.color ? ` <span style="color:#b3a695;">— ${publicColorName(i.color)}</span>` : ""}${customName ? `<br/><span style="color:#a4623c;font-size:12px;">Prénom : ${customName}</span>` : ""}${i.keychainChoice ? `<br/><span style="color:#a4623c;font-size:12px;">Porte-clés offert : choix ${escapeHtml(i.keychainChoice)}</span>` : ""}</td>
 <td style="padding:10px 0;border-bottom:1px solid #f2ebde;text-align:center;color:#877867;">× ${i.quantity}</td>
 <td style="padding:10px 0;border-bottom:1px solid #f2ebde;text-align:right;">${formatPrice(i.priceCents * i.quantity)}</td>
 </tr>`;

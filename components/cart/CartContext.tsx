@@ -21,13 +21,14 @@ interface CartContextValue {
   openCart: () => void;
   closeCart: () => void;
   addItem: (item: Omit<CartItem, "quantity">, quantity?: number) => void;
-  removeItem: (productId: string, color: string, customName?: string, variantId?: string) => void;
+  removeItem: (productId: string, color: string, customName?: string, variantId?: string, keychainChoice?: string) => void;
   setQuantity: (
     productId: string,
     color: string,
     customName: string | undefined,
     quantity: number,
-    variantId?: string
+    variantId?: string,
+    keychainChoice?: string
   ) => void;
   clearCart: () => void;
 }
@@ -41,17 +42,19 @@ function maxQuantity(item: Pick<CartItem, "stock" | "preorder">) {
 }
 
 function sameLine(
-  item: Pick<CartItem, "productId" | "color" | "customName" | "variantId">,
+  item: Pick<CartItem, "productId" | "color" | "customName" | "variantId" | "keychainChoice">,
   productId: string,
   color: string,
   customName?: string,
-  variantId?: string
+  variantId?: string,
+  keychainChoice?: string
 ) {
   return (
     item.productId === productId &&
     item.color === color &&
     (item.customName ?? "") === (customName ?? "") &&
-    (item.variantId ?? "") === (variantId ?? "")
+    (item.variantId ?? "") === (variantId ?? "") &&
+    (item.keychainChoice ?? "") === (keychainChoice ?? "")
   );
 }
 
@@ -95,7 +98,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     (item: Omit<CartItem, "quantity">, quantity = 1) => {
       setItems((prev) => {
         const existing = prev.find(
-          (i) => sameLine(i, item.productId, item.color, item.customName, item.variantId)
+          (i) => sameLine(i, item.productId, item.color, item.customName, item.variantId, item.keychainChoice)
         );
         if (existing) {
           return prev.map((i) =>
@@ -115,19 +118,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
     []
   );
 
-  const removeItem = useCallback((productId: string, color: string, customName?: string, variantId?: string) => {
+  const removeItem = useCallback((productId: string, color: string, customName?: string, variantId?: string, keychainChoice?: string) => {
     setItems((prev) =>
-      prev.filter((i) => !sameLine(i, productId, color, customName, variantId))
+      prev.filter((i) => !sameLine(i, productId, color, customName, variantId, keychainChoice))
     );
   }, []);
 
   const setQuantity = useCallback(
-    (productId: string, color: string, customName: string | undefined, quantity: number, variantId?: string) => {
+    (productId: string, color: string, customName: string | undefined, quantity: number, variantId?: string, keychainChoice?: string) => {
       setItems((prev) =>
         quantity <= 0
-          ? prev.filter((i) => !sameLine(i, productId, color, customName, variantId))
+          ? prev.filter((i) => !sameLine(i, productId, color, customName, variantId, keychainChoice))
           : prev.map((i) =>
-              sameLine(i, productId, color, customName, variantId)
+              sameLine(i, productId, color, customName, variantId, keychainChoice)
                 ? { ...i, quantity: Math.min(quantity, maxQuantity(i)) }
                 : i
             )

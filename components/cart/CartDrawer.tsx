@@ -103,7 +103,7 @@ export default function CartDrawer({
                 const discountPercent = quantityDiscountPercent(item.quantityDiscounts, item.quantity);
                 return (
                 <li
-                  key={`${item.productId}-${item.variantId ?? ""}-${item.color}-${item.customName ?? ""}`}
+                  key={`${item.productId}-${item.variantId ?? ""}-${item.color}-${item.customName ?? ""}-${item.keychainChoice ?? ""}`}
                   className="flex gap-3 py-4 sm:gap-4 sm:py-5"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -127,6 +127,11 @@ export default function CartDrawer({
                         )}
                         {item.variantName && (
                           <p className="text-xs font-semibold text-ink-soft">Modèle : {item.variantName}</p>
+                        )}
+                        {item.keychainChoice && (
+                          <p className="text-xs font-semibold text-terra-deep">
+                            Porte-clés offert : choix {item.keychainChoice}
+                          </p>
                         )}
                         {item.slug === "porte-canette-monster" && (
                           <div className="mt-1.5 flex items-center gap-2 rounded-lg bg-terra/5 p-1.5">
@@ -153,7 +158,7 @@ export default function CartDrawer({
                         )}
                       </div>
                       <button
-                        onClick={() => removeItem(item.productId, item.color, item.customName, item.variantId)}
+                        onClick={() => removeItem(item.productId, item.color, item.customName, item.variantId, item.keychainChoice)}
                         aria-label="Retirer l'article"
                         className="text-ink-faint transition-colors hover:text-terra"
                       >
@@ -171,7 +176,8 @@ export default function CartDrawer({
                               item.color,
                               item.customName,
                               item.quantity - 1,
-                              item.variantId
+                              item.variantId,
+                              item.keychainChoice
                             )
                           }
                           className="px-3 py-1 text-ink-soft hover:text-ink"
@@ -187,7 +193,8 @@ export default function CartDrawer({
                               item.color,
                               item.customName,
                               item.quantity + 1,
-                              item.variantId
+                              item.variantId,
+                              item.keychainChoice
                             )
                           }
                           className="px-3 py-1 text-ink-soft hover:text-ink disabled:opacity-30"

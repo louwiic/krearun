@@ -111,6 +111,7 @@ export interface OrderItem {
   customName?: string;
   variantId?: string;
   variantName?: string;
+  keychainChoice?: string;
   image: string;
   weightGrams?: number;
 }
@@ -175,6 +176,7 @@ export interface CartItem {
   customName?: string;
   variantId?: string;
   variantName?: string;
+  keychainChoice?: string;
   image: string;
   stock: number;
   weightGrams: number;
