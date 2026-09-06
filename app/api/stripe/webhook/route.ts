@@ -124,6 +124,13 @@ export async function POST(req: Request) {
           .filter(Boolean)
           .join("\n")
       : "";
+    const customerNote = session.metadata?.orderNote?.trim() ?? "";
+    const orderNote = [
+      customerNote ? `Note du client : ${customerNote}` : "",
+      pickupNote,
+    ]
+      .filter(Boolean)
+      .join("\n\n");
 
     const order = await createOrder({
       email: customer?.email ?? session.customer_details?.email ?? "",
@@ -140,7 +147,7 @@ export async function POST(req: Request) {
       status: "paid",
       stripeSessionId: session.id,
       trackingNumber: "",
-      note: pickupNote,
+      note: orderNote,
       items,
     });
 

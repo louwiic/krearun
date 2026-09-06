@@ -114,6 +114,13 @@ function suiviButton(order: Order): string {
 </p>`;
 }
 
+function orderNoteBlock(order: Order): string {
+  if (!order.note) return "";
+  return `<div style="background:#f2ebde;border-radius:16px;padding:14px 18px;margin:18px 0;font-size:13px;">
+<strong>Note de commande</strong><br/>${escapeHtml(order.note).replace(/\n/g, "<br/>")}
+</div>`;
+}
+
 // ─── E-mails clients ────────────────────────────────────────
 
 export async function sendOrderConfirmation(order: Order) {
@@ -127,6 +134,7 @@ export async function sendOrderConfirmation(order: Order) {
 Chaque pièce est préparée rien que pour vous avec soin (comptez 2 à 4 jours),
 puis envoyée ou mise à disposition selon votre choix.</p>
 ${itemsTable(order)}
+${orderNoteBlock(order)}
 <p style="color:#877867;font-size:13px;">Récupération : ${order.addressLine1}${order.addressLine2 ? ", " + order.addressLine2 : ""}, ${order.postalCode} ${order.city}</p>
 ${suiviButton(order)}
 <p>On vous écrit dès que votre colis prend la route. D'ici là, prenez soin de vous ✿</p>`)
@@ -198,6 +206,7 @@ export async function sendAdminNewOrder(order: Order) {
 <p><strong>${order.name}</strong> (${order.email}${order.phone ? ", " + order.phone : ""})<br/>
 ${order.addressLine1}${order.addressLine2 ? ", " + order.addressLine2 : ""}, ${order.postalCode} ${order.city}, ${order.country}</p>
 ${itemsTable(order)}
+${orderNoteBlock(order)}
 <p style="text-align:center;margin:28px 0;">
 <a href="${process.env.NEXT_PUBLIC_SITE_URL || ""}/admin/commandes" style="background:#453a2f;color:#fdfaf4;text-decoration:none;padding:14px 32px;border-radius:999px;font-size:14px;font-weight:bold;">Ouvrir dans l'admin</a>
 </p>`)

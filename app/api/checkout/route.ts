@@ -22,6 +22,7 @@ interface CheckoutBody {
   items: CheckoutItem[];
   customer?: Partial<CheckoutCustomer>;
   promoCode?: string;
+  note?: string;
   fulfillmentMethod?: FulfillmentMethod;
   pickupPointId?: string;
 }
@@ -79,6 +80,7 @@ export async function POST(req: Request) {
   let items: CheckoutItem[];
   let customer: CheckoutCustomer;
   let promoCode = "";
+  let orderNote = "";
   let fulfillmentMethod: FulfillmentMethod = "delivery";
   let pickupPointId = "";
   try {
@@ -89,6 +91,7 @@ export async function POST(req: Request) {
     pickupPointId = text(body.pickupPointId, 80);
     customer = validateCustomer(body.customer, fulfillmentMethod);
     promoCode = text(body.promoCode, 80);
+    orderNote = text(body.note, 500);
   } catch (e) {
     return NextResponse.json(
       {
@@ -281,6 +284,7 @@ export async function POST(req: Request) {
         pickupPointAddress: pickupPoint?.address ?? "",
         pickupPointSchedule: pickupPoint?.schedule ?? "",
         promoCode,
+        orderNote,
       },
       discounts: discounts.length ? discounts : undefined,
       success_url: `${siteUrl}/commande/succes?session_id={CHECKOUT_SESSION_ID}`,

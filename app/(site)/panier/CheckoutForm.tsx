@@ -62,6 +62,7 @@ export default function CheckoutForm({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [promoCode, setPromoCode] = useState("");
+  const [orderNote, setOrderNote] = useState("");
   const pickupPoints = useMemo(() => parsePickupPoints(pickupPointsJson), [pickupPointsJson]);
   const [fulfillmentMethod, setFulfillmentMethod] = useState<FulfillmentMethod>("delivery");
   const [pickupPointId, setPickupPointId] = useState(pickupPoints[0]?.id ?? "");
@@ -107,6 +108,7 @@ export default function CheckoutForm({
         body: JSON.stringify({
           customer,
           promoCode,
+          note: orderNote,
           fulfillmentMethod,
           pickupPointId: isPickup ? selectedPickupPoint.id : "",
           items: items.map((item) => ({
@@ -318,6 +320,22 @@ export default function CheckoutForm({
             </label>
           </div>
         </div>
+
+        <label className="block">
+          <span className="mb-1.5 block text-xs font-bold text-ink-soft">
+            Note pour votre commande
+          </span>
+          <textarea
+            className={`${inputClass} min-h-28 resize-y`}
+            value={orderNote}
+            onChange={(event) => setOrderNote(event.target.value)}
+            maxLength={500}
+            placeholder="Informations complémentaires, demande particulière… (facultatif)"
+          />
+          <span className="mt-1 block text-right text-[11px] text-ink-faint">
+            {orderNote.length}/500
+          </span>
+        </label>
 
         <label className="block">
           <span className="mb-1.5 block text-xs font-bold text-ink-soft">
