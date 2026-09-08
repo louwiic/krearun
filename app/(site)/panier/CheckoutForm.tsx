@@ -6,7 +6,7 @@ import { useCart } from "@/components/cart/CartContext";
 import { publicColorName } from "@/lib/colors";
 import { formatPrice } from "@/lib/format";
 import { billableWeight, hasMissingBillableWeight } from "@/lib/free-shipping";
-import { calculateShippingCents, formatWeight, parseShippingRates } from "@/lib/shipping";
+import { calculateShippingCents, parseShippingRates } from "@/lib/shipping";
 import { parsePickupPoints } from "@/lib/pickup";
 import type { FulfillmentMethod } from "@/lib/types";
 import { cartUnitPriceCents, quantityDiscountPercent } from "@/lib/quantity-discounts";
@@ -468,11 +468,7 @@ export default function CheckoutForm({
             <span className="text-ink-soft">
               {isPickup
                 ? `Retrait · ${selectedPickupPoint.name}`
-                : missingBillableWeight
-                  ? "Envoi · tarif standard"
-                : `Envoi · ${formatWeight(billableWeightGrams)} · ${
-                    billableWeightGrams === 0 ? "offert" : shippingEstimate.label
-                  }`}
+                : "Frais de livraison"}
             </span>
             <span className="font-semibold">
               {shippingCents === 0 ? "Offerte" : formatPrice(shippingCents)}

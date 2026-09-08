@@ -5,7 +5,7 @@ import { useCart } from "./CartContext";
 import { publicColorName } from "@/lib/colors";
 import { formatPrice } from "@/lib/format";
 import { billableWeight, hasMissingBillableWeight } from "@/lib/free-shipping";
-import { calculateShippingCents, formatWeight, parseShippingRates } from "@/lib/shipping";
+import { calculateShippingCents, parseShippingRates } from "@/lib/shipping";
 import { cartUnitPriceCents, quantityDiscountPercent } from "@/lib/quantity-discounts";
 
 export default function CartDrawer({
@@ -230,13 +230,7 @@ export default function CartDrawer({
                 </span>
               </div>
               <div className="mb-2 flex items-start justify-between gap-3 text-sm">
-                <span className="text-ink-soft">
-                  {missingBillableWeight
-                    ? "Envoi · tarif standard"
-                    : `Envoi · ${formatWeight(billableWeightGrams)} · ${
-                        billableWeightGrams === 0 ? "offert" : shippingEstimate.label
-                      }`}
-                </span>
+                <span className="text-ink-soft">Frais de livraison</span>
                 <span className="font-semibold">
                   {shippingCents === 0 ? "Offerte" : formatPrice(shippingCents)}
                 </span>
