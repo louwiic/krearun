@@ -1,10 +1,5 @@
 export type Category =
-  | "veilleuses"
-  | "vases"
-  | "bureau"
-  | "rangement"
-  | "salle-de-bain"
-  | "deco";
+  "veilleuses" | "vases" | "bureau" | "rangement" | "salle-de-bain" | "deco";
 
 export const CATEGORIES: { value: Category; label: string }[] = [
   { value: "veilleuses", label: "Veilleuses & Lampes" },
@@ -86,6 +81,7 @@ export interface Review {
 }
 
 export type OrderStatus =
+  | "review"
   | "pending"
   | "paid"
   | "preparing"
@@ -95,6 +91,7 @@ export type OrderStatus =
   | "cancelled";
 
 export const ORDER_STATUSES: { value: OrderStatus; label: string }[] = [
+  { value: "review", label: "À vérifier" },
   { value: "pending", label: "En attente" },
   { value: "paid", label: "Payée" },
   { value: "preparing", label: "En préparation" },
@@ -154,14 +151,28 @@ export interface Order {
   updatedAt: string;
 }
 
-export type OrderManagementFields = Pick<Order,
-  "source" | "sourceId" | "paymentStatus" | "amountPaidCents" | "description" |
-  "quantityText" | "internalNote" | "tags" | "customerProfileUrl" | "productUrl" |
-  "orderedAt" | "dueDate" | "urgent"
+export type OrderManagementFields = Pick<
+  Order,
+  | "source"
+  | "sourceId"
+  | "paymentStatus"
+  | "amountPaidCents"
+  | "description"
+  | "quantityText"
+  | "internalNote"
+  | "tags"
+  | "customerProfileUrl"
+  | "productUrl"
+  | "orderedAt"
+  | "dueDate"
+  | "urgent"
 >;
 
-export type CreateOrderInput = Omit<Order, "id" | "number" | "createdAt" | "updatedAt" | keyof OrderManagementFields>
-  & Partial<OrderManagementFields>;
+export type CreateOrderInput = Omit<
+  Order,
+  "id" | "number" | "createdAt" | "updatedAt" | keyof OrderManagementFields
+> &
+  Partial<OrderManagementFields>;
 
 export interface Settings {
   announcement: string;

@@ -2,6 +2,7 @@ import { ORDER_STATUSES } from "@/lib/types";
 
 export default function StatusBadge({ status }: { status: string }) {
   const styles: Record<string, string> = {
+    review: "bg-sand/70 text-terra-deep",
     pending: "bg-sand/60 text-ink-soft",
     paid: "bg-sage/30 text-sage-deep",
     preparing: "bg-lavande/40 text-ink",

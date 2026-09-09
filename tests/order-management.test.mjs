@@ -107,6 +107,42 @@ test("payment and production are independent", () => {
   );
   assert.throws(() => paymentAmounts(1700, 2000, "deposit"));
 });
+test("malformed legacy production is quarantined without inventing progress or payment", () => {
+  for (const production of ["non payé", "acompte"]) {
+    const raw = {
+      client: "Test",
+      production,
+      statutPaiement: "acompte",
+      total: 45,
+      acompte: 10,
+      createdAt: "2026-09-01",
+    };
+    const { input, warnings } = legacyOrder(raw, "source-id", "2026-09-09");
+    assert.equal(input.status, "review");
+    assert.equal(input.paymentStatus, "deposit");
+    assert.equal(input.amountPaidCents, 1000);
+    assert.deepEqual(input.legacyData, raw);
+    assert.equal(warnings.length, 1);
+    assert.match(input.internalNote, /champ production/);
+    assert.ok(input.tags.includes("Import à vérifier"));
+  }
+});
+test("blank legacy clients remain visible as unverified records, with the original amount preserved", () => {
+  const raw = {
+    client: "",
+    production: "à faire",
+    statutPaiement: "non payé",
+    total: 1733,
+    createdAt: "2026-09-01",
+  };
+  const { input, warnings } = legacyOrder(raw, "source-id", "2026-09-09");
+  assert.equal(input.name, "Client à renseigner");
+  assert.equal(input.status, "review");
+  assert.equal(input.totalCents, 173300);
+  assert.equal(input.amountPaidCents, 0);
+  assert.equal(input.legacyData.client, "");
+  assert.equal(warnings.length, 1);
+});
 test("CSV quotes, accents, multiline notes and formulas", () => {
   assert.deepEqual(
     parseCsv(
@@ -119,6 +155,15 @@ test("CSV quotes, accents, multiline notes and formulas", () => {
   assert.equal(csvCell("=1+1"), '"\'=1+1"');
 });
 test("legacy dates and external links are safely normalized", () => {
+  assert.equal(isoDate(0), "1970-01-01T00:00:00.000Z");
+  assert.equal(
+    isoDate({ seconds: 0, nanoseconds: 123456789 }),
+    "1970-01-01T00:00:00.123Z",
+  );
+  assert.equal(
+    isoDate("Timestamp(seconds=0, nanoseconds=987654321)"),
+    "1970-01-01T00:00:00.987Z",
+  );
   assert.equal(isoDate({ seconds: 0 }), "1970-01-01T00:00:00.000Z");
   assert.equal(
     isoDate("Timestamp(seconds=0, nanoseconds=0)"),

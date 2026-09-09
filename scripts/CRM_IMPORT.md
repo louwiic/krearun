@@ -1,11 +1,22 @@
 # Commandes manuelles et migration CRM STD
 
 Le backoffice `/admin/commandes` réunit les commandes boutique et manuelles :
-recherche, filtres production/paiement/origine/mois, urgences, sélection et statut
+recherche, filtres production/paiement/origine/date/mois, urgences, sélection et statut
 en lot, saisie/modification manuelle, acomptes, reste à payer, notes privées,
 liens, échéance, export CSV et import CRM avec aperçu.
 
+Les filtres de production et de paiement acceptent plusieurs statuts cochés :
+« À faire » ou « Prêt », par exemple, combinés avec « Non payé » ou « Acompte ».
+Aucun choix signifie tous les statuts du groupe. La période s'applique à la date
+d'origine de la commande : mois complet, intervalle inclusif, ou raccourcis
+« Aujourd'hui » et « Ce mois-ci », à l'heure de La Réunion.
+La liste est paginée par 10, 25, 50 ou 100 commandes. Les compteurs et l'export
+portent sur tous les résultats filtrés, pas uniquement la page affichée.
+La case d'en-tête sélectionne la page courante ; les sélections sont conservées
+en changeant de page et effacées en changeant de filtre.
+
 Production : À faire → En cours → Prêt → Expédiée → Terminée/livrée ; Annulée.
+« À vérifier » isole les dossiers anciens dont l'avancement ne peut être déduit.
 Le paiement est indépendant (non payé, acompte, payé, remboursé). Le statut
 historique boutique `paid` reste compatible et apparaît « À faire » côté gestion.
 Les montants boutique ne sont pas modifiables dans le formulaire manuel.
@@ -51,7 +62,14 @@ Commentaires/relances vont dans `internalNote`, jamais dans la note client.
 Les quantités textuelles sont conservées sans inventer de références catalogue.
 Les anciennes dates sont stockées dans `orderedAt` ; `created` reste la date
 technique PocketBase. Une date illisible provoque un avertissement, pas une
-suppression silencieuse de la valeur d'origine. Un statut inconnu ou un acompte
+suppression silencieuse de la valeur d'origine. Les libellés de paiement
+accidentellement présents dans la colonne production sont placés « À vérifier »,
+sans inventer d'avancement. Un client explicitement vide est conservé sous le
+libellé « Client à renseigner », avec le même montant et les données originales.
+Les avertissements sont conservés dans les notes privées et le tag « Import à vérifier ».
+Les lignes sans client ne sont pas supprimées, même si elles paraissent vides
+ou ressemblent à une ancienne ligne de total : leur nature doit être confirmée.
+Tout autre statut inconnu ou un acompte
 supérieur au total bloque l'import avant toute écriture.
 
 L'index unique `(source, sourceId)` empêche les doublons. Une relance du même

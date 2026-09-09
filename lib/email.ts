@@ -64,7 +64,9 @@ async function sendEmail(to: string, subject: string, html: string) {
   }
   const smtp = getTransporter();
   if (!smtp) {
-    console.error("SMTP : variable SMTP_PASSWORD manquante, e-mail non envoyé.");
+    console.error(
+      "SMTP : variable SMTP_PASSWORD manquante, e-mail non envoyé.",
+    );
     return;
   }
   try {
@@ -163,11 +165,15 @@ ${itemsTable(order)}
 ${orderNoteBlock(order)}
 <p style="color:#877867;font-size:13px;">Récupération : ${order.addressLine1}${order.addressLine2 ? ", " + order.addressLine2 : ""}, ${order.postalCode} ${order.city}</p>
 ${suiviButton(order)}
-<p>On vous écrit dès que votre colis prend la route. D'ici là, prenez soin de vous ✿</p>`)
+<p>On vous écrit dès que votre colis prend la route. D'ici là, prenez soin de vous ✿</p>`),
   );
 }
 
-export async function sendCustomerActivation(email: string, name: string, token: string) {
+export async function sendCustomerActivation(
+  email: string,
+  name: string,
+  token: string,
+) {
   const prenom = name.split(" ")[0] || "vous";
   const url = `${process.env.NEXT_PUBLIC_SITE_URL || ""}/compte/activer?token=${encodeURIComponent(token)}`;
   await sendEmail(
@@ -180,7 +186,7 @@ export async function sendCustomerActivation(email: string, name: string, token:
 <p style="text-align:center;margin:28px 0;">
 <a href="${url}" style="background:#c07a50;color:#fdfaf4;text-decoration:none;padding:14px 32px;border-radius:999px;font-size:14px;font-weight:bold;">Définir mon mot de passe</a>
 </p>
-<p style="color:#877867;font-size:13px;">Si vous n'êtes pas à l'origine de cette commande, ignorez simplement ce message.</p>`)
+<p style="color:#877867;font-size:13px;">Si vous n'êtes pas à l'origine de cette commande, ignorez simplement ce message.</p>`),
   );
 }
 
@@ -201,7 +207,7 @@ Numéro de suivi : <strong style="font-size:16px;">${order.trackingNumber}</stro
 (papier de soie et petit mot doux inclus) et vient d'être confiée au transporteur.</p>
 ${tracking}
 ${suiviButton(order)}
-<p>Merci encore de soutenir notre petit atelier ✿</p>`)
+<p>Merci encore de soutenir notre petit atelier ✿</p>`),
   );
 }
 
@@ -217,7 +223,7 @@ On espère que vos nouveaux compagnons trouvent déjà leur place.</p>
 <p>Un petit mot, une photo de l'objet installé chez ${prenom === "vous" ? "vous" : prenom},
 ou quelque chose qui n'allait pas ? Répondez à cet e-mail, on lit tout,
 et on répond toujours.</p>
-<p>À bientôt au studio ✿</p>`)
+<p>À bientôt au studio ✿</p>`),
   );
 }
 
@@ -235,15 +241,16 @@ ${itemsTable(order)}
 ${orderNoteBlock(order)}
 <p style="text-align:center;margin:28px 0;">
 <a href="${process.env.NEXT_PUBLIC_SITE_URL || ""}/admin/commandes" style="background:#453a2f;color:#fdfaf4;text-decoration:none;padding:14px 32px;border-radius:999px;font-size:14px;font-weight:bold;">Ouvrir dans l'admin</a>
-</p>`)
+</p>`),
   );
 }
 
 export async function sendAdminOrderStatus(
   order: Order,
-  previousStatus: Order["status"]
+  previousStatus: Order["status"],
 ) {
   const labels: Record<Order["status"], string> = {
+    review: "À vérifier",
     pending: "En attente",
     paid: "Payée",
     preparing: "En préparation",
@@ -263,6 +270,6 @@ est passée de « ${labels[previousStatus]} » à <strong>« ${labels[order.stat
 ${order.trackingNumber ? `<p>Numéro de suivi : <strong>${order.trackingNumber}</strong></p>` : ""}
 <p style="text-align:center;margin:28px 0;">
 <a href="${process.env.NEXT_PUBLIC_SITE_URL || ""}/admin/commandes/${order.id}" style="background:#453a2f;color:#fdfaf4;text-decoration:none;padding:14px 32px;border-radius:999px;font-size:14px;font-weight:bold;">Voir la commande</a>
-</p>`)
+</p>`),
   );
 }

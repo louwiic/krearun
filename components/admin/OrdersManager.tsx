@@ -18,6 +18,15 @@ import {
 } from "@/lib/order-management";
 import { formatDate, formatPrice } from "@/lib/format";
 import type { Order } from "@/lib/types";
+import {
+  matchesOrderDate,
+  matchesSelectedStatus,
+  orderDateKey,
+  paginateRows,
+  togglePageSelection,
+  toggleStatusFilter,
+  type OrderDateFilter,
+} from "@/lib/order-list";
 
 const field =
   "rounded-xl border border-sand bg-cream px-3 py-2 text-sm outline-none focus:border-terra disabled:opacity-50";
@@ -28,6 +37,88 @@ const normalize = (value: string) =>
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "");
+
+function StatusFilter({
+  label,
+  options,
+  selected,
+  onChange,
+}: {
+  label: string;
+  options: readonly { value: string; label: string }[];
+  selected: string[];
+  onChange: (values: string[]) => void;
+}) {
+  const summary = selected.length
+    ? options
+        .filter((option) => selected.includes(option.value))
+        .map((option) => option.label)
+        .join(", ")
+    : "Tous les statuts";
+  return (
+    <div className="min-w-0 text-xs font-semibold">
+      <span>{label}</span>
+      <details
+        className="relative mt-1"
+        onKeyDown={(event) => {
+          if (event.key === "Escape") {
+            event.currentTarget.open = false;
+            event.currentTarget.querySelector("summary")?.focus();
+          }
+        }}
+      >
+        <summary
+          className={`${field} cursor-pointer select-none`}
+          aria-label={`${label} : ${summary}`}
+          title={summary}
+        >
+          {selected.length > 1
+            ? `${selected.length} statuts sélectionnés`
+            : summary}
+        </summary>
+        <fieldset className="absolute left-0 top-full z-20 mt-2 w-64 max-w-[calc(100vw-3rem)] rounded-xl border border-sand bg-cream p-3 shadow-soft">
+          <legend className="sr-only">
+            Filtrer par {label.toLowerCase()} — plusieurs choix possibles
+          </legend>
+          <button
+            type="button"
+            onClick={() => onChange([])}
+            className="mb-2 w-full rounded-lg px-2 py-2 text-left text-sm underline hover:bg-linen"
+          >
+            Afficher tous les statuts
+          </button>
+          {options.map((option) => (
+            <label
+              key={option.value}
+              className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-2 text-sm font-normal hover:bg-linen"
+            >
+              <input
+                type="checkbox"
+                checked={selected.includes(option.value)}
+                onChange={(event) =>
+                  onChange(
+                    toggleStatusFilter(
+                      selected,
+                      option.value,
+                      event.target.checked,
+                    ),
+                  )
+                }
+              />
+              {option.label}
+            </label>
+          ))}
+          <p className="mt-2 text-xs font-normal text-ink-soft">
+            Plusieurs choix possibles. Aucun choix = tous.
+          </p>
+        </fieldset>
+      </details>
+      {selected.length > 1 && (
+        <p className="mt-1 font-normal text-ink-soft">{summary}</p>
+      )}
+    </div>
+  );
+}
 
 function PaymentEditor({
   order,
@@ -205,10 +296,15 @@ function ImportPanel() {
 
 export default function OrdersManager({ orders }: { orders: Order[] }) {
   const [search, setSearch] = useState("");
-  const [status, setStatus] = useState("");
-  const [payment, setPayment] = useState("");
+  const [statuses, setStatuses] = useState<string[]>([]);
+  const [payments, setPayments] = useState<string[]>([]);
   const [source, setSource] = useState("");
   const [month, setMonth] = useState("");
+  const [dateMode, setDateMode] = useState<OrderDateFilter["mode"]>("all");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
   const [urgent, setUrgent] = useState(false);
   const [unsettled, setUnsettled] = useState(false);
   const [selected, setSelected] = useState<string[]>([]);
@@ -233,24 +329,50 @@ export default function OrdersManager({ orders }: { orders: Order[] }) {
         );
         return (
           (!search || haystack.includes(normalize(search))) &&
-          (!status || productionStatus(order.status) === status) &&
-          (!payment || order.paymentStatus === payment) &&
+          matchesSelectedStatus(productionStatus(order.status), statuses) &&
+          matchesSelectedStatus(order.paymentStatus, payments) &&
           (!source || order.source === source) &&
-          (!month || order.orderedAt.startsWith(month)) &&
+          matchesOrderDate(order.orderedAt, {
+            mode: dateMode,
+            month,
+            from: dateFrom,
+            to: dateTo,
+          }) &&
           (!urgent || order.urgent) &&
           (!unsettled || remainingCents(order) > 0)
         );
       }),
-    [orders, search, status, payment, source, month, urgent, unsettled],
+    [
+      orders,
+      search,
+      statuses,
+      payments,
+      source,
+      month,
+      dateMode,
+      dateFrom,
+      dateTo,
+      urgent,
+      unsettled,
+    ],
   );
+  const pagination = paginateRows(filtered, page, pageSize);
+  const currentPageIds = pagination.items.map((order) => order.id);
+  const invalidDateRange =
+    dateMode === "range" && !!dateFrom && !!dateTo && dateFrom > dateTo;
+  function resetPage() {
+    setPage(1);
+    setSelected([]);
+  }
   const active = filtered.filter((order) => order.status !== "cancelled");
   const selectedVisible = filtered.filter((order) =>
     selected.includes(order.id),
   );
   const allChecked =
-    !!filtered.length && filtered.every((order) => selected.includes(order.id));
+    !!pagination.items.length &&
+    pagination.items.every((order) => selected.includes(order.id));
   const stats = [
-    { label: "Commandes affichées", value: String(filtered.length) },
+    { label: "Commandes trouvées", value: String(filtered.length) },
     {
       label: "Prêtes",
       value: String(
@@ -356,6 +478,75 @@ export default function OrdersManager({ orders }: { orders: Order[] }) {
     anchor.click();
     URL.revokeObjectURL(url);
   }
+  function paginationControls(position: string) {
+    return (
+      <nav
+        aria-label={`Pagination des commandes — ${position}`}
+        className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-sand bg-cream px-4 py-3 text-sm"
+      >
+        <p aria-live="polite">
+          {pagination.start}–{pagination.end} sur {pagination.total} commande(s)
+        </p>
+        <label className="flex items-center gap-2">
+          Par page
+          <select
+            aria-label={`Commandes par page — ${position}`}
+            value={pageSize}
+            onChange={(event) => {
+              setPageSize(Number(event.target.value));
+              setPage(1);
+            }}
+            className={field}
+          >
+            {[10, 25, 50, 100].map((size) => (
+              <option key={size} value={size}>
+                {size}
+              </option>
+            ))}
+          </select>
+        </label>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setPage(1)}
+            disabled={pagination.page === 1}
+            className={button}
+            aria-label="Première page"
+          >
+            «
+          </button>
+          <button
+            type="button"
+            onClick={() => setPage(pagination.page - 1)}
+            disabled={pagination.page === 1}
+            className={button}
+          >
+            Précédente
+          </button>
+          <span className="px-1">
+            Page {pagination.page} / {pagination.totalPages}
+          </span>
+          <button
+            type="button"
+            onClick={() => setPage(pagination.page + 1)}
+            disabled={pagination.page === pagination.totalPages}
+            className={button}
+          >
+            Suivante
+          </button>
+          <button
+            type="button"
+            onClick={() => setPage(pagination.totalPages)}
+            disabled={pagination.page === pagination.totalPages}
+            className={button}
+            aria-label="Dernière page"
+          >
+            »
+          </button>
+        </div>
+      </nav>
+    );
+  }
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -390,47 +581,41 @@ export default function OrdersManager({ orders }: { orders: Order[] }) {
             Rechercher
             <input
               value={search}
-              onChange={(event) => setSearch(event.target.value)}
+              onChange={(event) => {
+                setSearch(event.target.value);
+                resetPage();
+              }}
               placeholder="Client, téléphone, produit…"
               className={`${field} mt-1 w-full`}
               type="search"
             />
           </label>
-          <label className="text-xs font-semibold">
-            Production
-            <select
-              value={status}
-              onChange={(event) => setStatus(event.target.value)}
-              className={`${field} mt-1 w-full`}
-            >
-              <option value="">Tous les statuts</option>
-              {PRODUCTION_STATUSES.map((status) => (
-                <option key={status.value} value={status.value}>
-                  {status.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="text-xs font-semibold">
-            Paiement
-            <select
-              value={payment}
-              onChange={(event) => setPayment(event.target.value)}
-              className={`${field} mt-1 w-full`}
-            >
-              <option value="">Tous les paiements</option>
-              {PAYMENT_STATUSES.map((status) => (
-                <option key={status.value} value={status.value}>
-                  {status.label}
-                </option>
-              ))}
-            </select>
-          </label>
+          <StatusFilter
+            label="Production"
+            options={PRODUCTION_STATUSES}
+            selected={statuses}
+            onChange={(values) => {
+              setStatuses(values);
+              resetPage();
+            }}
+          />
+          <StatusFilter
+            label="Paiement"
+            options={PAYMENT_STATUSES}
+            selected={payments}
+            onChange={(values) => {
+              setPayments(values);
+              resetPage();
+            }}
+          />
           <label className="text-xs font-semibold">
             Origine
             <select
               value={source}
-              onChange={(event) => setSource(event.target.value)}
+              onChange={(event) => {
+                setSource(event.target.value);
+                resetPage();
+              }}
               className={`${field} mt-1 w-full`}
             >
               <option value="">Toutes les origines</option>
@@ -442,21 +627,110 @@ export default function OrdersManager({ orders }: { orders: Order[] }) {
             </select>
           </label>
           <label className="text-xs font-semibold">
-            Mois de commande
-            <input
-              type="month"
-              value={month}
-              onChange={(event) => setMonth(event.target.value)}
+            Période de commande
+            <select
+              value={dateMode}
+              onChange={(event) => {
+                setDateMode(event.target.value as OrderDateFilter["mode"]);
+                resetPage();
+              }}
               className={`${field} mt-1 w-full`}
-            />
+            >
+              <option value="all">Toutes les dates</option>
+              <option value="month">Par mois</option>
+              <option value="range">Entre deux dates</option>
+            </select>
           </label>
         </div>
+        <div className="mt-4 flex flex-wrap items-end gap-3">
+          {dateMode === "month" && (
+            <label className="text-xs font-semibold">
+              Mois de commande
+              <input
+                type="month"
+                value={month}
+                onChange={(event) => {
+                  setMonth(event.target.value);
+                  resetPage();
+                }}
+                className={`${field} mt-1 block`}
+              />
+            </label>
+          )}
+          {dateMode === "range" && (
+            <>
+              <label className="text-xs font-semibold">
+                Du
+                <input
+                  type="date"
+                  value={dateFrom}
+                  max={dateTo || undefined}
+                  onChange={(event) => {
+                    setDateFrom(event.target.value);
+                    resetPage();
+                  }}
+                  className={`${field} mt-1 block`}
+                />
+              </label>
+              <label className="text-xs font-semibold">
+                Au (inclus)
+                <input
+                  type="date"
+                  value={dateTo}
+                  min={dateFrom || undefined}
+                  onChange={(event) => {
+                    setDateTo(event.target.value);
+                    resetPage();
+                  }}
+                  className={`${field} mt-1 block`}
+                />
+              </label>
+            </>
+          )}
+          <button
+            type="button"
+            className={button}
+            onClick={() => {
+              const today = orderDateKey(new Date());
+              setDateMode("range");
+              setDateFrom(today);
+              setDateTo(today);
+              resetPage();
+            }}
+          >
+            Aujourd’hui
+          </button>
+          <button
+            type="button"
+            className={button}
+            onClick={() => {
+              setDateMode("month");
+              setMonth(orderDateKey(new Date()).slice(0, 7));
+              resetPage();
+            }}
+          >
+            Ce mois-ci
+          </button>
+          {dateMode !== "all" && (
+            <span className="self-center text-xs text-ink-soft">
+              Dates à l’heure de La Réunion.
+            </span>
+          )}
+        </div>
+        {invalidDateRange && (
+          <p role="alert" className="mt-2 text-sm text-terra-deep">
+            La date de début doit précéder ou être égale à la date de fin.
+          </p>
+        )}
         <div className="mt-4 flex flex-wrap items-center gap-4 text-sm">
           <label className="flex items-center gap-2">
             <input
               type="checkbox"
               checked={urgent}
-              onChange={(event) => setUrgent(event.target.checked)}
+              onChange={(event) => {
+                setUrgent(event.target.checked);
+                resetPage();
+              }}
             />{" "}
             Urgentes
           </label>
@@ -464,17 +738,24 @@ export default function OrdersManager({ orders }: { orders: Order[] }) {
             <input
               type="checkbox"
               checked={unsettled}
-              onChange={(event) => setUnsettled(event.target.checked)}
+              onChange={(event) => {
+                setUnsettled(event.target.checked);
+                resetPage();
+              }}
             />{" "}
             Reste à payer
           </label>
           <button
             onClick={() => {
               setSearch("");
-              setStatus("");
-              setPayment("");
+              setStatuses([]);
+              setPayments([]);
               setSource("");
               setMonth("");
+              setDateMode("all");
+              setDateFrom("");
+              setDateTo("");
+              setPage(1);
               setUrgent(false);
               setUnsettled(false);
               setSelected([]);
@@ -525,7 +806,7 @@ export default function OrdersManager({ orders }: { orders: Order[] }) {
           }}
         >
           <span className="text-sm font-semibold">
-            {selectedVisible.length} sélectionnée(s)
+            {selectedVisible.length} sélectionnée(s), toutes pages confondues
           </span>
           <select
             aria-label="Statut à appliquer à la sélection"
@@ -551,6 +832,7 @@ export default function OrdersManager({ orders }: { orders: Order[] }) {
           </span>
         </form>
       )}
+      {paginationControls("haut")}
       <div className="overflow-x-auto rounded-2xl bg-cream shadow-soft">
         <table className="w-full min-w-[1180px] text-left text-sm">
           <caption className="sr-only">
@@ -561,13 +843,15 @@ export default function OrdersManager({ orders }: { orders: Order[] }) {
               <th className="p-4">
                 <input
                   type="checkbox"
-                  aria-label="Sélectionner les commandes affichées"
+                  aria-label="Sélectionner les commandes de cette page"
                   checked={allChecked}
                   onChange={(event) =>
-                    setSelected(
-                      event.target.checked
-                        ? filtered.map((order) => order.id)
-                        : [],
+                    setSelected((current) =>
+                      togglePageSelection(
+                        current,
+                        currentPageIds,
+                        event.target.checked,
+                      ),
                     )
                   }
                 />
@@ -589,7 +873,7 @@ export default function OrdersManager({ orders }: { orders: Order[] }) {
             </tr>
           </thead>
           <tbody>
-            {filtered.map((order) => (
+            {pagination.items.map((order) => (
               <tr
                 key={order.id}
                 className="border-b border-sand/40 align-top last:border-0 even:bg-linen/40"
@@ -618,7 +902,11 @@ export default function OrdersManager({ orders }: { orders: Order[] }) {
                   <p className="text-xs text-ink-soft">{order.phone}</p>
                   <p className="text-xs text-ink-soft">{order.city}</p>
                   <p className="mt-2 text-xs text-ink-faint">
-                    #{order.number} · {formatDate(order.orderedAt)}
+                    #{order.number} ·{" "}
+                    {orderDateKey(order.orderedAt)
+                      .split("-")
+                      .reverse()
+                      .join("/")}
                   </p>
                   <p className="text-xs text-ink-faint">
                     {
@@ -723,6 +1011,7 @@ export default function OrdersManager({ orders }: { orders: Order[] }) {
           </p>
         )}
       </div>
+      {paginationControls("bas")}
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import type { CreateOrderInput, Order, OrderStatus } from "./types";
 
 export const PRODUCTION_STATUSES: { value: OrderStatus; label: string }[] = [
+  { value: "review", label: "À vérifier" },
   { value: "pending", label: "À faire" },
   { value: "preparing", label: "En cours" },
   { value: "ready", label: "Prêt" },
@@ -108,7 +109,7 @@ export function publicHttpUrl(raw: unknown): string {
   }
 }
 export function isoDate(value: unknown, fallback = ""): string {
-  if (!value) return fallback;
+  if (value === null || value === undefined || value === "") return fallback;
   let raw: unknown = value;
   if (typeof raw === "string" && raw.trim().startsWith("{")) {
     try {
@@ -118,15 +119,25 @@ export function isoDate(value: unknown, fallback = ""): string {
     }
   }
   if (typeof raw === "object" && raw !== null) {
-    const timestamp = raw as { seconds?: number; _seconds?: number };
+    const timestamp = raw as {
+      seconds?: number;
+      _seconds?: number;
+      nanoseconds?: number;
+      _nanoseconds?: number;
+    };
     const seconds = timestamp.seconds ?? timestamp._seconds;
-    if (typeof seconds === "number") raw = seconds * 1000;
+    const nanoseconds = timestamp.nanoseconds ?? timestamp._nanoseconds ?? 0;
+    if (typeof seconds === "number")
+      raw = seconds * 1000 + Math.trunc(nanoseconds / 1_000_000);
   }
   if (typeof raw === "string") {
     const timestamp = raw.match(
-      /^Timestamp\(seconds=(\d+),\s*nanoseconds=\d+\)$/,
+      /^Timestamp\(seconds=(-?\d+),\s*nanoseconds=(\d+)\)$/,
     );
-    if (timestamp) raw = Number(timestamp[1]) * 1000;
+    if (timestamp)
+      raw =
+        Number(timestamp[1]) * 1000 +
+        Math.trunc(Number(timestamp[2]) / 1_000_000);
   }
   if (typeof raw !== "string" && typeof raw !== "number") return fallback;
   const date = new Date(raw);
@@ -157,6 +168,8 @@ export function normalizeLegacyStatus(value: unknown): OrderStatus {
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "");
   const mapping: Record<string, OrderStatus> = {
+    "a verifier": "review",
+    review: "review",
     "a faire": "pending",
     pending: "pending",
     "en cours": "preparing",
@@ -302,11 +315,33 @@ export function legacyOrder(
       .map((key) => raw[key])
       .find((value) => value !== undefined && value !== null && value !== "");
   const str = (...keys: string[]) => String(pick(...keys) ?? "").trim();
-  const name = str("client", "Client");
-  if (!name) throw new Error("Nom du client manquant.");
+  if (!Object.hasOwn(raw, "client") && !Object.hasOwn(raw, "Client"))
+    throw new Error("Nom du client manquant.");
+  const originalName = str("client", "Client");
+  const name = originalName || "Client à renseigner";
   if (!sourceId || sourceId.length > 250)
     throw new Error("Identifiant source invalide.");
   const warnings: string[] = [];
+  if (!originalName)
+    warnings.push(
+      "Nom du client vide dans CRM STD : dossier conservé et placé à vérifier.",
+    );
+  const originalProduction = pick("production", "Statut", "statut");
+  const normalizedProduction = String(originalProduction ?? "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+  const misplacedPayment = ["non paye", "acompte", "paye"].includes(
+    normalizedProduction,
+  );
+  const status = misplacedPayment
+    ? "review"
+    : normalizeLegacyStatus(originalProduction);
+  if (misplacedPayment)
+    warnings.push(
+      "Le champ production contient un statut de paiement dans CRM STD : avancement placé à vérifier, sans déduire une fabrication.",
+    );
   const totalCents = cents(pick("total", "Total"), "Total");
   const paymentStatus = normalizeLegacyPayment(
     pick(
@@ -349,7 +384,7 @@ export function legacyOrder(
   ]
     .filter(Boolean)
     .join("\n\n");
-  const internalNote = [
+  let internalNote = [
     str("commentaire", "Commentaire"),
     str("infosRelance", "infos relance", "Infos relance") &&
       `Relance : ${str("infosRelance", "infos relance", "Infos relance")}`,
@@ -373,6 +408,20 @@ export function legacyOrder(
     warnings.push(
       "Lien invalide conservé uniquement dans les données originales.",
     );
+  if (warnings.length)
+    internalNote = [
+      internalNote,
+      `[Import CRM STD — à vérifier]\n${warnings.join("\n")}`,
+    ]
+      .filter(Boolean)
+      .join("\n\n");
+  if (internalNote.length > 20000)
+    throw new Error(
+      "Notes d'import trop longues ; aucune troncature effectuée.",
+    );
+  const tags = stringList(pick("tags", "Tags"));
+  if (warnings.length && !tags.includes("Import à vérifier"))
+    tags.push("Import à vérifier");
   return {
     input: {
       name,
@@ -386,7 +435,7 @@ export function legacyOrder(
       subtotalCents: totalCents,
       shippingCents: 0,
       totalCents,
-      status: normalizeLegacyStatus(pick("production", "Statut", "statut")),
+      status: originalName ? status : "review",
       paymentStatus,
       amountPaidCents,
       note: "",
@@ -400,7 +449,7 @@ export function legacyOrder(
       sourceId,
       orderedAt: orderedAt || importedAt,
       dueDate: "",
-      tags: stringList(pick("tags", "Tags")),
+      tags,
       urgent: ["true", "oui", "1", "urgent"].includes(
         str("urgent", "Urgent").toLowerCase(),
       ),

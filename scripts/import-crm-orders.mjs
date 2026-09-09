@@ -3,6 +3,7 @@
 import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import assert from "node:assert/strict";
+import { isDeepStrictEqual } from "node:util";
 import { legacyOrder, parseCrmExport } from "../lib/order-management.ts";
 import { client, backup, option } from "./crm-pocketbase.mjs";
 
@@ -83,6 +84,10 @@ if (process.argv.includes("--apply")) {
           number,
         });
         created++;
+        if (created % 25 === 0 || created === pending.length)
+          console.log(
+            `Progression : ${created}/${pending.length} commandes importées.`,
+          );
         break;
       } catch (error) {
         if (
@@ -95,9 +100,11 @@ if (process.argv.includes("--apply")) {
   }
   const after = await db.orders();
   for (const original of before)
-    assert.deepEqual(
-      after.find((order) => order.id === original.id),
-      original,
+    assert.ok(
+      isDeepStrictEqual(
+        after.find((order) => order.id === original.id),
+        original,
+      ),
       "Une commande préexistante a changé pendant l'import ; vérifier la sauvegarde.",
     );
   for (const { input } of mapped) {
@@ -120,9 +127,8 @@ if (process.argv.includes("--apply")) {
         "internalNote",
         "legacyData",
       ])
-        assert.deepEqual(
-          matches[0][key],
-          input[key],
+        assert.ok(
+          isDeepStrictEqual(matches[0][key], input[key]),
           `Écart d'import : ${key}`,
         );
     }
