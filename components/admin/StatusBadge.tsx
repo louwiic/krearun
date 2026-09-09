@@ -1,20 +1,18 @@
 import { ORDER_STATUSES } from "@/lib/types";
+import {
+  paymentStatusStyle,
+  productionStatusStyle,
+} from "@/lib/order-status-style";
 
 export default function StatusBadge({ status }: { status: string }) {
-  const styles: Record<string, string> = {
-    review: "bg-sand/70 text-terra-deep",
-    pending: "bg-sand/60 text-ink-soft",
-    paid: "bg-sage/30 text-sage-deep",
-    preparing: "bg-lavande/40 text-ink",
-    ready: "bg-lavande/60 text-ink",
-    shipped: "bg-blush/40 text-terra-deep",
-    delivered: "bg-sage/50 text-sage-deep",
-    cancelled: "bg-ink/10 text-ink-faint line-through",
-  };
+  const style =
+    status === "paid"
+      ? paymentStatusStyle(status)
+      : productionStatusStyle(status);
   const label = ORDER_STATUSES.find((s) => s.value === status)?.label ?? status;
   return (
     <span
-      className={`rounded-full px-3 py-1 text-[11px] font-bold ${styles[status] ?? "bg-sand"}`}
+      className={`rounded-full border px-3 py-1 text-[11px] font-bold ${style}`}
     >
       {label}
     </span>

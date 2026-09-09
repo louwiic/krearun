@@ -12,13 +12,22 @@ import {
   productionStatus,
 } from "@/lib/order-management";
 import type { Order } from "@/lib/types";
+import {
+  paymentStatusStyle,
+  productionStatusStyle,
+} from "@/lib/order-status-style";
 
 const field =
   "mt-1.5 w-full rounded-xl border border-sand bg-linen px-4 py-3 text-sm outline-none focus:border-terra disabled:opacity-60";
+const statusField =
+  "mt-1.5 w-full rounded-xl border px-4 py-3 text-sm font-semibold outline-none focus:border-terra disabled:cursor-not-allowed disabled:opacity-100";
 export default function ManualOrderForm({ order }: { order?: Order }) {
   const [state, setState] = useState<OrderActionResult>({});
   const [pending, startTransition] = useTransition();
   const [payment, setPayment] = useState(order?.paymentStatus ?? "unpaid");
+  const [production, setProduction] = useState(
+    productionStatus(order?.status ?? "pending"),
+  );
   const web = order?.source === "web";
   const input = (
     name: string,
@@ -138,8 +147,11 @@ export default function ManualOrderForm({ order }: { order?: Order }) {
                 Production
                 <select
                   name="status"
-                  defaultValue={productionStatus(order?.status ?? "pending")}
-                  className={field}
+                  value={production}
+                  onChange={(event) =>
+                    setProduction(event.target.value as Order["status"])
+                  }
+                  className={`${statusField} ${productionStatusStyle(production)}`}
                 >
                   {PRODUCTION_STATUSES.map((status) => (
                     <option key={status.value} value={status.value}>
@@ -219,7 +231,7 @@ export default function ManualOrderForm({ order }: { order?: Order }) {
                     setPayment(event.target.value as Order["paymentStatus"])
                   }
                   disabled={web}
-                  className={field}
+                  className={`${statusField} ${paymentStatusStyle(payment)}`}
                 >
                   {PAYMENT_STATUSES.map((status) => (
                     <option key={status.value} value={status.value}>

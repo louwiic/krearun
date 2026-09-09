@@ -19,6 +19,10 @@ import {
 import { formatDate, formatPrice } from "@/lib/format";
 import type { Order } from "@/lib/types";
 import {
+  paymentStatusStyle,
+  productionStatusStyle,
+} from "@/lib/order-status-style";
+import {
   matchesOrderDate,
   matchesSelectedStatus,
   orderDateKey,
@@ -28,8 +32,10 @@ import {
   type OrderDateFilter,
 } from "@/lib/order-list";
 
-const field =
-  "rounded-xl border border-sand bg-cream px-3 py-2 text-sm outline-none focus:border-terra disabled:opacity-50";
+const fieldBase =
+  "rounded-xl border px-3 py-2 text-sm outline-none focus:border-terra";
+const field = `${fieldBase} border-sand bg-cream disabled:opacity-50`;
+const statusField = `${fieldBase} font-semibold disabled:cursor-not-allowed disabled:opacity-100`;
 const button =
   "rounded-full border border-sand bg-cream px-4 py-2 text-sm font-semibold hover:bg-linen disabled:opacity-50";
 const normalize = (value: string) =>
@@ -40,11 +46,13 @@ const normalize = (value: string) =>
 
 function StatusFilter({
   label,
+  kind,
   options,
   selected,
   onChange,
 }: {
   label: string;
+  kind: "production" | "payment";
   options: readonly { value: string; label: string }[];
   selected: string[];
   onChange: (values: string[]) => void;
@@ -105,7 +113,11 @@ function StatusFilter({
                   )
                 }
               />
-              {option.label}
+              <span
+                className={`rounded-full border px-2 py-1 font-semibold ${kind === "production" ? productionStatusStyle(option.value) : paymentStatusStyle(option.value)}`}
+              >
+                {option.label}
+              </span>
             </label>
           ))}
           <p className="mt-2 text-xs font-normal text-ink-soft">
@@ -149,7 +161,7 @@ function PaymentEditor({
           setPayment(event.target.value as Order["paymentStatus"])
         }
         disabled={disabled || order.source === "web"}
-        className={`${field} w-full`}
+        className={`${statusField} w-full ${paymentStatusStyle(payment)}`}
       >
         {PAYMENT_STATUSES.map((status) => (
           <option key={status.value} value={status.value}>
@@ -592,6 +604,7 @@ export default function OrdersManager({ orders }: { orders: Order[] }) {
           </label>
           <StatusFilter
             label="Production"
+            kind="production"
             options={PRODUCTION_STATUSES}
             selected={statuses}
             onChange={(values) => {
@@ -601,6 +614,7 @@ export default function OrdersManager({ orders }: { orders: Order[] }) {
           />
           <StatusFilter
             label="Paiement"
+            kind="payment"
             options={PAYMENT_STATUSES}
             selected={payments}
             onChange={(values) => {
@@ -813,7 +827,7 @@ export default function OrdersManager({ orders }: { orders: Order[] }) {
             value={bulk}
             onChange={(event) => setBulk(event.target.value)}
             disabled={pending}
-            className={field}
+            className={`${statusField} ${productionStatusStyle(bulk)}`}
           >
             {PRODUCTION_STATUSES.map((status) => (
               <option key={status.value} value={status.value}>
@@ -958,7 +972,7 @@ export default function OrdersManager({ orders }: { orders: Order[] }) {
                       data.set("value", event.target.value);
                       save(data);
                     }}
-                    className={`${field} ${order.status === "ready" ? "bg-lavande/30 font-bold" : ""}`}
+                    className={`${statusField} ${productionStatusStyle(order.status)}`}
                   >
                     {PRODUCTION_STATUSES.map((status) => (
                       <option key={status.value} value={status.value}>
