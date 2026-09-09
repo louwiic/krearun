@@ -13,16 +13,16 @@ export default async function AdminDashboard() {
     getSubscribers(),
   ]);
 
-  const paidOrders = orders.filter((o) => o.status !== "cancelled" && o.status !== "pending");
-  const revenue = paidOrders.reduce((n, o) => n + o.totalCents, 0);
-  const toShip = orders.filter((o) => o.status === "paid" || o.status === "preparing");
+  const paidOrders = orders.filter((o) => o.status !== "cancelled" && o.amountPaidCents > 0);
+  const revenue = paidOrders.reduce((n, o) => n + o.amountPaidCents, 0);
+  const toShip = orders.filter((o) => o.status === "paid" || o.status === "preparing" || o.status === "ready");
   const lowStock = products.filter((p) => p.active && !p.preorder && p.stock <= 3);
   const recent = orders.slice(0, 6);
 
   const stats = [
-    { label: "Chiffre d'affaires", value: formatPrice(revenue), icon: "🌸" },
-    { label: "Commandes", value: String(paidOrders.length), icon: "📦" },
-    { label: "À expédier", value: String(toShip.length), icon: "🚚" },
+    { label: "Encaissé hors annulations", value: formatPrice(revenue), icon: "🌸" },
+    { label: "Commandes", value: String(orders.length), icon: "📦" },
+    { label: "À préparer / remettre", value: String(toShip.length), icon: "🚚" },
     { label: "Abonnés newsletter", value: String(subscribers.length), icon: "💌" },
   ];
 
@@ -89,7 +89,7 @@ export default async function AdminDashboard() {
                       <p className="text-sm font-bold">
                         #{o.number} — {o.name || o.email}
                       </p>
-                      <p className="text-xs text-ink-faint">{formatDate(o.createdAt)}</p>
+                      <p className="text-xs text-ink-faint">{formatDate(o.orderedAt)}</p>
                     </div>
                     <div className="flex items-center gap-3">
                       <StatusBadge status={o.status} />

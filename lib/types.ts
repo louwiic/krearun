@@ -89,6 +89,7 @@ export type OrderStatus =
   | "pending"
   | "paid"
   | "preparing"
+  | "ready"
   | "shipped"
   | "delivered"
   | "cancelled";
@@ -97,6 +98,7 @@ export const ORDER_STATUSES: { value: OrderStatus; label: string }[] = [
   { value: "pending", label: "En attente" },
   { value: "paid", label: "Payée" },
   { value: "preparing", label: "En préparation" },
+  { value: "ready", label: "Prêt" },
   { value: "shipped", label: "Expédiée" },
   { value: "delivered", label: "Livrée" },
   { value: "cancelled", label: "Annulée" },
@@ -135,9 +137,31 @@ export interface Order {
   trackingNumber: string;
   note: string;
   items: OrderItem[];
+  source: "web" | "manual" | "crm_std" | "csv";
+  sourceId: string;
+  paymentStatus: "unpaid" | "deposit" | "paid" | "refunded";
+  amountPaidCents: number;
+  description: string;
+  quantityText: string;
+  internalNote: string;
+  tags: string[];
+  customerProfileUrl: string;
+  productUrl: string;
+  orderedAt: string;
+  dueDate: string;
+  urgent: boolean;
   createdAt: string;
   updatedAt: string;
 }
+
+export type OrderManagementFields = Pick<Order,
+  "source" | "sourceId" | "paymentStatus" | "amountPaidCents" | "description" |
+  "quantityText" | "internalNote" | "tags" | "customerProfileUrl" | "productUrl" |
+  "orderedAt" | "dueDate" | "urgent"
+>;
+
+export type CreateOrderInput = Omit<Order, "id" | "number" | "createdAt" | "updatedAt" | keyof OrderManagementFields>
+  & Partial<OrderManagementFields>;
 
 export interface Settings {
   announcement: string;

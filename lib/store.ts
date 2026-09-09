@@ -5,9 +5,11 @@ import crypto from "node:crypto";
 import type {
   CheckoutCustomer,
   Customer,
+  CreateOrderInput,
   InventoryColor,
   Order,
   OrderStatus,
+  OrderManagementFields,
   Product,
   Review,
   Settings,
@@ -17,6 +19,7 @@ import { DEFAULT_REUNION_SHIPPING_RATES } from "./shipping";
 import { DEFAULT_PICKUP_POINTS } from "./pickup";
 import { DEFAULT_STORE_CATEGORIES } from "./categories";
 import { normalizeQuantityDiscounts } from "./quantity-discounts";
+import { isPaymentStatus, publicHttpUrl } from "./order-management";
 
 const PB_URL = (process.env.POCKETBASE_URL ?? "").replace(/\/$/, "");
 const PB_EMAIL = process.env.POCKETBASE_ADMIN_EMAIL ?? "";
@@ -72,7 +75,7 @@ async function pb<T = unknown>(
 }
 
 function escapeFilter(value: string): string {
-  return value.replace(/'/g, "\\'");
+  return value.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
 }
 
 function normalizeEmail(email: string): string {
@@ -86,6 +89,7 @@ function toIso(pbDate: string): string {
 interface ListResult<T> {
   items: T[];
   totalItems: number;
+  totalPages: number;
 }
 
 // ─── Produits ───────────────────────────────────────────────
@@ -421,7 +425,7 @@ export async function updateInventoryColor(
 
 // ─── Commandes ──────────────────────────────────────────────
 
-interface PbOrder {
+interface PbOrder extends Partial<OrderManagementFields> {
   id: string;
   number: number;
   email: string;
@@ -445,6 +449,8 @@ interface PbOrder {
 }
 
 function mapOrder(r: PbOrder): Order {
+  const paymentStatus = r.paymentStatus && isPaymentStatus(r.paymentStatus)
+    ? r.paymentStatus : ["paid", "preparing", "ready", "shipped", "delivered"].includes(r.status) ? "paid" : "unpaid";
   return {
     id: r.id,
     number: r.number,
@@ -464,19 +470,36 @@ function mapOrder(r: PbOrder): Order {
     trackingNumber: r.trackingNumber ?? "",
     note: r.note ?? "",
     items: r.items ?? [],
+    source: r.source || "web",
+    sourceId: r.sourceId || "",
+    paymentStatus,
+    amountPaidCents: paymentStatus === "paid" ? r.totalCents : paymentStatus === "deposit" ? r.amountPaidCents ?? 0 : 0,
+    description: r.description || "",
+    quantityText: r.quantityText || "",
+    internalNote: r.internalNote || "",
+    tags: Array.isArray(r.tags) ? r.tags : [],
+    customerProfileUrl: publicHttpUrl(r.customerProfileUrl),
+    productUrl: publicHttpUrl(r.productUrl),
+    orderedAt: r.orderedAt ? toIso(r.orderedAt) : toIso(r.created),
+    dueDate: r.dueDate ? toIso(r.dueDate) : "",
+    urgent: r.urgent || false,
     createdAt: toIso(r.created),
     updatedAt: toIso(r.updated),
   };
 }
 
 export async function getOrders(): Promise<Order[]> {
-  const res = await pb<ListResult<PbOrder>>(
-    `/collections/orders/records?perPage=500&sort=-created`
-  );
-  return res.items.map(mapOrder);
+  const orders: Order[] = [];
+  for (let page = 1; ; page++) {
+    const res = await pb<ListResult<PbOrder>>(`/collections/orders/records?perPage=500&page=${page}&sort=-created,id`);
+    orders.push(...res.items.map(mapOrder));
+    if (page >= res.totalPages) break;
+  }
+  return orders.sort((a, b) => b.orderedAt.localeCompare(a.orderedAt) || b.number - a.number);
 }
 
 export async function getOrderById(id: string): Promise<Order | null> {
+  if (!/^[a-z0-9]{15}$/.test(id)) return null;
   try {
     return mapOrder(await pb<PbOrder>(`/collections/orders/records/${id}`));
   } catch {
@@ -494,17 +517,44 @@ export async function getOrderByStripeSession(sessionId: string): Promise<Order 
 }
 
 export async function createOrder(
-  input: Omit<Order, "id" | "number" | "createdAt" | "updatedAt">
+  input: CreateOrderInput & { legacyData?: Record<string, unknown> }
 ): Promise<Order> {
-  const last = await pb<ListResult<PbOrder>>(
-    `/collections/orders/records?perPage=1&sort=-number`
-  );
-  const number = (last.items[0]?.number ?? 1000) + 1;
-  const record = await pb<PbOrder>(`/collections/orders/records`, {
-    method: "POST",
-    body: { ...input, number, stripeSessionId: input.stripeSessionId ?? "" },
-  });
-  return mapOrder(record);
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const last = await pb<ListResult<PbOrder>>("/collections/orders/records?perPage=1&sort=-number");
+    const number = (last.items[0]?.number ?? 1000) + 1;
+    const paymentStatus = input.paymentStatus ?? (input.status === "pending" || input.status === "cancelled" ? "unpaid" : "paid");
+    try {
+      return mapOrder(await pb<PbOrder>("/collections/orders/records", {
+        method: "POST", body: {
+          ...input, number, stripeSessionId: input.stripeSessionId ?? "", source: input.source || "web",
+          paymentStatus, amountPaidCents: paymentStatus === "paid" ? input.totalCents : input.amountPaidCents ?? 0,
+          orderedAt: input.orderedAt || new Date().toISOString(),
+        },
+      }));
+    } catch (error) {
+      // A concurrent checkout/import may have reserved this order number.
+      if (attempt === 4 || !(error instanceof Error) || !/"number":\{[^}]*"code":"validation_not_unique"/.test(error.message)) throw error;
+    }
+  }
+  throw new Error("Impossible de réserver un numéro de commande.");
+}
+
+export async function getOrderBySourceId(source: string, sourceId: string): Promise<Order | null> {
+  const res = await pb<ListResult<PbOrder>>(`/collections/orders/records?perPage=1&filter=${encodeURIComponent(`source='${escapeFilter(source)}' && sourceId='${escapeFilter(sourceId)}'`)}`);
+  return res.items[0] ? mapOrder(res.items[0]) : null;
+}
+
+export async function updateManagedOrder(id: string, input: Partial<CreateOrderInput>): Promise<Order> {
+  if (!/^[a-z0-9]{15}$/.test(id)) throw new Error("Identifiant invalide.");
+  return mapOrder(await pb<PbOrder>(`/collections/orders/records/${id}`, { method: "PATCH", body: input }));
+}
+
+export async function ensureOrderManagementSchema(): Promise<void> {
+  const schema = await pb<{ fields: { name: string; values?: string[] }[] }>("/collections/orders");
+  if (!["sourceId", "paymentStatus", "amountPaidCents", "legacyData", "orderedAt"].every(name => schema.fields.some(field => field.name === name))
+    || !schema.fields.find(field => field.name === "status")?.values?.includes("ready")) {
+    throw new Error("La migration du schéma des commandes doit être appliquée avant l'enregistrement.");
+  }
 }
 
 export async function updateOrderStatus(
@@ -513,9 +563,11 @@ export async function updateOrderStatus(
   extra?: { trackingNumber?: string }
 ): Promise<Order | null> {
   try {
+    const previous = await getOrderById(id);
+    if (!previous) return null;
     const record = await pb<PbOrder>(`/collections/orders/records/${id}`, {
       method: "PATCH",
-      body: { status, ...extra },
+      body: { status, paymentStatus: previous.paymentStatus, amountPaidCents: previous.amountPaidCents, ...extra },
     });
     return mapOrder(record);
   } catch {
@@ -527,6 +579,7 @@ export async function getOrderByNumberAndEmail(
   number: number,
   email: string
 ): Promise<Order | null> {
+  if (!Number.isSafeInteger(number) || number <= 0 || !email.trim()) return null;
   const res = await pb<ListResult<PbOrder>>(
     `/collections/orders/records?perPage=1&filter=${encodeURIComponent(
       `number=${number} && email='${escapeFilter(email.toLowerCase())}'`

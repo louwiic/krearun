@@ -34,6 +34,7 @@ import { uploadSiteImageToR2, uploadSiteMediaToR2 } from "@/lib/r2";
 import { DEFAULT_PICKUP_POINTS } from "@/lib/pickup";
 import { DEFAULT_STORE_CATEGORIES } from "@/lib/categories";
 import { normalizeQuantityDiscounts } from "@/lib/quantity-discounts";
+import { isProductionStatus } from "@/lib/order-management";
 import type { Category, OrderStatus, Product, ProductColor, ProductVariant, QuantityDiscount } from "@/lib/types";
 
 // ─── Auth ───────────────────────────────────────────────────
@@ -383,12 +384,14 @@ export async function updateOrderStatusAction(formData: FormData) {
   const id = String(formData.get("id") ?? "");
   const status = String(formData.get("status") ?? "") as OrderStatus;
   const trackingNumber = String(formData.get("trackingNumber") ?? "").trim();
+  if (!/^[a-z0-9]{15}$/.test(id) || !isProductionStatus(status) || trackingNumber.length > 500) throw new Error("Modification de statut invalide.");
 
   const previous = await getOrderById(id);
   const order = await updateOrderStatus(id, status, { trackingNumber });
+  if (!order) throw new Error("La commande n'a pas pu être mise à jour.");
 
-  // E-mail automatique au client quand le colis part ou arrive
-  if (order && previous && previous.status !== status) {
+  // Notifications only when explicitly requested from the order detail form.
+  if (order.email && formData.get("notifyCustomer") === "on" && previous && previous.status !== status) {
     try {
       if (status === "shipped") await sendOrderShipped(order);
       if (status === "delivered") await sendOrderDelivered(order);
@@ -399,6 +402,8 @@ export async function updateOrderStatusAction(formData: FormData) {
   }
 
   revalidatePath("/admin/commandes");
+  revalidatePath(`/admin/commandes/${id}`);
+  revalidatePath("/admin");
   redirect(`/admin/commandes/${id}`);
 }
 

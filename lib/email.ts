@@ -247,6 +247,7 @@ export async function sendAdminOrderStatus(
     pending: "En attente",
     paid: "Payée",
     preparing: "En préparation",
+    ready: "Prêt",
     shipped: "Expédiée",
     delivered: "Livrée",
     cancelled: "Annulée",

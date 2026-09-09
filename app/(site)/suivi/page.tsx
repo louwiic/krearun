@@ -16,6 +16,7 @@ const field =
 const STEPS: { status: OrderStatus; label: string; icon: string; text: string }[] = [
   { status: "paid", label: "Commande reçue", icon: "✿", text: "Votre commande est bien arrivée dans notre atelier." },
   { status: "preparing", label: "En fabrication", icon: "✿", text: "Votre pièce est préparée avec soin dans notre atelier." },
+  { status: "ready", label: "Prête", icon: "✓", text: "Votre commande est prête pour le retrait ou l'expédition." },
   { status: "shipped", label: "En route", icon: "📦", text: "Emballée avec soin, votre commande voyage vers vous." },
   { status: "delivered", label: "Livrée", icon: "🏡", text: "Bienvenue à la maison ! On espère qu'elle vous plaît." },
 ];
@@ -46,7 +47,7 @@ function Timeline({ order }: { order: Order }) {
           Commande #{order.number}
         </h2>
         <span className="text-sm text-ink-soft">
-          {formatPrice(order.totalCents)} · {formatDate(order.createdAt)}
+          {formatPrice(order.totalCents)} · {formatDate(order.orderedAt)}
         </span>
       </div>
 

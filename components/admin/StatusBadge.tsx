@@ -5,6 +5,7 @@ export default function StatusBadge({ status }: { status: string }) {
     pending: "bg-sand/60 text-ink-soft",
     paid: "bg-sage/30 text-sage-deep",
     preparing: "bg-lavande/40 text-ink",
+    ready: "bg-lavande/60 text-ink",
     shipped: "bg-blush/40 text-terra-deep",
     delivered: "bg-sage/50 text-sage-deep",
     cancelled: "bg-ink/10 text-ink-faint line-through",
