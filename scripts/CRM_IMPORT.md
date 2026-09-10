@@ -34,8 +34,8 @@ Ces améliorations d'affichage n'écrivent aucune donnée en base.
 pages/dates/origines et tous paiements confondus, sans appliquer les filtres ni
 la sélection du tableau. Un bloc par commande, sans fusionner les clients.
 La planche A4 portrait contient 8 cadres pointillés de 92,5 × 60 mm ; imprimer
-à 100 % / taille réelle. Le PDF contient uniquement référence de commande,
-nom complet et adresse de livraison, sans produits, montants, téléphone ni notes.
+à 100 % / taille réelle. Chaque étiquette contient uniquement le nom complet et
+l'adresse de livraison, sans numéro de commande, produits, montants, téléphone ni notes.
 Les noms/adresses incomplets, trop longs ou contenant des caractères non pris en
 charge sont exclus et signalés avec un lien de correction ; rien n'est deviné
 depuis la description ou les notes et aucun texte n'est tronqué. L'aperçu permet

@@ -79,9 +79,11 @@ test("incomplete addresses are excluded with correction reasons, never guessed f
   assert.equal(result.labels[1].lines.at(-1), "La Réunion");
 });
 
-test("real PDFs have eight labels per A4 page, intact accents, no duplicates and no private order data", async () => {
+test("real PDFs have eight labels per A4 page, intact accents, no duplicates, no order numbers or private data", async () => {
   for (const count of [1, 8, 9, 17, 37]) {
-    const labels = selectReadyAddressLabels(Array.from({ length: count }, (_, i) => order(i))).labels;
+    const labels = selectReadyAddressLabels(Array.from({ length: count }, (_, i) =>
+      order(i, { name: `Élodie Dupré ${i}` }),
+    )).labels;
     const result = await generateAddressLabelsPdf(labels);
     assert.equal(result.count, count);
     assert.equal(result.pages, Math.ceil(count / 8));
@@ -97,9 +99,12 @@ test("real PDFs have eight labels per A4 page, intact accents, no duplicates and
     assert.equal(text.match(/Bâtiment B - Appartement 4/g).length, count);
     assert.equal(text.includes("PRIVATE-"), false);
     assert.equal(text.includes("private@example.invalid"), false);
+    assert.equal(text.includes("Commande #"), false);
     for (let i = 0; i < count; i += 1) {
-      assert.equal(text.match(new RegExp(`Commande #${1000 + i}\\b`, "g")).length, 1);
-      assert.ok(pages[Math.floor(i / 8)].includes(`Commande #${1000 + i}`));
+      const recipient = new RegExp(`Élodie Dupré ${i}(?:\\n|$)`, "g");
+      assert.equal(text.match(recipient).length, 1);
+      assert.ok(pages[Math.floor(i / 8)].match(recipient));
+      assert.equal(text.includes(String(1000 + i)), false);
     }
   }
 });
@@ -121,7 +126,8 @@ test("empty selections produce no blank PDF; overlong or unsupported addresses a
   const { text } = await pdfText(result.bytes);
   assert.ok(text.includes("Élodie Dœuf"));
   assert.ok(text.includes("12-14 rue d’Été"));
-  assert.equal(text.includes("Commande #1001"), false);
+  assert.equal(text.includes("Très long complément"), false);
+  assert.equal(text.includes("Commande #"), false);
 });
 
 test("long names and addresses wrap intact, and label rectangles fit inside A4 printer margins", async () => {
