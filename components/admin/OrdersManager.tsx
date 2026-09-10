@@ -13,6 +13,7 @@ import { DEFAULT_ORDER_COLUMNS, ORDER_TABLE_COLUMNS } from "@/lib/order-table";
 import { orderDescriptionText, orderSearchText } from "@/lib/order-details";
 import OrderDetailsDialog from "./OrderDetailsDialog";
 import OrdersTableView from "./OrdersTableView";
+import AddressLabelsButton from "./AddressLabelsButton";
 import {
   bulkProductionAction,
   importCrmOrdersAction,
@@ -611,12 +612,15 @@ export default function OrdersManager({ orders }: { orders: Order[] }) {
             paiement suivis séparément.
           </p>
         </div>
-        <Link
-          href="/admin/commandes/nouvelle"
-          className="rounded-full bg-ink px-5 py-3 text-sm font-bold text-cream hover:bg-terra"
-        >
-          + Commande manuelle
-        </Link>
+        <div className="flex flex-wrap gap-3">
+          <AddressLabelsButton orders={orders} disabled={pending} />
+          <Link
+            href="/admin/commandes/nouvelle"
+            className="rounded-full bg-ink px-5 py-3 text-sm font-bold text-cream hover:bg-terra"
+          >
+            + Commande manuelle
+          </Link>
+        </div>
       </div>
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
         {stats.map((stat) => (

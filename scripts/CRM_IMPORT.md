@@ -29,6 +29,20 @@ notes client et internes, montants, dates et références. Les options produit
 sont aussi visibles dans la liste et incluses dans la recherche et l'export CSV.
 Ces améliorations d'affichage n'écrivent aucune donnée en base.
 
+« Générer planche adresses · Prêt » produit un PDF local dans le navigateur
+(pdf-lib chargé à la demande) à partir de toutes les commandes `ready`, toutes
+pages/dates/origines et tous paiements confondus, sans appliquer les filtres ni
+la sélection du tableau. Un bloc par commande, sans fusionner les clients.
+La planche A4 portrait contient 8 cadres pointillés de 92,5 × 60 mm ; imprimer
+à 100 % / taille réelle. Le PDF contient uniquement référence de commande,
+nom complet et adresse de livraison, sans produits, montants, téléphone ni notes.
+Les noms/adresses incomplets, trop longs ou contenant des caractères non pris en
+charge sont exclus et signalés avec un lien de correction ; rien n'est deviné
+depuis la description ou les notes et aucun texte n'est tronqué. L'aperçu permet
+d'ouvrir/imprimer ou de télécharger le PDF. Les URL temporaires sont libérées à
+la fermeture. Aucun PDF client n'est stocké sur le serveur, aucune donnée/statut
+n'est modifié et aucun message n'est envoyé. Il ne s'agit pas d'un affranchissement.
+
 Production : À faire → En cours → Prêt → Expédiée → Terminée/livrée ; Annulée.
 « À vérifier » isole les dossiers anciens dont l'avancement ne peut être déduit.
 Le paiement est indépendant (non payé, acompte, payé, remboursé). Le statut
