@@ -1,5 +1,34 @@
 @import "tailwindcss";
 
+/* Only the CRM table and dialog use DaisyUI; the storefront theme is unchanged. */
+@plugin "daisyui" {
+  themes: false;
+  include: table, modal;
+  prefix: "crm-";
+  root: ".crm-surface";
+  logs: false;
+}
+
+.crm-surface {
+  --color-base-100: var(--color-cream);
+  --color-base-200: var(--color-linen);
+  --color-base-300: var(--color-sand);
+  --color-base-content: var(--color-ink);
+  --radius-box: 1rem;
+  --border: 1px;
+}
+
+html:has(.crm-modal[open]) {
+  overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .crm-modal,
+  .crm-modal-box {
+    transition: none;
+  }
+}
+
 @theme inline {
   /* Palette Badass Péi — papier os, noir volcanique, orange lave & accents punchy */
   --color-linen: #efeae0;      /* fond papier os */

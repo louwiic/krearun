@@ -15,6 +15,20 @@ portent sur tous les résultats filtrés, pas uniquement la page affichée.
 La case d'en-tête sélectionne la page courante ; les sélections sont conservées
 en changeant de page et effacées en changeant de filtre.
 
+Le tableau utilise TanStack Table pour les tris ASC/DESC (texte français,
+montants numériques et dates), appliqués avant la pagination. Maj + clic ajoute
+un second critère. Le menu « Colonnes » affiche les coordonnées, échéances et
+autres champs supplémentaires. La sélection reste attachée aux identifiants des
+commandes, y compris après un changement de tri. L'export suit le tri courant.
+DaisyUI est limité aux composants tableau et fenêtre modale, avec le préfixe
+`crm-` et sans thèmes globaux afin de préserver la boutique.
+
+« Voir tous les détails » ouvre une fiche en lecture seule : chaque article avec
+ses coloris, variante, prénom, porte-clés, quantité et prix, les coordonnées,
+notes client et internes, montants, dates et références. Les options produit
+sont aussi visibles dans la liste et incluses dans la recherche et l'export CSV.
+Ces améliorations d'affichage n'écrivent aucune donnée en base.
+
 Production : À faire → En cours → Prêt → Expédiée → Terminée/livrée ; Annulée.
 « À vérifier » isole les dossiers anciens dont l'avancement ne peut être déduit.
 Le paiement est indépendant (non payé, acompte, payé, remboursé). Le statut

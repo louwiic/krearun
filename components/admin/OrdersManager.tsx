@@ -3,6 +3,17 @@
 import Link from "next/link";
 import { useMemo, useRef, useState, useTransition } from "react";
 import {
+  getCoreRowModel,
+  getSortedRowModel,
+  useReactTable,
+  type SortingState,
+  type VisibilityState,
+} from "@tanstack/react-table";
+import { DEFAULT_ORDER_COLUMNS, ORDER_TABLE_COLUMNS } from "@/lib/order-table";
+import { orderDescriptionText, orderSearchText } from "@/lib/order-details";
+import OrderDetailsDialog from "./OrderDetailsDialog";
+import OrdersTableView from "./OrdersTableView";
+import {
   bulkProductionAction,
   importCrmOrdersAction,
   quickOrderAction,
@@ -16,7 +27,7 @@ import {
   productionStatus,
   remainingCents,
 } from "@/lib/order-management";
-import { formatDate, formatPrice } from "@/lib/format";
+import { formatPrice } from "@/lib/format";
 import type { Order } from "@/lib/types";
 import {
   paymentStatusStyle,
@@ -326,19 +337,7 @@ export default function OrdersManager({ orders }: { orders: Order[] }) {
   const filtered = useMemo(
     () =>
       orders.filter((order) => {
-        const haystack = normalize(
-          [
-            order.number,
-            order.name,
-            order.email,
-            order.phone,
-            order.city,
-            order.description,
-            order.internalNote,
-            ...order.tags,
-            ...order.items.map((item) => item.name),
-          ].join(" "),
-        );
+        const haystack = normalize(orderSearchText(order));
         return (
           (!search || haystack.includes(normalize(search))) &&
           matchesSelectedStatus(productionStatus(order.status), statuses) &&
@@ -368,7 +367,35 @@ export default function OrdersManager({ orders }: { orders: Order[] }) {
       unsettled,
     ],
   );
-  const pagination = paginateRows(filtered, page, pageSize);
+  const [sorting, setSorting] = useState<SortingState>([
+    { id: "orderedAt", desc: true },
+  ]);
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
+    ...DEFAULT_ORDER_COLUMNS,
+  });
+  const [detailsId, setDetailsId] = useState<string | null>(null);
+  const detailsOrder = orders.find((order) => order.id === detailsId) ?? null;
+  // React Compiler is not enabled in this project; TanStack v8 owns its memoized row models.
+  // eslint-disable-next-line react-hooks/incompatible-library
+  const table = useReactTable({
+    data: filtered,
+    columns: ORDER_TABLE_COLUMNS,
+    state: { sorting, columnVisibility },
+    onSortingChange: (updater) => {
+      setSorting(updater);
+      setPage(1);
+    },
+    onColumnVisibilityChange: setColumnVisibility,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getRowId: (order) => order.id,
+    enableSortingRemoval: false,
+    sortDescFirst: false,
+    maxMultiSortColCount: 2,
+    autoResetPageIndex: false,
+  });
+  const sortedOrders = table.getRowModel().rows.map((row) => row.original);
+  const pagination = paginateRows(sortedOrders, page, pageSize);
   const currentPageIds = pagination.items.map((order) => order.id);
   const invalidDateRange =
     dateMode === "range" && !!dateFrom && !!dateTo && dateFrom > dateTo;
@@ -377,7 +404,7 @@ export default function OrdersManager({ orders }: { orders: Order[] }) {
     setSelected([]);
   }
   const active = filtered.filter((order) => order.status !== "cancelled");
-  const selectedVisible = filtered.filter((order) =>
+  const selectedVisible = sortedOrders.filter((order) =>
     selected.includes(order.id),
   );
   const allChecked =
@@ -423,7 +450,7 @@ export default function OrdersManager({ orders }: { orders: Order[] }) {
     });
   }
   function exportCsv() {
-    const exporting = selectedVisible.length ? selectedVisible : filtered;
+    const exporting = selectedVisible.length ? selectedVisible : sortedOrders;
     const headers = [
       "Numéro",
       "Source",
@@ -446,6 +473,14 @@ export default function OrdersManager({ orders }: { orders: Order[] }) {
       "Notes internes",
       "Lien profil",
       "Lien produit",
+      "Adresse",
+      "Complément adresse",
+      "Code postal",
+      "Pays",
+      "Note client",
+      "Suivi colis",
+      "Sous-total EUR",
+      "Livraison EUR",
     ];
     const rows = exporting.map((order) => [
       order.number,
@@ -456,8 +491,7 @@ export default function OrdersManager({ orders }: { orders: Order[] }) {
       order.email,
       order.phone,
       order.city,
-      order.description ||
-        order.items.map((item) => `${item.quantity} × ${item.name}`).join("\n"),
+      orderDescriptionText(order),
       order.quantityText,
       PRODUCTION_STATUSES.find(
         (status) => status.value === productionStatus(order.status),
@@ -473,6 +507,14 @@ export default function OrdersManager({ orders }: { orders: Order[] }) {
       order.internalNote,
       order.customerProfileUrl,
       order.productUrl,
+      order.addressLine1,
+      order.addressLine2,
+      order.postalCode,
+      order.country,
+      order.note,
+      order.trackingNumber,
+      (order.subtotalCents / 100).toFixed(2),
+      (order.shippingCents / 100).toFixed(2),
     ]);
     const blob = new Blob(
       [
@@ -847,184 +889,39 @@ export default function OrdersManager({ orders }: { orders: Order[] }) {
         </form>
       )}
       {paginationControls("haut")}
-      <div className="overflow-x-auto rounded-2xl bg-cream shadow-soft">
-        <table className="w-full min-w-[1180px] text-left text-sm">
-          <caption className="sr-only">
-            Commandes triées de la plus récente à la plus ancienne
-          </caption>
-          <thead className="border-b border-sand text-xs uppercase text-ink-soft">
-            <tr>
-              <th className="p-4">
-                <input
-                  type="checkbox"
-                  aria-label="Sélectionner les commandes de cette page"
-                  checked={allChecked}
-                  onChange={(event) =>
-                    setSelected((current) =>
-                      togglePageSelection(
-                        current,
-                        currentPageIds,
-                        event.target.checked,
-                      ),
-                    )
-                  }
-                />
-              </th>
-              {[
-                "Client / ville",
-                "Commande / quantité",
-                "Production",
-                "Paiement",
-                "Encaissé",
-                "Total",
-                "Reste",
-                "Actions",
-              ].map((label) => (
-                <th key={label} className="px-3 py-4">
-                  {label}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {pagination.items.map((order) => (
-              <tr
-                key={order.id}
-                className="border-b border-sand/40 align-top last:border-0 even:bg-linen/40"
-              >
-                <td className="p-4">
-                  <input
-                    type="checkbox"
-                    aria-label={`Sélectionner la commande ${order.number}`}
-                    checked={selected.includes(order.id)}
-                    onChange={(event) =>
-                      setSelected((current) =>
-                        event.target.checked
-                          ? [...current, order.id]
-                          : current.filter((id) => id !== order.id),
-                      )
-                    }
-                  />
-                </td>
-                <td className="min-w-40 px-3 py-4">
-                  <Link
-                    href={`/admin/commandes/${order.id}`}
-                    className="font-bold hover:text-terra"
-                  >
-                    {order.name || "Sans nom"}
-                  </Link>
-                  <p className="text-xs text-ink-soft">{order.phone}</p>
-                  <p className="text-xs text-ink-soft">{order.city}</p>
-                  <p className="mt-2 text-xs text-ink-faint">
-                    #{order.number} ·{" "}
-                    {orderDateKey(order.orderedAt)
-                      .split("-")
-                      .reverse()
-                      .join("/")}
-                  </p>
-                  <p className="text-xs text-ink-faint">
-                    {
-                      ORDER_SOURCES.find(
-                        (source) => source.value === order.source,
-                      )?.label
-                    }
-                  </p>
-                </td>
-                <td className="min-w-56 max-w-80 px-3 py-4">
-                  <p className="whitespace-pre-line break-words">
-                    {order.description ||
-                      order.items
-                        .map((item) => `${item.quantity} × ${item.name}`)
-                        .join("\n") ||
-                      "Non renseignée"}
-                  </p>
-                  {order.quantityText && (
-                    <p className="mt-1 text-xs font-semibold">
-                      Quantité : {order.quantityText}
-                    </p>
-                  )}
-                  {order.urgent && (
-                    <span className="mt-2 inline-block rounded-full bg-blush px-2 py-1 text-xs font-bold">
-                      Urgent
-                    </span>
-                  )}
-                  {order.dueDate && (
-                    <p className="mt-1 text-xs text-terra-deep">
-                      À prévoir : {formatDate(order.dueDate)}
-                    </p>
-                  )}
-                  {!!order.tags.length && (
-                    <p className="mt-1 text-xs text-ink-faint">
-                      {order.tags.join(" · ")}
-                    </p>
-                  )}
-                </td>
-                <td className="px-3 py-4">
-                  <select
-                    aria-label={`Production de la commande ${order.number}`}
-                    disabled={pending}
-                    value={productionStatus(order.status)}
-                    onChange={(event) => {
-                      const data = new FormData();
-                      data.set("id", order.id);
-                      data.set("updatedAt", order.updatedAt);
-                      data.set("kind", "production");
-                      data.set("value", event.target.value);
-                      save(data);
-                    }}
-                    className={`${statusField} ${productionStatusStyle(order.status)}`}
-                  >
-                    {PRODUCTION_STATUSES.map((status) => (
-                      <option key={status.value} value={status.value}>
-                        {status.label}
-                      </option>
-                    ))}
-                  </select>
-                </td>
-                <td className="px-3 py-4">
-                  <PaymentEditor
-                    key={`${order.id}-${order.updatedAt}`}
-                    order={order}
-                    disabled={pending}
-                    save={save}
-                  />
-                </td>
-                <td className="whitespace-nowrap px-3 py-4 text-sage-deep">
-                  {formatPrice(order.amountPaidCents)}
-                </td>
-                <td className="whitespace-nowrap px-3 py-4 font-bold">
-                  {formatPrice(order.totalCents)}
-                </td>
-                <td
-                  className={`whitespace-nowrap px-3 py-4 ${remainingCents(order) ? "font-bold text-terra-deep" : "text-ink-faint"}`}
-                >
-                  {formatPrice(remainingCents(order))}
-                </td>
-                <td className="px-3 py-4">
-                  <Link
-                    href={`/admin/commandes/${order.id}/modifier`}
-                    className="font-semibold text-terra hover:underline"
-                  >
-                    Modifier
-                  </Link>
-                  <Link
-                    href={`/admin/commandes/${order.id}`}
-                    className="mt-2 block text-xs underline"
-                  >
-                    Détails
-                  </Link>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        {!filtered.length && (
-          <p className="p-12 text-center text-ink-soft">
-            Aucune commande ne correspond aux filtres. Tu peux les réinitialiser
-            ou ajouter une commande manuelle.
-          </p>
+      <OrdersTableView
+        table={table}
+        orders={pagination.items}
+        selected={selected}
+        allChecked={allChecked}
+        pending={pending}
+        onSelect={(id, checked) =>
+          setSelected((current) =>
+            checked
+              ? [...new Set([...current, id])]
+              : current.filter((value) => value !== id),
+          )
+        }
+        onSelectPage={(checked) =>
+          setSelected((current) =>
+            togglePageSelection(current, currentPageIds, checked),
+          )
+        }
+        onOpen={(order) => setDetailsId(order.id)}
+        save={save}
+        renderPayment={(order) => (
+          <PaymentEditor
+            key={order.id + "-" + order.updatedAt}
+            order={order}
+            disabled={pending}
+            save={save}
+          />
         )}
-      </div>
+      />
+      <OrderDetailsDialog
+        order={detailsOrder}
+        onClose={() => setDetailsId(null)}
+      />
       {paginationControls("bas")}
     </div>
   );
