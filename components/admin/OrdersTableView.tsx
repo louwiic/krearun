@@ -144,26 +144,39 @@ export default function OrdersTableView({
         );
       case "production":
         return (
-          <select
-            aria-label={`Production de la commande ${order.number}`}
-            disabled={pending}
-            value={productionStatus(order.status)}
-            onChange={(event) => {
-              const data = new FormData();
-              data.set("id", order.id);
-              data.set("updatedAt", order.updatedAt);
-              data.set("kind", "production");
-              data.set("value", event.target.value);
-              save(data);
-            }}
-            className={`rounded-xl border px-3 py-2 text-sm font-semibold outline-none focus:border-terra disabled:cursor-not-allowed disabled:opacity-100 ${productionStatusStyle(order.status)}`}
-          >
-            {PRODUCTION_STATUSES.map((status) => (
-              <option key={status.value} value={status.value}>
-                {status.label}
-              </option>
-            ))}
-          </select>
+          <div className="space-y-2">
+            <select
+              aria-label={`Production de la commande ${order.number}`}
+              disabled={pending}
+              value={productionStatus(order.status)}
+              onChange={(event) => {
+                const data = new FormData();
+                data.set("id", order.id);
+                data.set("updatedAt", order.updatedAt);
+                data.set("kind", "production");
+                data.set("value", event.target.value);
+                save(data);
+              }}
+              className={`rounded-xl border px-3 py-2 text-sm font-semibold outline-none focus:border-terra disabled:cursor-not-allowed disabled:opacity-100 ${productionStatusStyle(order.status)}`}
+            >
+              {PRODUCTION_STATUSES.map((status) => (
+                <option key={status.value} value={status.value}>
+                  {status.label}
+                </option>
+              ))}
+            </select>
+            {order.status === "shipped" && order.trackingNumber?.trim() && (
+              <a
+                href={`https://www.laposte.fr/outils/suivre-vos-envois?code=${encodeURIComponent(order.trackingNumber.trim())}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`Suivre le colis ${order.trackingNumber.trim()} sur La Poste (nouvel onglet)`}
+                className="block max-w-64 break-all rounded text-xs font-semibold text-teal-800 underline underline-offset-2 hover:text-teal-950 focus-visible:outline-2"
+              >
+                Suivi : {order.trackingNumber.trim()} ↗
+              </a>
+            )}
+          </div>
         );
       case "payment":
         return renderPayment(order);

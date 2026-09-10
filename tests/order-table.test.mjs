@@ -27,13 +27,13 @@ function load(path, mocks = {}) {
       esModuleInterop: true,
     },
   });
-  const module = { exports: {} };
+  const compiledModule = { exports: {} };
   new Function("require", "module", "exports", outputText)(
     (name) => mocks[name] ?? require(name),
-    module,
-    module.exports,
+    compiledModule,
+    compiledModule.exports,
   );
-  return module.exports;
+  return compiledModule.exports;
 }
 const { ORDER_TABLE_COLUMNS, DEFAULT_ORDER_COLUMNS } = load(
   "../lib/order-table.ts",
@@ -244,6 +244,77 @@ const sharedMocks = {
 };
 const itemsModule = load("../components/admin/OrderItems.tsx", sharedMocks);
 const dialogMocks = { ...sharedMocks, "./OrderItems": itemsModule };
+
+function renderOrdersTable(records, extra = {}) {
+  const View = load("../components/admin/OrdersTableView.tsx", {
+    ...sharedMocks,
+    "@/lib/order-table": { DEFAULT_ORDER_COLUMNS },
+    "./OrderItems": itemsModule,
+  }).default;
+  return renderToStaticMarkup(
+    createElement(View, {
+      table: makeTable(records),
+      orders: records,
+      selected: [],
+      allChecked: false,
+      pending: false,
+      onSelect() {},
+      onSelectPage() {},
+      onOpen() {},
+      save() {
+        assert.fail("Rendering tracking must not update an order");
+      },
+      renderPayment: () => null,
+      ...extra,
+    }),
+  );
+}
+
+test("shipped orders show a safe La Poste tracking link directly below their status", () => {
+  const markup = renderOrdersTable([
+    order("id1", { status: "shipped", trackingNumber: "  TEST123456FR  " }),
+  ]);
+  assert.match(
+    markup,
+    /<select aria-label="Production de la commande 1001"[^>]*>[\s\S]*?<\/select><a href="https:\/\/www\.laposte\.fr\/outils\/suivre-vos-envois\?code=TEST123456FR"/,
+  );
+  assert.match(markup, /target="_blank" rel="noopener noreferrer"/);
+  assert.ok(markup.includes("Suivi : TEST123456FR ↗"));
+  assert.ok(markup.includes("sur La Poste (nouvel onglet)"));
+  assert.equal(markup.match(/href="https:\/\/www\.laposte\.fr/g)?.length, 1);
+});
+
+test("tracking is absent for unshipped orders and missing or blank numbers", () => {
+  for (const extra of [
+    { status: "shipped", trackingNumber: "" },
+    { status: "shipped", trackingNumber: " \n " },
+    { status: "shipped", trackingNumber: undefined },
+    ...management.PRODUCTION_STATUSES.filter(({ value }) => value !== "shipped")
+      .map(({ value }) => ({ status: value, trackingNumber: "TEST123456FR" })),
+  ]) {
+    const markup = renderOrdersTable([order("id1", extra)]);
+    assert.equal(markup.includes("www.laposte.fr"), false);
+    assert.equal(markup.includes("Suivi :"), false);
+  }
+});
+
+test("tracking remains clickable while saving and encodes the number without injecting markup or URL parameters", () => {
+  const number = 'TEST&code=OTHER#<script>"';
+  const markup = renderOrdersTable(
+    [order("id1", { status: "shipped", trackingNumber: number })],
+    { pending: true },
+  );
+  const href = markup.match(/<a href="(https:\/\/www\.laposte\.fr[^\"]+)"/)?.[1];
+  assert.ok(href);
+  const url = new URL(href);
+  assert.equal(url.origin, "https://www.laposte.fr");
+  assert.deepEqual([...url.searchParams], [["code", number]]);
+  assert.equal(url.hash, "");
+  assert.equal(markup.includes("<script>"), false);
+  assert.ok(markup.includes("&lt;script&gt;"));
+  assert.match(markup, /Production de la commande 1001" disabled=""/);
+  assert.match(markup, /<a href="https:\/\/www\.laposte\.fr[^>]+target="_blank"/);
+});
 
 test("full order dialog renders all options, private notes, dates, address and amounts safely", () => {
   const Dialog = load(
