@@ -3,15 +3,15 @@ import type { AddressLabel, AddressLabelIssue } from "./address-labels";
 
 const mm = (value: number) => (value * 72) / 25.4;
 export const ADDRESS_LABEL_LAYOUT = {
-  columns: 2,
-  rows: 4,
-  perPage: 8,
-  width: mm(92.5),
-  height: mm(60),
+  columns: 1,
+  rows: 2,
+  perPage: 2,
+  width: mm(185),
+  height: mm(120),
   margin: mm(10),
   top: mm(22),
   gap: mm(5),
-  padding: mm(5),
+  padding: mm(10),
 };
 
 // Normalize typographic dashes without dropping or transliterating names/addresses.
@@ -45,11 +45,11 @@ function fitLabel(label: AddressLabel, regular: PDFFont, bold: PDFFont): LabelLi
   const layout = ADDRESS_LABEL_LAYOUT;
   const width = layout.width - 2 * layout.padding;
   const height = layout.height - 2 * layout.padding;
-  for (const size of [12, 11, 10]) {
-    const name = wrap(label.name, bold, size + 1, width).map((text) => ({
-      text, size: size + 1, font: bold, advance: (size + 1) * 1.3,
+  for (const size of [24, 22, 20]) {
+    const name = wrap(label.name, bold, size + 2, width).map((text) => ({
+      text, size: size + 2, font: bold, advance: (size + 2) * 1.3,
     }));
-    if (name.length) name[name.length - 1].advance += 4;
+    if (name.length) name[name.length - 1].advance += 8;
     const address = label.lines.flatMap((text) => wrap(text, regular, size, width))
       .map((text) => ({ text, size, font: regular, advance: size * 1.3 }));
     const lines = [...name, ...address];

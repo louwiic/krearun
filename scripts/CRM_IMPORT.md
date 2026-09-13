@@ -33,7 +33,7 @@ Ces améliorations d'affichage n'écrivent aucune donnée en base.
 (pdf-lib chargé à la demande) à partir de toutes les commandes `ready`, toutes
 pages/dates/origines et tous paiements confondus, sans appliquer les filtres ni
 la sélection du tableau. Un bloc par commande, sans fusionner les clients.
-La planche A4 portrait contient 8 cadres pointillés de 92,5 × 60 mm ; imprimer
+La planche A4 portrait contient 2 grands cadres pointillés de 185 × 120 mm ; imprimer
 à 100 % / taille réelle. Chaque étiquette contient uniquement le nom complet et
 l'adresse de livraison, sans numéro de commande, produits, montants, téléphone ni notes.
 Les noms/adresses incomplets, trop longs ou contenant des caractères non pris en
