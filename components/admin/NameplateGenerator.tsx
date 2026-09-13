@@ -1,11 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { zipSync } from "fflate";
+import type { Font } from "opentype.js";
 import {
   buildNameplateModel,
   calculateNameplateLayout,
   DEFAULT_NAMEPLATE_OPTIONS,
+  loadNameplateFont,
   serializeNameplate,
   serializeNameplate3mf,
   type NameplateOptions,
@@ -34,27 +36,42 @@ function download(data: BlobPart[], filename: string, type: string) {
 
 export default function NameplateGenerator() {
   const [options, setOptions] = useState<NameplateOptions>(DEFAULT_NAMEPLATE_OPTIONS);
+  const [font, setFont] = useState<Font | null>(null);
+  const [fontError, setFontError] = useState("");
   const [baseColor, setBaseColor] = useState("#16130f");
   const [textColor, setTextColor] = useState("#ff4b17");
   const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    let active = true;
+    loadNameplateFont()
+      .then((loaded) => {
+        if (active) setFont(loaded);
+      })
+      .catch((error) => {
+        if (active) setFontError(error instanceof Error ? error.message : "Impossible de charger la police.");
+      });
+    return () => { active = false; };
+  }, []);
+
   const result = useMemo(() => {
+    if (!font) return { model: null, error: fontError || "Chargement de la police…" };
     try {
-      return { model: calculateNameplateLayout(options), error: "" };
+      return { model: calculateNameplateLayout(options, font), error: "" };
     } catch (error) {
       return { model: null, error: error instanceof Error ? error.message : "Paramètres invalides." };
     }
-  }, [options]);
+  }, [font, fontError, options]);
 
   const updateNumber = (key: keyof NameplateOptions, value: string) =>
     setOptions((current) => ({ ...current, [key]: numberValue(value) }));
   const filename = (result.model?.printableName || "prenom").toLowerCase().replace(/[^a-z0-9]+/g, "-");
 
   async function exportPack() {
-    if (!result.model) return;
+    if (!result.model || !font) return;
     setBusy(true);
     try {
       await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-      const generated = buildNameplateModel(options);
+      const generated = buildNameplateModel(options, font);
       const [base, letters] = await Promise.all([
         bytes(serializeNameplate(generated.base)),
         bytes(serializeNameplate(generated.letters)),
@@ -73,11 +90,11 @@ export default function NameplateGenerator() {
   }
 
   async function export3mf() {
-    if (!result.model) return;
+    if (!result.model || !font) return;
     setBusy(true);
     try {
       await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-      const generated = buildNameplateModel(options);
+      const generated = buildNameplateModel(options, font);
       const file = serializeNameplate3mf(generated, { base: baseColor, letters: textColor });
       download([file], `${filename}-krearun-couleurs.3mf`, "model/3mf");
     } finally {
@@ -86,11 +103,11 @@ export default function NameplateGenerator() {
   }
 
   async function exportCombined() {
-    if (!result.model) return;
+    if (!result.model || !font) return;
     setBusy(true);
     try {
       await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-      const generated = buildNameplateModel(options);
+      const generated = buildNameplateModel(options, font);
       download(serializeNameplate(generated.combined), `${filename}-complet.stl`, "model/stl");
     } finally {
       setBusy(false);
@@ -115,7 +132,7 @@ export default function NameplateGenerator() {
           </label>
           {result.model && result.model.printableName !== options.name.trim() && (
             <p className="-mt-3 text-xs text-ink-faint">
-              Version imprimée : <strong className="text-ink">{result.model.printableName}</strong> (les accents sont simplifiés pour garantir un STL propre).
+              Version imprimée : <strong className="text-ink">{result.model.printableName}</strong> (certains caractères non imprimables ont été retirés).
             </p>
           )}
           <div className="grid gap-4 sm:grid-cols-2">
@@ -123,8 +140,7 @@ export default function NameplateGenerator() {
             <label className={label}>Hauteur maximale (mm)<input type="number" min="8" max="60" step="0.1" value={options.maxHeight} onChange={(event) => updateNumber("maxHeight", event.target.value)} className={field} /></label>
             <label className={label}>Fond plat (mm)<input type="number" min="0.6" max="4" step="0.1" value={options.baseThickness} onChange={(event) => updateNumber("baseThickness", event.target.value)} className={field} /></label>
             <label className={label}>Relief lettres (mm)<input type="number" min="0.3" max="4" step="0.1" value={options.reliefHeight} onChange={(event) => updateNumber("reliefHeight", event.target.value)} className={field} /></label>
-            <label className={label}>Largeur du fond (mm)<input type="number" min="2" max="8" step="0.1" value={options.baseStroke} onChange={(event) => updateNumber("baseStroke", event.target.value)} className={field} /></label>
-            <label className={label}>Épaisseur des lettres (mm)<input type="number" min="0.7" max={Math.max(0.7, options.baseStroke - 0.4)} step="0.1" value={options.letterStroke} onChange={(event) => updateNumber("letterStroke", event.target.value)} className={field} /></label>
+            <label className={label}>Contour autour des lettres (mm)<input type="number" min="0.8" max="4" step="0.1" value={options.contourWidth} onChange={(event) => updateNumber("contourWidth", event.target.value)} className={field} /></label>
           </div>
         </div>
         <div className="mt-6 rounded-xl bg-linen p-4 text-xs leading-relaxed text-ink-soft">
@@ -144,9 +160,9 @@ export default function NameplateGenerator() {
           <>
             <div className="mt-6 flex min-h-72 items-center justify-center overflow-hidden rounded-xl border border-sand bg-linen p-6">
               <svg viewBox={`0 0 ${model.width} ${model.height}`} className="max-h-72 w-full overflow-visible" role="img" aria-label={`Aperçu 3D du prénom ${model.printableName}`}>
-                <g transform={`translate(0 ${model.height}) scale(1 -1)`} strokeLinecap="round" strokeLinejoin="round" fill="none">
-                  {model.previewSegments.map((segment, index) => <polyline key={`base-${index}`} points={segment.map(([x, y]) => `${x},${y}`).join(" ")} stroke={baseColor} strokeWidth={options.baseStroke} />)}
-                  {model.previewSegments.map((segment, index) => <polyline key={`text-${index}`} points={segment.map(([x, y]) => `${x},${y}`).join(" ")} stroke={textColor} strokeWidth={options.letterStroke} />)}
+                <g transform={`translate(0 ${model.height}) scale(1 -1)`} strokeLinecap="round" strokeLinejoin="round">
+                  <path d={model.previewBasePath} fill={baseColor} stroke={baseColor} strokeWidth={options.contourWidth * 2} />
+                  <path d={model.previewPath} fill={textColor} fillRule="evenodd" />
                 </g>
               </svg>
             </div>

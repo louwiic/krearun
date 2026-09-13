@@ -45,13 +45,15 @@ function fitLabel(label: AddressLabel, regular: PDFFont, bold: PDFFont): LabelLi
   const layout = ADDRESS_LABEL_LAYOUT;
   const width = layout.width - 2 * layout.padding;
   const height = layout.height - 2 * layout.padding;
-  for (const size of [24, 22, 20]) {
-    const name = wrap(label.name, bold, size + 2, width).map((text) => ({
-      text, size: size + 2, font: bold, advance: (size + 2) * 1.3,
+  // Start at a genuinely parcel-readable size and only reduce it for unusually
+  // long addresses. The previous 24 pt default left most of the label empty.
+  for (const size of [40, 36, 32, 28, 24]) {
+    const name = wrap(label.name, bold, size + 4, width).map((text) => ({
+      text, size: size + 4, font: bold, advance: (size + 4) * 1.18,
     }));
-    if (name.length) name[name.length - 1].advance += 8;
+    if (name.length) name[name.length - 1].advance += 12;
     const address = label.lines.flatMap((text) => wrap(text, regular, size, width))
-      .map((text) => ({ text, size, font: regular, advance: size * 1.3 }));
+      .map((text) => ({ text, size, font: regular, advance: size * 1.18 }));
     const lines = [...name, ...address];
     if (lines.reduce((sum, line) => sum + line.advance, 0) <= height) return lines;
   }
