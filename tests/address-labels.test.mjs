@@ -79,14 +79,14 @@ test("incomplete addresses are excluded with correction reasons, never guessed f
   assert.equal(result.labels[1].lines.at(-1), "La Réunion");
 });
 
-test("real PDFs have two double-size labels per A4 page, intact accents, no duplicates, no order numbers or private data", async () => {
+test("real PDFs have three large labels per A4 page, intact accents, no duplicates, no order numbers or private data", async () => {
   for (const count of [1, 8, 9, 17, 37]) {
     const labels = selectReadyAddressLabels(Array.from({ length: count }, (_, i) =>
       order(i, { name: `Élodie Dupré ${i}` }),
     )).labels;
     const result = await generateAddressLabelsPdf(labels);
     assert.equal(result.count, count);
-    assert.equal(result.pages, Math.ceil(count / 2));
+    assert.equal(result.pages, Math.ceil(count / 3));
     assert.equal(result.issues.length, 0);
     const { pdf, text, pages } = await pdfText(result.bytes);
     assert.equal(pdf.getPageCount(), result.pages);
@@ -103,7 +103,7 @@ test("real PDFs have two double-size labels per A4 page, intact accents, no dupl
     for (let i = 0; i < count; i += 1) {
       const recipient = new RegExp(`Élodie Dupré ${i}(?:\\n|$)`, "g");
       assert.equal(text.match(recipient).length, 1);
-      assert.ok(pages[Math.floor(i / 2)].match(recipient));
+      assert.ok(pages[Math.floor(i / 3)].match(recipient));
       assert.equal(text.includes(String(1000 + i)), false);
     }
   }
@@ -140,7 +140,7 @@ test("long names and addresses wrap intact, and label rectangles fit inside A4 p
   assert.match(text.replace(/\s+/g, " "), /Résidence des Bougainvilliers - Bâtiment C - Appartement 204/);
   const l = ADDRESS_LABEL_LAYOUT;
   assert.ok(Math.abs(l.width - (185 * 72) / 25.4) < 0.01);
-  assert.ok(Math.abs(l.height - (120 * 72) / 25.4) < 0.01);
+  assert.ok(Math.abs(l.height - (80 * 72) / 25.4) < 0.01);
   assert.ok(l.margin + l.columns * l.width + (l.columns - 1) * l.gap <= 595.28 - l.margin);
   assert.ok(l.top + l.rows * l.height + (l.rows - 1) * l.gap < 841.89 - l.margin);
 });
