@@ -6,6 +6,7 @@ import { updateOrderStatusAction } from "@/app/admin/actions";
 import { getOrderById } from "@/lib/store";
 import { formatDate, formatPrice } from "@/lib/format";
 import { ORDER_SOURCES, PAYMENT_STATUSES, PRODUCTION_STATUSES, productionStatus, remainingCents } from "@/lib/order-management";
+import OrderEmailComposer from "@/components/admin/OrderEmailComposer";
 
 export const dynamic = "force-dynamic";
 
@@ -34,6 +35,7 @@ export default async function CommandeDetailPage({
 
       <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
         <div className="space-y-6">
+          <OrderEmailComposer order={order} />
           <section className="rounded-blob bg-cream p-7 shadow-soft">
             <h2 className="mb-5 font-display text-lg font-semibold">Articles</h2>
             {order.description && <p className="mb-4 whitespace-pre-line text-sm">{order.description}</p>}

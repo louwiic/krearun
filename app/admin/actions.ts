@@ -26,6 +26,7 @@ import {
 } from "@/lib/store";
 import {
   sendAdminOrderStatus,
+  sendCustomOrderEmail,
   sendOrderDelivered,
   sendOrderShipped,
 } from "@/lib/email";
@@ -405,6 +406,40 @@ export async function updateOrderStatusAction(formData: FormData) {
   revalidatePath(`/admin/commandes/${id}`);
   revalidatePath("/admin");
   redirect(`/admin/commandes/${id}`);
+}
+
+export type SendOrderEmailResult = {
+  success?: string;
+  error?: string;
+};
+
+export async function sendOrderEmailAction(
+  _previous: SendOrderEmailResult,
+  formData: FormData,
+): Promise<SendOrderEmailResult> {
+  await requireAdmin();
+  const id = String(formData.get("id") ?? "");
+  const subject = String(formData.get("subject") ?? "").trim();
+  const message = String(formData.get("message") ?? "").trim();
+
+  if (!/^[a-z0-9]{15}$/.test(id)) return { error: "Commande invalide." };
+  if (subject.length < 3 || subject.length > 160 || /[\r\n]/.test(subject)) {
+    return { error: "L’objet doit contenir entre 3 et 160 caractères." };
+  }
+  if (!message || message.length > 5_000) {
+    return { error: "Le message est obligatoire et limité à 5 000 caractères." };
+  }
+
+  const order = await getOrderById(id);
+  if (!order) return { error: "Commande introuvable." };
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(order.email)) {
+    return { error: "Cette commande ne contient pas d’adresse e-mail valide." };
+  }
+
+  const sent = await sendCustomOrderEmail(order, subject, message);
+  return sent
+    ? { success: `E-mail envoyé à ${order.email}.` }
+    : { error: "L’e-mail n’a pas pu être envoyé. Vérifie la configuration Resend ou SMTP." };
 }
 
 // ─── Avis clients ───────────────────────────────────────────

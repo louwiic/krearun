@@ -243,7 +243,12 @@ const sharedMocks = {
   "next/link": ({ children, ...props }) => createElement("a", props, children),
 };
 const itemsModule = load("../components/admin/OrderItems.tsx", sharedMocks);
-const dialogMocks = { ...sharedMocks, "./OrderItems": itemsModule };
+const dialogMocks = {
+  ...sharedMocks,
+  "./OrderItems": itemsModule,
+  "./OrderEmailComposer": ({ order }) =>
+    createElement("div", null, `Envoyer un e-mail à ${order.email}`),
+};
 
 function renderOrdersTable(records, extra = {}) {
   const View = load("../components/admin/OrdersTableView.tsx", {
@@ -349,6 +354,7 @@ test("full order dialog renders all options, private notes, dates, address and a
     "source-test",
     "crm-modal",
     "order-details-title",
+    "Envoyer un e-mail à test@example.invalid",
   ])
     assert.ok(markup.includes(value), value);
   assert.ok(markup.includes("&lt;script&gt;not executable&lt;/script&gt;"));

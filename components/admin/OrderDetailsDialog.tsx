@@ -18,6 +18,7 @@ import {
 import { formatOrderDate } from "@/lib/order-details";
 import { formatPrice } from "@/lib/format";
 import OrderItems from "./OrderItems";
+import OrderEmailComposer from "./OrderEmailComposer";
 
 function Detail({ label, children }: { label: string; children: ReactNode }) {
   return (
@@ -210,6 +211,7 @@ export default function OrderDetailsDialog({
                   </p>
                 </section>
               </div>
+              <OrderEmailComposer key={order.id} order={order} />
               <section className="rounded-xl border border-sand p-5">
                 <h3 className="mb-4 font-display text-xl">
                   Dates et références

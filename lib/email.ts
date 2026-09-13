@@ -35,7 +35,7 @@ function getTransporter() {
 }
 
 async function sendEmail(to: string, subject: string, html: string) {
-  if (!to) return;
+  if (!to) return false;
   const resendKey = process.env.RESEND_API_KEY;
   if (resendKey) {
     try {
@@ -56,10 +56,10 @@ async function sendEmail(to: string, subject: string, html: string) {
       if (!response.ok) {
         throw new Error(`Resend ${response.status}: ${await response.text()}`);
       }
-      return;
+      return true;
     } catch (e) {
       console.error("Resend : échec de l'envoi :", e);
-      return;
+      return false;
     }
   }
   const smtp = getTransporter();
@@ -67,7 +67,7 @@ async function sendEmail(to: string, subject: string, html: string) {
     console.error(
       "SMTP : variable SMTP_PASSWORD manquante, e-mail non envoyé.",
     );
-    return;
+    return false;
   }
   try {
     await smtp.sendMail({
@@ -77,8 +77,10 @@ async function sendEmail(to: string, subject: string, html: string) {
       subject,
       html,
     });
+    return true;
   } catch (e) {
     console.error("SMTP : échec de l'envoi :", e);
+    return false;
   }
 }
 
@@ -224,6 +226,20 @@ On espère que vos nouveaux compagnons trouvent déjà leur place.</p>
 ou quelque chose qui n'allait pas ? Répondez à cet e-mail, on lit tout,
 et on répond toujours.</p>
 <p>À bientôt au studio ✿</p>`),
+  );
+}
+
+export async function sendCustomOrderEmail(
+  order: Order,
+  subject: string,
+  message: string,
+) {
+  return sendEmail(
+    order.email,
+    subject,
+    layout(`
+<div style="white-space:pre-wrap;">${escapeHtml(message)}</div>
+<p style="margin-top:28px;color:#877867;font-size:13px;">Ce message concerne votre commande <strong>#${order.number}</strong>.</p>`),
   );
 }
 
