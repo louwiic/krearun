@@ -7,6 +7,7 @@ import {
   calculateNameplateLayout,
   DEFAULT_NAMEPLATE_OPTIONS,
   serializeNameplate,
+  serializeNameplate3mf,
   type NameplateOptions,
 } from "@/lib/nameplate-3d";
 
@@ -71,6 +72,19 @@ export default function NameplateGenerator() {
     }
   }
 
+  async function export3mf() {
+    if (!result.model) return;
+    setBusy(true);
+    try {
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+      const generated = buildNameplateModel(options);
+      const file = serializeNameplate3mf(generated, { base: baseColor, letters: textColor });
+      download([file], `${filename}-krearun-couleurs.3mf`, "model/3mf");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function exportCombined() {
     if (!result.model) return;
     setBusy(true);
@@ -122,7 +136,7 @@ export default function NameplateGenerator() {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div><h2 className="font-display text-xl">Aperçu avant export</h2><p className="mt-1 text-xs text-ink-faint">Vue de face · le STL est généré en millimètres</p></div>
           <div className="flex gap-3">
-            <label className="text-xs font-semibold text-ink-soft">Fond <input type="color" value={baseColor} onChange={(event) => setBaseColor(event.target.value)} className="ml-2 h-8 w-10 align-middle" /></label>
+            <label className="text-xs font-semibold text-ink-soft">Base / contour <input type="color" value={baseColor} onChange={(event) => setBaseColor(event.target.value)} className="ml-2 h-8 w-10 align-middle" /></label>
             <label className="text-xs font-semibold text-ink-soft">Lettres <input type="color" value={textColor} onChange={(event) => setTextColor(event.target.value)} className="ml-2 h-8 w-10 align-middle" /></label>
           </div>
         </div>
@@ -142,10 +156,11 @@ export default function NameplateGenerator() {
               <div className="rounded-xl bg-linen p-3"><dt className="text-[10px] font-bold uppercase text-ink-faint">Profondeur</dt><dd className="mt-1 font-display text-xl">{model.depth.toFixed(1)} mm</dd></div>
             </dl>
             <div className="mt-6 flex flex-wrap gap-3">
-              <button type="button" onClick={exportPack} disabled={busy} className="rounded-full bg-ink px-5 py-3 text-sm font-bold text-cream hover:bg-terra disabled:opacity-50">{busy ? "Création…" : "Exporter le kit 2 couleurs (.zip)"}</button>
+              <button type="button" onClick={export3mf} disabled={busy} className="rounded-full bg-ink px-5 py-3 text-sm font-bold text-cream hover:bg-terra disabled:opacity-50">{busy ? "Création…" : "Exporter le 3MF en couleurs"}</button>
+              <button type="button" onClick={exportPack} disabled={busy} className="rounded-full border border-sand px-5 py-3 text-sm font-bold hover:bg-linen disabled:opacity-50">Kit 2 STL (.zip)</button>
               <button type="button" onClick={exportCombined} disabled={busy} className="rounded-full border border-sand px-5 py-3 text-sm font-bold hover:bg-linen disabled:opacity-50">Exporter en un seul STL</button>
             </div>
-            <p className="mt-3 text-xs text-ink-faint">Le kit contient un STL pour le fond et un STL pour les lettres, déjà alignés pour l’assemblage dans Bambu Studio.</p>
+            <p className="mt-3 text-xs text-ink-faint">Le 3MF conserve les coloris choisis et les deux pièces déjà alignées. Le kit ZIP reste disponible si vous préférez travailler avec deux STL.</p>
           </>
         ) : <p className="mt-6 rounded-xl bg-red-50 p-4 text-sm text-red-700">{result.error}</p>}
       </section>

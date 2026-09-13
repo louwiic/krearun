@@ -1,5 +1,6 @@
 import jscad from "@jscad/modeling";
 import stlSerializer from "@jscad/stl-serializer";
+import { strToU8, zipSync } from "fflate";
 
 const { booleans, extrusions, geometries, measurements, text, transforms } = jscad;
 
@@ -146,4 +147,86 @@ export function buildNameplateModel(options: NameplateOptions): NameplateModel {
 
 export function serializeNameplate(solid: Solid) {
   return stlSerializer.serialize({ binary: true }, solid);
+}
+
+function threeMfColor(value: string) {
+  if (!/^#[0-9a-f]{6}$/i.test(value)) throw new Error("Couleur 3MF invalide.");
+  return `${value.toUpperCase()}FF`;
+}
+
+function xml(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+}
+
+function meshXml(solid: Solid) {
+  const vertices: Array<[number, number, number]> = [];
+  const triangles: Array<[number, number, number]> = [];
+  const indexes = new Map<string, number>();
+  const vertexIndex = (point: [number, number, number]) => {
+    const normalized = point.map((coordinate) =>
+      Math.abs(coordinate) < 0.0000005 ? 0 : coordinate,
+    ) as [number, number, number];
+    const key = normalized.map((coordinate) => coordinate.toFixed(6)).join(",");
+    const existing = indexes.get(key);
+    if (existing !== undefined) return existing;
+    const index = vertices.length;
+    indexes.set(key, index);
+    vertices.push(normalized);
+    return index;
+  };
+
+  for (const polygon of geometries.geom3.toPolygons(solid)) {
+    const polygonIndexes = polygon.vertices.map((point) =>
+      vertexIndex(point as [number, number, number]),
+    );
+    for (let index = 1; index < polygonIndexes.length - 1; index += 1) {
+      triangles.push([polygonIndexes[0], polygonIndexes[index], polygonIndexes[index + 1]]);
+    }
+  }
+  if (!triangles.length) throw new Error("Le modèle 3D ne contient aucune surface exportable.");
+
+  return `<mesh><vertices>${vertices
+    .map(([x, y, z]) => `<vertex x="${x.toFixed(6)}" y="${y.toFixed(6)}" z="${z.toFixed(6)}"/>`)
+    .join("")}</vertices><triangles>${triangles
+    .map(([v1, v2, v3]) => `<triangle v1="${v1}" v2="${v2}" v3="${v3}"/>`)
+    .join("")}</triangles></mesh>`;
+}
+
+export function serializeNameplate3mf(
+  model: NameplateModel,
+  colors: { base: string; letters: string },
+) {
+  const modelXml = `<?xml version="1.0" encoding="UTF-8"?>
+<model unit="millimeter" xml:lang="fr-FR" xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02">
+  <metadata name="Title">Prénom 3D ${xml(model.printableName)} — Krearun</metadata>
+  <metadata name="Designer">Krearun Studio</metadata>
+  <resources>
+    <basematerials id="1">
+      <base name="Base et contour" displaycolor="${threeMfColor(colors.base)}"/>
+      <base name="Lettres" displaycolor="${threeMfColor(colors.letters)}"/>
+    </basematerials>
+    <object id="2" type="model" name="Base et contour" pid="1" pindex="0">${meshXml(model.base)}</object>
+    <object id="3" type="model" name="Lettres" pid="1" pindex="1">${meshXml(model.letters)}</object>
+  </resources>
+  <build><item objectid="2"/><item objectid="3"/></build>
+</model>`;
+  const contentTypes = `<?xml version="1.0" encoding="UTF-8"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+  <Default Extension="model" ContentType="application/vnd.ms-package.3dmanufacturing-3dmodel+xml"/>
+</Types>`;
+  const relationships = `<?xml version="1.0" encoding="UTF-8"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Target="/3D/3dmodel.model" Id="rel-1" Type="http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel"/>
+</Relationships>`;
+  return zipSync({
+    "[Content_Types].xml": strToU8(contentTypes),
+    "_rels/.rels": strToU8(relationships),
+    "3D/3dmodel.model": strToU8(modelXml),
+  });
 }

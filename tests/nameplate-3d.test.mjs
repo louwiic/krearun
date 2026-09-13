@@ -1,12 +1,14 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import jscad from "@jscad/modeling";
+import { strFromU8, unzipSync } from "fflate";
 import {
   buildNameplateModel,
   calculateNameplateLayout,
   DEFAULT_NAMEPLATE_OPTIONS,
   printableFirstName,
   serializeNameplate,
+  serializeNameplate3mf,
 } from "../lib/nameplate-3d.ts";
 
 test("nameplates fit the Monster holder limits and preserve readable first names", () => {
@@ -43,4 +45,25 @@ test("unsafe or physically impossible values are rejected", () => {
   assert.throws(() => calculateNameplateLayout({ ...DEFAULT_NAMEPLATE_OPTIONS, name: "🦄" }), /prénom valide/);
   assert.throws(() => calculateNameplateLayout({ ...DEFAULT_NAMEPLATE_OPTIONS, maxWidth: 86 }), /85.9/);
   assert.throws(() => calculateNameplateLayout({ ...DEFAULT_NAMEPLATE_OPTIONS, letterStroke: 4 }), /lettres/);
+});
+
+test("3MF export keeps the aligned base and letters as two colored materials", () => {
+  const model = buildNameplateModel({ ...DEFAULT_NAMEPLATE_OPTIONS, name: "Mia" });
+  const archive = unzipSync(serializeNameplate3mf(model, {
+    base: "#16130f",
+    letters: "#ff4b17",
+  }));
+  assert.deepEqual(Object.keys(archive).sort(), [
+    "3D/3dmodel.model",
+    "[Content_Types].xml",
+    "_rels/.rels",
+  ]);
+  const document = strFromU8(archive["3D/3dmodel.model"]);
+  assert.match(document, /unit="millimeter"/);
+  assert.match(document, /displaycolor="#16130FFF"/);
+  assert.match(document, /displaycolor="#FF4B17FF"/);
+  assert.match(document, /object id="2"[^>]+name="Base et contour"[^>]+pindex="0"/);
+  assert.match(document, /object id="3"[^>]+name="Lettres"[^>]+pindex="1"/);
+  assert.equal((document.match(/<item objectid=/g) || []).length, 2);
+  assert.ok((document.match(/<triangle /g) || []).length > 100);
 });
