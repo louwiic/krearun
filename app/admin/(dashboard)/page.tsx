@@ -1,16 +1,17 @@
 import Link from "next/link";
 import StatusBadge from "@/components/admin/StatusBadge";
-import { getOrders, getProducts, getSubscribers } from "@/lib/store";
+import { getOrders, getProducts, getSubscribers, getLetterStats } from "@/lib/store";
 import { formatDate, formatPrice } from "@/lib/format";
 import { stripeConfigured } from "@/lib/stripe";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminDashboard() {
-  const [orders, products, subscribers] = await Promise.all([
+  const [orders, products, subscribers, letterStats] = await Promise.all([
     getOrders(),
     getProducts({ includeInactive: true }),
     getSubscribers(),
+    getLetterStats(),
   ]);
 
   const paidOrders = orders.filter((o) => o.status !== "cancelled" && o.amountPaidCents > 0);
@@ -30,7 +31,7 @@ export default async function AdminDashboard() {
     <div className="mx-auto max-w-5xl">
       <h1 className="font-display text-3xl font-semibold">Tableau de bord</h1>
       <p className="mt-1 text-sm text-ink-soft">
-        Bonjour ! Voici la météo de la boutique aujourd'hui.
+        Bonjour ! Voici la météo de la boutique aujourd’hui.
       </p>
 
       {!stripeConfigured() && (
@@ -58,6 +59,21 @@ export default async function AdminDashboard() {
           </div>
         ))}
       </div>
+
+      <section className="mt-10 border-y border-sand py-6" aria-label="Statistiques Lettre personnalisée">
+        <div className="flex flex-wrap items-baseline justify-between gap-2"><h2 className="font-display text-xl">Lettre personnalisée</h2><span className="text-xs text-ink-soft">Depuis l’activation · visiteurs par navigateur</span></div>
+        {letterStats ? <>
+          <dl className="mt-5 grid grid-cols-2 gap-5 lg:grid-cols-4">
+            {[
+              ["Visiteurs uniques", letterStats.visitors],
+              ["Clics sur le menu", letterStats.clicks],
+              ["Visiteurs ayant interagi", letterStats.interactions],
+              ["Téléchargements déclenchés", letterStats.downloads],
+            ].map(([label, value]) => <div key={label}><dt className="text-xs text-ink-soft">{label}</dt><dd className="mt-1 text-2xl font-semibold">{value}</dd></div>)}
+          </dl>
+          <p className="mt-4 text-xs text-ink-soft">{letterStats.clickVisitors} visiteurs ont cliqué · {letterStats.downloadVisitors} visiteurs ont téléchargé · {letterStats.stl} STL · {letterStats.threeMf} 3MF</p>
+        </> : <p role="status" className="mt-4 text-sm text-ink-soft">Statistiques temporairement indisponibles.</p>}
+      </section>
 
       <div className="mt-10 grid gap-8 lg:grid-cols-[1.5fr_1fr]">
         <section>

@@ -15,6 +15,7 @@ import {
   sendOrderConfirmation,
 } from "@/lib/email";
 import type { CheckoutCustomer, OrderItem } from "@/lib/types";
+import { CUSTOM_LETTER_PRICE_CENTS, parseLetterConfiguration } from "@/lib/custom-letter-settings";
 
 function metadataCustomer(session: Stripe.Checkout.Session): CheckoutCustomer | null {
   const metadata = session.metadata ?? {};
@@ -78,6 +79,15 @@ export async function POST(req: Request) {
       : [];
 
     const items: OrderItem[] = [];
+    if (session.metadata?.customLetter) {
+      const configuration = parseLetterConfiguration(JSON.parse(session.metadata.customLetter));
+      if (!configuration) return NextResponse.json({ error: "Configuration de lettre invalide." }, { status: 400 });
+      if (session.payment_status !== "paid") return NextResponse.json({ received: true });
+      items.push({ productId: "custom-letter", name: `Lettre ${configuration.initial} personnalisée`,
+        priceCents: CUSTOM_LETTER_PRICE_CENTS, quantity: 1, customName: configuration.name,
+        color: `Lettre ${configuration.baseColor} · prénom ${configuration.nameColor}`, image: "", letterConfiguration: configuration,
+      });
+    }
     for (const it of parsed) {
       const product = await getProductById(it.p);
       const variant = product?.variants.find((candidate) => candidate.id === it.v);

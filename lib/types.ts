@@ -1,3 +1,5 @@
+import type { LetterConfiguration } from "./custom-letter-settings";
+
 export type Category =
   "veilleuses" | "vases" | "bureau" | "rangement" | "salle-de-bain" | "deco";
 
@@ -102,6 +104,7 @@ export const ORDER_STATUSES: { value: OrderStatus; label: string }[] = [
 ];
 
 export interface OrderItem {
+  letterConfiguration?: LetterConfiguration;
   productId: string;
   name: string;
   priceCents: number;

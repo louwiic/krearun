@@ -1,5 +1,6 @@
 import jscad from "@jscad/modeling";
 import ClipperLib from "clipper-lib";
+import { LETTER_MANUFACTURING } from "./custom-letter-settings";
 import type { Font } from "opentype.js";
 import { flattenPath, type NameplateContour } from "./nameplate-3d";
 
@@ -10,8 +11,8 @@ export type LetterOptions = {
   nameWidth: number; position: number; clearance: number; socketDepth: number;
 };
 export const DEFAULT_LETTER: LetterOptions = {
-  initial: "L", name: "Lola", height: 160, thickness: 10,
-  nameWidth: 115, position: 52, clearance: 0.25, socketDepth: 2,
+  initial: "L", name: "Lola", height: 160,
+  nameWidth: 115, position: 52, ...LETTER_MANUFACTURING,
 };
 
 function between(value: number, min: number, max: number) {
@@ -127,9 +128,11 @@ export function layoutCustomLetter(options: LetterOptions, initialFont: Font, na
   if (!/^[A-Z]$/.test(options.initial)) throw new Error("Choisissez une initiale de A à Z.");
   const name = options.name.trim().normalize("NFC");
   if (!/^[\p{L}][\p{L}' -]{0,17}$/u.test(name)) throw new Error("Le prénom doit contenir de 1 à 18 lettres, espaces ou tirets.");
-  between(options.height, 100, 220); between(options.thickness, 8, 20);
+  between(options.height, 100, 220);
   between(options.nameWidth, 70, 145); between(options.position, 30, 70);
-  between(options.clearance, 0.1, 0.5); between(options.socketDepth, 1, 3);
+  for (const key of ["thickness", "socketDepth", "clearance"] as const) {
+    if (options[key] !== LETTER_MANUFACTURING[key]) throw new Error("Les paramètres de fabrication sont fixes.");
+  }
   const originalInitial = fit(glyph(options.initial, initialFont).shape, options.height, 1);
   const [, initialMax] = measurements.measureBoundingBox(originalInitial);
   const raw = glyph(name, nameFont);

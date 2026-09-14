@@ -2,6 +2,7 @@
 // orders, newsletter, settings — règles null, accès superuser uniquement).
 // Tout le site passe par ces fonctions, exécutées côté serveur seulement.
 import crypto from "node:crypto";
+import type { LetterEvent } from "./letter-events";
 import type {
   CheckoutCustomer,
   Customer,
@@ -90,6 +91,34 @@ interface ListResult<T> {
   items: T[];
   totalItems: number;
   totalPages: number;
+}
+
+export async function recordLetterEvent(event: LetterEvent) {
+  const path = `/collections/letter_events/records?perPage=1&filter=${encodeURIComponent(`eventId='${event.eventId}'`)}`;
+  const existing = await pb<ListResult<{ id: string }>>(path);
+  if (existing.items.length) return;
+  try {
+    await pb("/collections/letter_events/records", { method: "POST", body: event });
+  } catch (error) {
+    // A unique index also protects concurrent requests carrying the same event ID.
+    if ((await pb<ListResult<{ id: string }>>(path)).items.length) return;
+    throw error;
+  }
+}
+
+export type LetterStats = {
+  visitors: number; clicks: number; clickVisitors: number; interactions: number;
+  downloads: number; downloadVisitors: number; stl: number; threeMf: number;
+};
+
+export async function getLetterStats(): Promise<LetterStats | null> {
+  try {
+    const result = await pb<ListResult<LetterStats>>("/collections/letter_stats/records?perPage=1");
+    return result.items[0] ?? null;
+  } catch {
+    console.error("[Letter stats] Dashboard statistics unavailable");
+    return null;
+  }
 }
 
 // ─── Produits ───────────────────────────────────────────────

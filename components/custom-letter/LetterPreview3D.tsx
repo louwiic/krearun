@@ -6,9 +6,10 @@ import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import jscad from "@jscad/modeling";
 import { buildCustomLetter, type LetterOptions } from "@/lib/custom-letter";
+import { trackLetterEvent } from "@/lib/letter-tracking";
 
 type Model = ReturnType<typeof buildCustomLetter>;
-type Props = { options: LetterOptions; fonts: [Font, Font]; baseColor: string; nameColor: string; view: string };
+type Props = { options: LetterOptions; fonts: [Font, Font]; baseColor: string; nameColor: string; view: string; expanded?: boolean };
 type Viewer = {
   renderer: THREE.WebGLRenderer; scene: THREE.Scene; camera: THREE.PerspectiveCamera;
   controls: OrbitControls; group: THREE.Group; base: THREE.MeshStandardMaterial;
@@ -36,7 +37,7 @@ function clearGeometry(group: THREE.Group) {
   group.clear();
 }
 
-export default function LetterPreview3D({ options, fonts, baseColor, nameColor, view }: Props) {
+export default function LetterPreview3D({ options, fonts, baseColor, nameColor, view, expanded = false }: Props) {
   const host = useRef<HTMLDivElement>(null);
   const viewer = useRef<Viewer | null>(null);
   const currentView = useRef(view);
@@ -111,7 +112,8 @@ export default function LetterPreview3D({ options, fonts, baseColor, nameColor, 
         const bounds = new THREE.Box3().setFromObject(current.group);
         current.group.position.copy(bounds.getCenter(new THREE.Vector3())).negate();
         const radius = bounds.getSize(new THREE.Vector3()).length() / 2;
-        const distance = radius / Math.sin(THREE.MathUtils.degToRad(current.camera.fov / 2)) * 1.1;
+        const fieldOfView = Math.atan(Math.tan(THREE.MathUtils.degToRad(current.camera.fov / 2)) * Math.min(1, current.camera.aspect));
+        const distance = radius / Math.sin(fieldOfView) * 1.1;
         current.camera.position.set(distance * 0.38, distance * 0.12, distance);
         current.controls.target.set(0, 0, 0); current.controls.update(); current.controls.saveState();
         base.visible = currentView.current !== "name"; name.visible = currentView.current !== "base";
@@ -122,10 +124,10 @@ export default function LetterPreview3D({ options, fonts, baseColor, nameColor, 
   }, [options, fonts]);
 
   return (
-    <div className="absolute bottom-2 right-2 h-32 w-32 overflow-hidden rounded-lg border border-black/10 bg-[#f7fafb] shadow-sm sm:bottom-3 sm:right-3 sm:h-44 sm:w-44" aria-label="Miniature 3D">
+    <div onPointerDown={() => trackLetterEvent("interact")} className={expanded ? "absolute inset-0 overflow-hidden rounded-lg bg-[#f7fafb]" : "absolute bottom-2 right-2 h-32 w-32 overflow-hidden rounded-lg border border-black/10 bg-[#f7fafb] shadow-sm sm:bottom-3 sm:right-3 sm:h-44 sm:w-44"} aria-label={expanded ? "Vue 3D agrandie" : "Miniature 3D"}>
       <div ref={host} className="h-full w-full" />
       <span className="pointer-events-none absolute left-2 top-1 text-[10px] font-bold text-ink-soft">3D</span>
-      <button type="button" aria-label="Réinitialiser la vue 3D" title="Réinitialiser la vue 3D" onClick={() => viewer.current?.controls.reset()} className="absolute right-0 top-0 flex h-8 w-8 items-center justify-center text-lg text-ink-soft">↺</button>
+      <button type="button" aria-label="Réinitialiser la vue 3D" title="Réinitialiser la vue 3D" onClick={() => { viewer.current?.controls.reset(); trackLetterEvent("interact"); }} className="absolute right-0 top-0 flex h-8 w-8 items-center justify-center text-lg text-ink-soft">↺</button>
       {status && <span role="status" className="pointer-events-none absolute inset-0 flex items-center justify-center bg-[#f7fafb]/90 px-2 text-center text-xs text-ink-soft">{status}</span>}
     </div>
   );

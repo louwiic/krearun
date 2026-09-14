@@ -6,6 +6,12 @@ export function orderItemDetails(item: OrderItem) {
     { label: "Coloris", value: item.color },
     { label: "Prénom / personnalisation", value: item.customName },
     { label: "Porte-clés offert", value: item.keychainChoice },
+    ...(item.letterConfiguration ? [
+      { label: "Initiale", value: item.letterConfiguration.initial },
+      { label: "Hauteur", value: `${item.letterConfiguration.height} mm` },
+      { label: "Largeur du prénom", value: `${item.letterConfiguration.nameWidth} %` },
+      { label: "Position verticale", value: `${item.letterConfiguration.position} %` },
+    ] : []),
   ].filter((entry): entry is { label: string; value: string } =>
     Boolean(entry.value),
   );

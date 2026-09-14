@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useCart } from "@/components/cart/CartContext";
 import type { StoreCategory } from "@/lib/categories";
+import { trackLetterEvent } from "@/lib/letter-tracking";
 
 export default function Navbar({ categories }: { categories: StoreCategory[] }) {
   const { count, openCart } = useCart();
@@ -38,6 +39,7 @@ export default function Navbar({ categories }: { categories: StoreCategory[] }) 
             <li key={l.href}>
               <Link
                 href={l.href}
+                onClick={() => { if (l.href === "/lettre-personnalisee") trackLetterEvent("click"); }}
                 data-active={pathname === l.href.split("?")[0] && !l.href.includes("?")}
                 className="nav-link text-[13px] font-bold uppercase tracking-[0.08em] text-ink-soft transition-colors hover:text-ink"
               >
@@ -105,7 +107,7 @@ export default function Navbar({ categories }: { categories: StoreCategory[] }) 
               <li key={l.href}>
                 <Link
                   href={l.href}
-                  onClick={() => setMobileOpen(false)}
+                  onClick={() => { setMobileOpen(false); if (l.href === "/lettre-personnalisee") trackLetterEvent("click"); }}
                   className="block py-3 font-display text-lg uppercase tracking-tight text-ink hover:text-terra"
                 >
                   {l.label}

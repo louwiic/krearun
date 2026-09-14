@@ -74,6 +74,12 @@ test("invalid initials, names and impossible dimensions are rejected", () => {
   }
 });
 
+test("manufacturing parameters cannot be customized", () => {
+  for (const overrides of [{ thickness: 20 }, { socketDepth: 1 }, { clearance: 0.4 }]) {
+    assert.throws(() => layoutCustomLetter({ ...DEFAULT_LETTER, ...overrides }, ...fonts), /fabrication sont fixes/);
+  }
+});
+
 test("3MF layout separates the two pieces and keeps both on the print bed", () => {
   const model = arrangeCustomLetter(buildCustomLetter(DEFAULT_LETTER, ...fonts));
   const [, baseMax] = measurements.measureBoundingBox(model.base);
