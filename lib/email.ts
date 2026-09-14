@@ -200,7 +200,7 @@ Numéro de suivi : <strong style="font-size:16px;">${order.trackingNumber}</stro
 <a href="https://www.laposte.fr/outils/suivre-vos-envois?code=${encodeURIComponent(order.trackingNumber)}" style="color:#c07a50;font-size:13px;">Suivre le colis sur laposte.fr →</a>
 </p>`
     : "";
-  await sendEmail(
+  return sendEmail(
     order.email,
     `📦 Votre commande #${order.number} est en route !`,
     layout(`

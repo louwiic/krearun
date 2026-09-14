@@ -413,6 +413,27 @@ export type SendOrderEmailResult = {
   error?: string;
 };
 
+export async function resendOrderShippedAction(
+  _previous: SendOrderEmailResult,
+  formData: FormData,
+): Promise<SendOrderEmailResult> {
+  await requireAdmin();
+  const id = String(formData.get("id") ?? "");
+  if (!/^[a-z0-9]{15}$/.test(id)) return { error: "Commande invalide." };
+  const order = await getOrderById(id);
+  if (!order) return { error: "Commande introuvable." };
+  if (order.status !== "shipped") {
+    return { error: "Seules les commandes expédiées peuvent recevoir cet e-mail." };
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(order.email)) {
+    return { error: "Cette commande ne contient pas d’adresse e-mail valide." };
+  }
+  const sent = await sendOrderShipped(order);
+  return sent
+    ? { success: `E-mail d’expédition renvoyé à ${order.email}.` }
+    : { error: "L’e-mail n’a pas pu être envoyé. Vérifie la configuration Resend ou SMTP." };
+}
+
 export async function sendOrderEmailAction(
   _previous: SendOrderEmailResult,
   formData: FormData,
