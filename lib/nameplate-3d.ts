@@ -100,7 +100,7 @@ function pointOnCubic(
   ];
 }
 
-function flattenPath(commands: PathCommand[]) {
+export function flattenPath(commands: PathCommand[]) {
   const contours: NameplateContour[] = [];
   let contour: NameplateContour = [];
   let current: [number, number] = [0, 0];

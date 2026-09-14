@@ -12,6 +12,7 @@ export default function Navbar({ categories }: { categories: StoreCategory[] }) 
   const [mobileOpen, setMobileOpen] = useState(false);
   const links = [
     { href: "/boutique", label: "Boutique" },
+    { href: "/lettre-personnalisee", label: "Lettre personnalisée" },
     ...categories
       .filter((category) => category.value === "veilleuses")
       .map((category) => ({
@@ -32,7 +33,7 @@ export default function Navbar({ categories }: { categories: StoreCategory[] }) 
           Krearun<span className="text-terra">.</span>
         </Link>
 
-        <ul className="hidden items-center gap-7 md:flex">
+        <ul className="hidden items-center gap-7 lg:flex">
           {links.map((l) => (
             <li key={l.href}>
               <Link
@@ -78,7 +79,7 @@ export default function Navbar({ categories }: { categories: StoreCategory[] }) 
           <button
             onClick={() => setMobileOpen((v) => !v)}
             aria-label="Menu"
-            className="flex h-10 w-10 items-center justify-center transition-colors hover:bg-ink hover:text-cream md:hidden"
+            className="flex h-10 w-10 items-center justify-center transition-colors hover:bg-ink hover:text-cream lg:hidden"
           >
             <svg
               className="h-5 w-5"
@@ -98,7 +99,7 @@ export default function Navbar({ categories }: { categories: StoreCategory[] }) 
       </nav>
 
       {mobileOpen && (
-        <div className="border-t-2 border-ink bg-linen px-6 py-4 md:hidden">
+        <div className="border-t-2 border-ink bg-linen px-6 py-4 lg:hidden">
           <ul className="flex flex-col divide-y divide-sand">
             {links.map((l) => (
               <li key={l.href}>
