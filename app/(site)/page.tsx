@@ -36,11 +36,16 @@ export default async function HomePage() {
   const singleProduct =
     visibleProducts.find((product) => product.slug === settings.homepage_featured_product_slug) ??
     heroMain;
+  const secondFeaturedProduct =
+    visibleProducts.find(
+      (product) => product.slug === "porte-canette-red-bull" && product.id !== singleProduct?.id
+    ) ?? featured.find((product) => product.id !== singleProduct?.id);
 
   if (settings.homepage_mode === "single_product" && singleProduct) {
     return (
       <SingleProductHome
         product={singleProduct}
+        secondaryProduct={secondFeaturedProduct}
         settings={settings}
         reviews={reviews.filter((review) => review.productId === singleProduct.id)}
       />

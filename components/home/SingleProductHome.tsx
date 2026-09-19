@@ -8,10 +8,12 @@ import type { Product, Review, Settings } from "@/lib/types";
 
 export default function SingleProductHome({
   product,
+  secondaryProduct,
   settings,
   reviews,
 }: {
   product: Product;
+  secondaryProduct?: Product;
   settings: Settings;
   reviews: Review[];
 }) {
@@ -81,6 +83,69 @@ export default function SingleProductHome({
           </div>
         </div>
       </section>
+
+      {secondaryProduct ? (
+        <section className="border-b-2 border-ink bg-cream">
+          <div className="mx-auto grid max-w-6xl items-center gap-8 px-4 py-12 sm:px-6 sm:py-16 lg:grid-cols-[0.92fr_1.08fr] lg:gap-12">
+            <div className="mx-auto w-full max-w-md lg:mx-0">
+              <SingleProductGallery
+                images={[
+                  ...secondaryProduct.images,
+                  ...secondaryProduct.variants.map((variant) => variant.image),
+                ].filter(
+                  (image, index, images): image is string =>
+                    Boolean(image) && images.indexOf(image) === index
+                )}
+                name={secondaryProduct.name}
+              />
+            </div>
+
+            <div>
+              <p className="mb-4 inline-flex items-center gap-2 border-2 border-ink bg-[#0756d8] px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-cream">
+                <span className="h-2 w-2 animate-pulse rounded-full bg-cream" />
+                Deuxième produit vedette
+              </p>
+              <h2 className="font-display text-5xl uppercase leading-[0.86] text-ink sm:text-6xl lg:text-[4rem]">
+                {secondaryProduct.name}
+              </h2>
+              <p className="mt-5 max-w-xl text-base leading-relaxed text-ink-soft sm:text-lg">
+                {publicProductCopy(secondaryProduct.tagline)}
+              </p>
+              <div className="mt-6 flex items-end gap-3 border-b-2 border-ink/15 pb-6">
+                <span className="font-display text-4xl leading-none text-ink sm:text-5xl">
+                  {formatPrice(
+                    Math.min(
+                      secondaryProduct.priceCents,
+                      ...secondaryProduct.variants
+                        .filter((variant) => variant.active)
+                        .map((variant) => variant.priceCents || secondaryProduct.priceCents)
+                    )
+                  )}
+                </span>
+                {secondaryProduct.compareAtCents ? (
+                  <span className="pb-1 text-lg text-ink-faint line-through">
+                    {formatPrice(secondaryProduct.compareAtCents)}
+                  </span>
+                ) : null}
+              </div>
+              <div className="mt-6 max-w-xl">
+                <AddToCart product={secondaryProduct} />
+              </div>
+              <div className="mt-6 grid grid-cols-2 gap-3 text-xs font-bold uppercase tracking-[0.06em] text-ink-soft sm:grid-cols-3">
+                <span>✓ Fabriqué péi</span>
+                <span>✓ Paiement sécurisé</span>
+                <span className="col-span-2 sm:col-span-1">✓ Suivi inclus</span>
+              </div>
+              <Link
+                href={`/boutique/${secondaryProduct.slug}`}
+                className="mt-7 inline-flex border-2 border-ink bg-ink px-6 py-3 text-sm font-bold uppercase tracking-[0.06em] text-cream transition-colors hover:bg-[#0756d8] hover:border-[#0756d8]"
+              >
+                Voir la fiche complète →
+              </Link>
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       <section className="border-b-2 border-ink bg-ink text-cream">
         <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 sm:px-6 sm:py-16 lg:grid-cols-[0.85fr_1.15fr] lg:items-center lg:gap-12">
