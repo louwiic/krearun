@@ -18,15 +18,15 @@ export default function AddToCart({ product }: { product: Product }) {
   const [keychainChoice, setKeychainChoice] = useState<"1" | "2" | "">("");
   const [quantity, setQuantity] = useState(1);
   const selectedVariant = activeVariants.find((variant) => variant.id === variantId);
+  const selectedColor = product.colors.find((item) => item.name === color) ?? product.colors[0];
   const selectedStock = selectedVariant?.stock ?? product.stock;
   const selectedWeight = selectedVariant?.weightGrams || product.weightGrams;
-  const selectedImage = selectedVariant?.image || product.images[0] || "";
+  const selectedImage = selectedVariant?.image || selectedColor?.image || product.images[0] || "";
   const maxQuantity = product.preorder ? 20 : selectedStock;
   const soldOut = selectedStock <= 0 && !product.preorder;
   const normalizedCustomName = customName.trim().replace(/\s+/g, " ");
   const missingCustomName =
     product.namePersonalizationEnabled && addPersonalization && !normalizedCustomName;
-  const selectedColor = product.colors.find((item) => item.name === color) ?? product.colors[0];
   const showMonsterPreview = product.slug === "porte-canette-monster" && Boolean(selectedColor);
   const missingKeychainChoice = product.slug === "porte-canette-monster" && !keychainChoice;
   const personalizationPriceCents = product.namePersonalizationEnabled && addPersonalization
@@ -163,7 +163,16 @@ export default function AddToCart({ product }: { product: Product }) {
               <button
                 key={c.name}
                 type="button"
-                onClick={() => setColor(c.name)}
+                onClick={() => {
+                  setColor(c.name);
+                  if (c.image) {
+                    window.dispatchEvent(
+                      new CustomEvent("krearun:select-product-image", {
+                        detail: { image: c.image },
+                      })
+                    );
+                  }
+                }}
                 title={publicColorName(c.name)}
                 aria-label={`Coloris ${publicColorName(c.name)}`}
                 className={`h-8 w-8 rounded-full border-2 transition-all ${

@@ -15,6 +15,7 @@ export const CATEGORIES: { value: Category; label: string }[] = [
 export interface ProductColor {
   name: string;
   hex: string;
+  image?: string;
 }
 
 export interface ProductVariant {
