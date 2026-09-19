@@ -123,26 +123,7 @@ const payload = {
   partnerShared: false,
   namePersonalizationEnabled: true,
   namePersonalizationPriceCents: 200,
-  variants: [
-    {
-      id: "modele-avec-griffes-3d",
-      name: "Avec griffes 3D",
-      priceCents: 1790,
-      stock: 98,
-      weightGrams: 180,
-      image: "",
-      active: true,
-    },
-    {
-      id: "modele-sans-griffes-3d",
-      name: "Sans griffes 3D",
-      priceCents: 1790,
-      stock: 99,
-      weightGrams: 180,
-      image: "",
-      active: true,
-    },
-  ],
+  variants: [],
   quantityDiscounts: [
     { minQuantity: 2, percent: 5 },
     { minQuantity: 4, percent: 10 },
