@@ -83,69 +83,70 @@ export default function AddToCart({ product }: { product: Product }) {
             ))}
           </div>
 
-          {product.slug === "porte-canette-monster" && selectedColor ? (
-            <div className="rounded-xl border border-sand bg-cream/65 p-2.5">
-              <div className="mb-2 flex items-center justify-between gap-3">
-                <p className="text-xs font-bold">Accessoires inclus</p>
-                <p className="flex items-center gap-1.5 text-[10px] font-semibold text-ink-soft">
-                  <span
-                    className="h-3 w-3 rounded-full border border-ink/20"
-                    style={{ backgroundColor: selectedColor.hex }}
-                  />
-                  Assortis au coloris choisi
-                </p>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div className="flex min-w-0 items-center gap-2 rounded-lg bg-white/75 p-1.5">
-                  <span
-                    aria-hidden
-                    className="h-11 w-14 shrink-0 rounded-md bg-cover bg-no-repeat"
-                    style={{
-                      backgroundImage:
-                        "url('/api/r2/products/monster/accessoires-monster-assortis.png')",
-                      backgroundPosition: "66% 22%",
-                      backgroundSize: "155%",
-                    }}
-                  />
-                  <span className="min-w-0 text-[10px] font-bold leading-tight sm:text-[11px]">
-                    Couvercle + décapsuleur griffes
-                  </span>
-                </div>
-                <div className="min-w-0 rounded-lg bg-white/75 p-1.5">
-                  <p className="mb-1 text-[10px] font-bold leading-tight sm:text-[11px]">
-                    Porte-clés offert — choisissez votre modèle
-                  </p>
-                  <div className="grid grid-cols-2 gap-2">
-                    {(["1", "2"] as const).map((choice) => (
-                      <button
-                        key={choice}
-                        type="button"
-                        onClick={() => setKeychainChoice(choice)}
-                        aria-pressed={keychainChoice === choice}
-                        className={`relative aspect-square overflow-hidden rounded-md border-2 bg-no-repeat transition-all ${
-                          keychainChoice === choice
-                            ? "border-terra ring-1 ring-terra"
-                            : "border-sand hover:border-ink-faint"
-                        }`}
-                        style={{
-                          backgroundImage:
-                            "url('/api/r2/products/monster/choix-porte-cles-monster.png')",
-                          backgroundPosition: choice === "1" ? "left center" : "right center",
-                          backgroundSize: "200% auto",
-                        }}
-                      >
-                        <span className="absolute bottom-0.5 left-0.5 bg-ink px-1 py-0.5 text-[8px] font-bold uppercase leading-none text-cream">
-                          Choix {choice}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          ) : null}
         </div>
       )}
+
+      {product.slug === "porte-canette-monster" && selectedColor ? (
+        <div className="rounded-xl border border-sand bg-cream/65 p-2.5">
+          <div className="mb-2 flex items-center justify-between gap-3">
+            <p className="text-xs font-bold">Accessoires inclus</p>
+            <p className="flex items-center gap-1.5 text-[10px] font-semibold text-ink-soft">
+              <span
+                className="h-3 w-3 rounded-full border border-ink/20"
+                style={{ backgroundColor: selectedColor.hex }}
+              />
+              Assortis au coloris choisi
+            </p>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="flex min-w-0 items-center gap-2 rounded-lg bg-white/75 p-1.5">
+              <span
+                aria-hidden
+                className="h-11 w-14 shrink-0 rounded-md bg-cover bg-no-repeat"
+                style={{
+                  backgroundImage:
+                    "url('/api/r2/products/monster/accessoires-monster-assortis.png')",
+                  backgroundPosition: "66% 22%",
+                  backgroundSize: "155%",
+                }}
+              />
+              <span className="min-w-0 text-[10px] font-bold leading-tight sm:text-[11px]">
+                Couvercle + décapsuleur griffes
+              </span>
+            </div>
+            <div className="min-w-0 rounded-lg bg-white/75 p-1.5">
+              <p className="mb-1 text-[10px] font-bold leading-tight sm:text-[11px]">
+                Porte-clés offert — choisissez votre modèle
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                {(["1", "2"] as const).map((choice) => (
+                  <button
+                    key={choice}
+                    type="button"
+                    onClick={() => setKeychainChoice(choice)}
+                    aria-pressed={keychainChoice === choice}
+                    className={`relative aspect-square overflow-hidden rounded-md border-2 bg-no-repeat transition-all ${
+                      keychainChoice === choice
+                        ? "border-terra ring-1 ring-terra"
+                        : "border-sand hover:border-ink-faint"
+                    }`}
+                    style={{
+                      backgroundImage:
+                        "url('/api/r2/products/monster/choix-porte-cles-monster.png')",
+                      backgroundPosition: choice === "1" ? "left center" : "right center",
+                      backgroundSize: "200% auto",
+                    }}
+                  >
+                    <span className="absolute bottom-0.5 left-0.5 bg-ink px-1 py-0.5 text-[8px] font-bold uppercase leading-none text-cream">
+                      Choix {choice}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {product.colors.length > 0 && (
         <div className="space-y-3">
