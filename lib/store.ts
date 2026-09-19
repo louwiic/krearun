@@ -2,6 +2,8 @@
 // orders, newsletter, settings — règles null, accès superuser uniquement).
 // Tout le site passe par ces fonctions, exécutées côté serveur seulement.
 import crypto from "node:crypto";
+import type { ShipmentSummary } from "./colissimo";
+import type { ColissimoDocuments } from "./colissimo-response";
 import type { LetterEvent } from "./letter-events";
 import type {
   CheckoutCustomer,
@@ -453,6 +455,29 @@ export async function updateInventoryColor(
 }
 
 // ─── Commandes ──────────────────────────────────────────────
+
+export type ColissimoShipment = Omit<ShipmentSummary, "documents"> & {
+  orderId: string; documents: ColissimoDocuments; rawResponse?: string; contentType?: string;
+};
+export async function getColissimoShipment(orderId: string): Promise<ColissimoShipment | null> {
+  if (!/^[a-z0-9]{15}$/.test(orderId)) throw new Error("Commande invalide.");
+  const result = await pb<ListResult<ColissimoShipment>>(`/collections/colissimo_shipments/records?perPage=1&filter=${encodeURIComponent(`orderId='${orderId}'`)}`);
+  return result.items[0] || null;
+}
+export async function reserveColissimoShipment(orderId: string, productCode: string) {
+  // Database unique index prevents concurrent purchases across processes/instances.
+  return pb<ColissimoShipment>("/collections/colissimo_shipments/records", {
+    method: "POST", body: { orderId, productCode, state: "generating", documents: {} },
+  });
+}
+export async function saveColissimoShipment(id: string, patch: Partial<ColissimoShipment>) {
+  if (!/^[a-z0-9]{15}$/.test(id)) throw new Error("Expédition invalide.");
+  return pb<ColissimoShipment>(`/collections/colissimo_shipments/records/${id}`, { method: "PATCH", body: patch });
+}
+export async function releaseRejectedColissimoShipment(id: string) {
+  if (!/^[a-z0-9]{15}$/.test(id)) throw new Error("Expédition invalide.");
+  await pb(`/collections/colissimo_shipments/records/${id}`, { method: "DELETE" });
+}
 
 interface PbOrder extends Partial<OrderManagementFields> {
   id: string;

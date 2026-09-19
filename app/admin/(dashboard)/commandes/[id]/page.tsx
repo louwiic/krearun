@@ -3,7 +3,10 @@ import { notFound, redirect } from "next/navigation";
 import { isAdmin } from "@/lib/auth";
 import StatusBadge from "@/components/admin/StatusBadge";
 import { updateOrderStatusAction } from "@/app/admin/actions";
-import { getOrderById } from "@/lib/store";
+import { getOrderById, getColissimoShipment } from "@/lib/store";
+import { colissimoConfig } from "@/lib/colissimo-server";
+import { orderDateKey } from "@/lib/order-list";
+import ColissimoPanel from "@/components/admin/ColissimoPanel";
 import { formatDate, formatPrice } from "@/lib/format";
 import { ORDER_SOURCES, PAYMENT_STATUSES, PRODUCTION_STATUSES, productionStatus, remainingCents } from "@/lib/order-management";
 import OrderEmailComposer from "@/components/admin/OrderEmailComposer";
@@ -19,6 +22,10 @@ export default async function CommandeDetailPage({
   if (!(await isAdmin())) redirect("/admin/login");
   const order = await getOrderById(id);
   if (!order) notFound();
+  const shipmentResult = await getColissimoShipment(id)
+    .then((shipment) => ({ shipment, storageError: false }))
+    .catch(() => ({ shipment: null, storageError: true }));
+  const { shipment, storageError } = shipmentResult;
 
   return (
     <div className="mx-auto max-w-4xl">
@@ -35,6 +42,8 @@ export default async function CommandeDetailPage({
 
       <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
         <div className="space-y-6">
+          <ColissimoPanel order={order} config={colissimoConfig()} today={orderDateKey(new Date())} storageError={storageError}
+            shipment={shipment ? { id: shipment.id, state: shipment.state, parcelNumber: shipment.parcelNumber, productCode: shipment.productCode, created: shipment.created, documents: Object.keys(shipment.documents || {}) } : null} />
           <OrderEmailComposer order={order} />
           <section className="rounded-blob bg-cream p-7 shadow-soft">
             <h2 className="mb-5 font-display text-lg font-semibold">Articles</h2>

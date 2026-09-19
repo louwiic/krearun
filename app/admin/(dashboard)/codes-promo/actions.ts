@@ -3,6 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { isAdmin } from "@/lib/auth";
+import { getStripe } from "@/lib/stripe";
+import { promotionDetails } from "@/lib/promotion-details";
+import { sendPromotionCodeEmail } from "@/lib/email";
 import {
   createPromotionCode,
   setPromotionCodeActive,
@@ -22,6 +25,38 @@ function stripeErrorMessage(error: unknown) {
 
 async function requireAdmin() {
   if (!(await isAdmin())) redirect("/admin/login");
+}
+
+export async function sendPromotionCodeAction(
+  _previous: { success: boolean; message: string },
+  formData: FormData,
+) {
+  await requireAdmin();
+  const id = String(formData.get("id") ?? "");
+  const email = String(formData.get("email") ?? "").trim();
+  const message = String(formData.get("message") ?? "").trim();
+  if (!/^promo_[a-zA-Z0-9]+$/.test(id)) {
+    return { success: false, message: "Code promotionnel invalide." };
+  }
+  if (email.length > 254 || !/^[^\s@<>,;]+@[^\s@<>,;]+\.[^\s@<>,;]+$/.test(email)) {
+    return { success: false, message: "Indiquez une adresse email valide pour un seul client." };
+  }
+  if (message.length > 2000) {
+    return { success: false, message: "Le message ne doit pas dépasser 2 000 caractères." };
+  }
+  try {
+    const code = await getStripe().promotionCodes.retrieve(id, { expand: ["promotion.coupon"] });
+    const details = promotionDetails(code);
+    if (!details.usable) {
+      return { success: false, message: "Ce code est inactif, expiré ou épuisé. Aucun email n’a été envoyé." };
+    }
+    const sent = await sendPromotionCodeEmail(email, code.code, details, message);
+    if (!sent) return { success: false, message: "L’email n’a pas pu être envoyé. Vérifiez la configuration email du serveur avant de réessayer." };
+    return { success: true, message: `Le code ${code.code} a été envoyé à ${email}.` };
+  } catch (error) {
+    console.error("Envoi du code promotionnel :", error);
+    return { success: false, message: "Impossible d’envoyer le code pour le moment. Réessayez plus tard." };
+  }
 }
 
 export async function createPromotionCodeAction(formData: FormData) {

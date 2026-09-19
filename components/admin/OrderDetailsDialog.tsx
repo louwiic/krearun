@@ -273,6 +273,7 @@ export default function OrderDetailsDialog({
               </section>
             </div>
             <footer className="flex flex-wrap justify-end gap-3 border-t border-sand bg-cream p-5 sm:p-6">
+              <Link href={`/admin/commandes/${order.id}#colissimo`} className="rounded-full border border-sand px-4 py-2 text-sm font-semibold text-terra-deep">Expédier avec Colissimo</Link>
               <Link
                 href={`/admin/commandes/${order.id}`}
                 className="rounded-full border border-sand px-4 py-2 text-sm font-semibold"

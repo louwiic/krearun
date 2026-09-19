@@ -1,4 +1,6 @@
 import { formatPrice } from "@/lib/format";
+import PromotionEmailForm from "@/components/admin/PromotionEmailForm";
+import { promotionDetails } from "@/lib/promotion-details";
 import {
   getPromotionCodes,
   promotionCoupon,
@@ -137,11 +139,9 @@ export default async function PromotionCodesPage({
                     : coupon?.amount_off
                       ? formatPrice(coupon.amount_off)
                       : "Réduction Stripe";
-                  const exhausted = Boolean(
-                    code.max_redemptions && code.times_redeemed >= code.max_redemptions
-                  );
+                  const details = promotionDetails(code);
+                  const { exhausted, usable, expired } = details;
                   const couponInvalid = coupon?.valid === false;
-                  const usable = code.active && !exhausted && !couponInvalid;
 
                   return (
                     <article key={code.id} className="rounded-blob bg-cream p-5 shadow-soft sm:p-6">
@@ -150,7 +150,7 @@ export default async function PromotionCodesPage({
                           <div className="flex flex-wrap items-center gap-2">
                             <h3 className="font-display text-2xl uppercase tracking-wide">{code.code}</h3>
                             <span className={`rounded-full px-3 py-1 text-[11px] font-bold uppercase ${usable ? "bg-sage/25 text-sage-deep" : "bg-blush/35 text-terra-deep"}`}>
-                              {usable ? "Actif" : exhausted ? "Épuisé" : couponInvalid ? "Expiré" : "Inactif"}
+                              {usable ? "Actif" : exhausted ? "Épuisé" : expired || couponInvalid ? "Expiré" : "Inactif"}
                             </span>
                           </div>
                           <p className="mt-2 text-2xl font-bold text-terra">− {discount}</p>
@@ -159,7 +159,7 @@ export default async function PromotionCodesPage({
                           <input type="hidden" name="id" value={code.id} />
                           <input type="hidden" name="active" value={code.active ? "false" : "true"} />
                           <button
-                            disabled={exhausted || couponInvalid}
+                            disabled={exhausted || couponInvalid || expired}
                             className="rounded-full border border-sand px-4 py-2 text-xs font-bold text-ink-soft hover:border-terra hover:text-terra disabled:cursor-not-allowed disabled:opacity-40"
                           >
                             {code.active ? "Désactiver" : "Réactiver"}
@@ -167,11 +167,12 @@ export default async function PromotionCodesPage({
                         </form>
                       </div>
                       <div className="mt-5 grid gap-2 border-t border-sand/70 pt-4 text-xs text-ink-soft sm:grid-cols-2">
-                        <p>Expiration : <strong>{formatDate(code.expires_at)}</strong></p>
+                        <p>Expiration : <strong>{formatDate(details.expiresAt)}</strong></p>
                         <p>Utilisations : <strong>{code.times_redeemed}{code.max_redemptions ? ` / ${code.max_redemptions}` : " / illimité"}</strong></p>
                         <p>Panier minimum : <strong>{code.restrictions.minimum_amount ? formatPrice(code.restrictions.minimum_amount) : "Aucun"}</strong></p>
                         <p>Première commande : <strong>{code.restrictions.first_time_transaction ? "Oui" : "Non"}</strong></p>
                       </div>
+                      <PromotionEmailForm id={code.id} code={code.code} discount={details.discount} conditions={details.conditions} usable={usable} />
                     </article>
                   );
                 })}

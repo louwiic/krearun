@@ -153,6 +153,31 @@ function orderNoteBlock(order: Order): string {
 
 // ─── E-mails clients ────────────────────────────────────────
 
+export async function sendPromotionCodeEmail(
+  email: string,
+  code: string,
+  details: { discount: string; conditions: string[] },
+  message: string,
+) {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://krearun.re";
+  return sendEmail(
+    email,
+    `Votre code promo ${code} — Krearun Studio`,
+    layout(`
+<h1 style="font-size:24px;margin:0 0 16px;">Une attention pour vous ✿</h1>
+<p>Bonjour,</p>
+${message ? `<div style="white-space:pre-wrap;">${escapeHtml(message)}</div>` : "<p>Profitez de cette réduction pour vous faire plaisir dans notre boutique.</p>"}
+<div style="background:#f2ebde;border-radius:16px;padding:20px;text-align:center;margin:24px 0;">
+<strong style="font-size:28px;letter-spacing:2px;">${escapeHtml(code)}</strong><br/>
+<span style="font-size:20px;color:#c07a50;">${escapeHtml(details.discount)} de réduction</span>
+</div>
+<p><strong>Conditions de votre code :</strong></p>
+<ul>${details.conditions.map((condition) => `<li>${escapeHtml(condition)}</li>`).join("")}</ul>
+<p style="text-align:center;margin:28px 0;"><a href="${escapeHtml(`${siteUrl.replace(/\/$/, "")}/boutique`)}" style="background:#c07a50;color:#fdfaf4;text-decoration:none;padding:14px 32px;border-radius:999px;font-size:14px;font-weight:bold;">Découvrir la boutique</a></p>
+<p>À bientôt au studio ✿</p>`),
+  );
+}
+
 export async function sendOrderConfirmation(order: Order) {
   const prenom = order.name.split(" ")[0] || "vous";
   await sendEmail(

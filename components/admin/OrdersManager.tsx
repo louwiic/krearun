@@ -318,13 +318,13 @@ function ImportPanel() {
   );
 }
 
-export default function OrdersManager({ orders }: { orders: Order[] }) {
+export default function OrdersManager({ orders, initialMonth }: { orders: Order[]; initialMonth: string }) {
   const [search, setSearch] = useState("");
-  const [statuses, setStatuses] = useState<string[]>([]);
+  const [statuses, setStatuses] = useState<string[]>(["review", "pending", "preparing", "ready"]);
   const [payments, setPayments] = useState<string[]>([]);
   const [source, setSource] = useState("");
-  const [month, setMonth] = useState("");
-  const [dateMode, setDateMode] = useState<OrderDateFilter["mode"]>("all");
+  const [month, setMonth] = useState(initialMonth);
+  const [dateMode, setDateMode] = useState<OrderDateFilter["mode"]>("month");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [page, setPage] = useState(1);
