@@ -9,12 +9,20 @@ export default async function AdminNewsletterPage() {
   const emails = subscribers.map((s) => s.email).join(", ");
 
   return (
-    <div className="mx-auto max-w-7xl">
-      <h1 className="font-display text-3xl font-semibold">Newsletter</h1>
-      <p className="mb-8 mt-1 text-sm text-ink-soft">
-        Créez, prévisualisez et envoyez vos nouvelles à {subscribers.length} abonné
-        {subscribers.length > 1 ? "s" : ""}.
-      </p>
+    <div className="mx-auto max-w-6xl">
+      <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="text-sm font-bold uppercase tracking-[0.18em] text-terra">Communication</p>
+          <h1 className="font-display text-4xl font-semibold tracking-tight">Newsletter</h1>
+          <p className="mt-2 text-sm text-ink-soft">
+            Créez, prévisualisez et envoyez vos nouvelles à vos abonnés.
+          </p>
+        </div>
+        <div className="rounded-2xl border border-sand bg-cream px-4 py-3 text-right shadow-soft">
+          <p className="text-2xl font-bold text-terra">{subscribers.length}</p>
+          <p className="text-xs font-semibold text-ink-soft">abonné{subscribers.length > 1 ? "s" : ""}</p>
+        </div>
+      </div>
 
       <NewsletterComposer subscriberCount={subscribers.length} />
 
@@ -29,7 +37,7 @@ export default async function AdminNewsletterPage() {
           <>
             <div className="mt-4 rounded-blob bg-sage/15 p-5 text-sm">
               <p className="font-bold">Copier la liste</p>
-              <p className="mt-2 select-all break-all rounded-2xl bg-cream p-4 font-mono text-xs text-ink-soft">{emails}</p>
+              <p className="mt-2 select-all break-all rounded-2xl border border-sage/20 bg-cream p-4 font-mono text-xs text-ink-soft">{emails}</p>
             </div>
             <div className="mt-4 overflow-hidden rounded-blob bg-cream shadow-soft">
             <table className="w-full text-left text-sm">

@@ -75,7 +75,7 @@ export default function NewsletterComposer({ subscriberCount }: { subscriberCoun
   const field = "w-full rounded-2xl border border-sand bg-linen px-4 py-3 text-sm outline-none transition-colors focus:border-terra";
 
   return (
-    <section className="rounded-blob bg-cream p-5 shadow-soft sm:p-7">
+    <section className="rounded-blob bg-cream p-6 shadow-soft sm:p-7">
       <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="text-xs font-bold uppercase tracking-wide text-terra">Composer & envoyer</p>
@@ -128,12 +128,12 @@ export default function NewsletterComposer({ subscriberCount }: { subscriberCoun
           <fieldset className="rounded-2xl border border-sand bg-linen/70 p-4">
             <legend className="px-1 text-xs font-bold text-ink-soft">Destinataires</legend>
             <div className="grid gap-2 sm:grid-cols-2">
-              <label className={`cursor-pointer rounded-xl border p-3 text-sm ${mode === "test" ? "border-terra bg-cream" : "border-sand"}`}>
+              <label className={`cursor-pointer rounded-2xl border p-3 text-sm transition-colors ${mode === "test" ? "border-terra bg-cream" : "border-sand bg-linen/50 hover:border-terra/50"}`}>
                 <input type="radio" name="recipientMode" value="test" checked={mode === "test"} onChange={() => setMode("test")} className="mr-2 accent-terra" />
                 <span className="font-bold">E-mail de test</span>
                 <span className="mt-1 block text-xs text-ink-soft">Pour vérifier avant envoi.</span>
               </label>
-              <label className={`cursor-pointer rounded-xl border p-3 text-sm ${mode === "all" ? "border-terra bg-cream" : "border-sand"}`}>
+              <label className={`cursor-pointer rounded-2xl border p-3 text-sm transition-colors ${mode === "all" ? "border-terra bg-cream" : "border-sand bg-linen/50 hover:border-terra/50"}`}>
                 <input type="radio" name="recipientMode" value="all" checked={mode === "all"} onChange={() => setMode("all")} className="mr-2 accent-terra" />
                 <span className="font-bold">Tous les abonnés</span>
                 <span className="mt-1 block text-xs text-ink-soft">{subscriberCount} contact{subscriberCount > 1 ? "s" : ""} inscrit{subscriberCount > 1 ? "s" : ""}.</span>
@@ -152,8 +152,8 @@ export default function NewsletterComposer({ subscriberCount }: { subscriberCoun
             )}
           </fieldset>
 
-          {state.success && <p role="status" className="rounded-xl bg-sage/15 px-4 py-3 text-sm font-bold text-sage-deep">{state.success}</p>}
-          {state.error && <p role="alert" className="rounded-xl bg-blush/30 px-4 py-3 text-sm font-bold text-terra-deep">{state.error}</p>}
+          {state.success && <p role="status" className="rounded-2xl bg-sage/15 px-4 py-3 text-sm font-bold text-sage-deep">{state.success}</p>}
+          {state.error && <p role="alert" className="rounded-2xl bg-blush/30 px-4 py-3 text-sm font-bold text-terra-deep">{state.error}</p>}
           <button disabled={pending || (mode === "all" && subscriberCount === 0)} className="rounded-full bg-terra px-6 py-3.5 text-sm font-bold text-cream transition-colors hover:bg-terra-deep disabled:cursor-not-allowed disabled:opacity-40">
             {pending ? "Envoi en cours…" : mode === "test" ? "Envoyer le test" : `Envoyer à ${subscriberCount} abonnés`}
           </button>
@@ -161,7 +161,7 @@ export default function NewsletterComposer({ subscriberCount }: { subscriberCoun
 
         <div className="min-w-0">
           <p className="mb-2 text-xs font-bold text-ink-soft">Aperçu e-mail</p>
-          <div className="overflow-hidden rounded-2xl border border-sand bg-linen p-2">
+          <div className="overflow-hidden rounded-blob border border-sand bg-linen p-2 shadow-soft">
             <iframe title="Aperçu de la newsletter" sandbox="" srcDoc={html} className="h-[680px] w-full rounded-xl bg-white" />
           </div>
         </div>
