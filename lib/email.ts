@@ -5,6 +5,7 @@ import nodemailer from "nodemailer";
 import type { Order } from "./types";
 import { publicColorName } from "./colors";
 import { formatPrice } from "./format";
+import { normalizeNewsletterUrls } from "./newsletter-urls";
 
 const SMTP_HOST = process.env.SMTP_HOST || "mail95.lwspanel.com";
 const SMTP_PORT = Number(process.env.SMTP_PORT || "465");
@@ -95,7 +96,7 @@ Pour ne plus les recevoir, écrivez-nous à <a href="mailto:stdcreativ974@gmail.
 }
 
 export async function sendNewsletterEmail(email: string, subject: string, html: string) {
-  return sendEmail(email, subject, newsletterHtml(html));
+  return sendEmail(email, subject, newsletterHtml(normalizeNewsletterUrls(html)));
 }
 
 function escapeHtml(value: string): string {

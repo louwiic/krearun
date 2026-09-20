@@ -33,6 +33,7 @@ import {
   sendOrderShipped,
 } from "@/lib/email";
 import { slugify } from "@/lib/format";
+import { newsletterPublicUrl } from "@/lib/newsletter-urls";
 import { uploadSiteImageToR2, uploadSiteMediaToR2 } from "@/lib/r2";
 import { DEFAULT_PICKUP_POINTS } from "@/lib/pickup";
 import { DEFAULT_STORE_CATEGORIES } from "@/lib/categories";
@@ -435,7 +436,7 @@ export async function uploadNewsletterImageAction(formData: FormData): Promise<{
 
   try {
     const [optimized] = await toWebp([image]);
-    return { url: await uploadSiteImageToR2("newsletter", optimized) };
+    return { url: newsletterPublicUrl(await uploadSiteImageToR2("newsletter", optimized)) };
   } catch {
     return { error: "Le téléversement de l’image a échoué." };
   }
