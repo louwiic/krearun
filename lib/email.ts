@@ -84,6 +84,20 @@ async function sendEmail(to: string, subject: string, html: string) {
   }
 }
 
+function newsletterHtml(content: string) {
+  const footer = `<div style="margin-top:36px;padding-top:20px;border-top:1px solid #e8dcc9;font-family:Arial,sans-serif;font-size:12px;line-height:1.6;color:#877867;">
+Vous recevez cet e-mail car vous êtes inscrit(e) aux nouvelles de Krearun Studio.<br/>
+Pour ne plus les recevoir, écrivez-nous à <a href="mailto:contact@krearun.re" style="color:#a4623c;">contact@krearun.re</a>.
+</div>`;
+
+  if (/<\/body>/i.test(content)) return content.replace(/<\/body>/i, `${footer}</body>`);
+  return layout(`${content}${footer}`);
+}
+
+export async function sendNewsletterEmail(email: string, subject: string, html: string) {
+  return sendEmail(email, subject, newsletterHtml(html));
+}
+
 function escapeHtml(value: string): string {
   return value
     .replace(/&/g, "&amp;")

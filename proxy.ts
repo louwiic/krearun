@@ -45,6 +45,7 @@ export default async function proxy(req: NextRequest) {
   const requestedHostname = getRequestedHostname(req);
 
   if (
+    process.env.LOCAL_PREVIEW !== "1" &&
     publicOrigin &&
     requestedHostname &&
     requestedHostname !== PUBLIC_HOST

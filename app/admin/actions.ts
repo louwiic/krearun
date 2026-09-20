@@ -16,6 +16,7 @@ import {
   getInventoryColors,
   getOrderById,
   getProductById,
+  getSubscribers,
   updateReviewApproval,
   saveSettings,
   updateInventoryColor,
@@ -27,6 +28,7 @@ import {
 import {
   sendAdminOrderStatus,
   sendCustomOrderEmail,
+  sendNewsletterEmail,
   sendOrderDelivered,
   sendOrderShipped,
 } from "@/lib/email";
@@ -412,6 +414,89 @@ export type SendOrderEmailResult = {
   success?: string;
   error?: string;
 };
+
+export type SendNewsletterResult = {
+  success?: string;
+  error?: string;
+};
+
+export async function uploadNewsletterImageAction(formData: FormData): Promise<{
+  url?: string;
+  error?: string;
+}> {
+  await requireAdmin();
+  const image = formData.get("image");
+  if (!(image instanceof File) || image.size === 0) {
+    return { error: "Choisissez une image." };
+  }
+  if (!image.type.startsWith("image/") || image.size > 10 * 1024 * 1024) {
+    return { error: "L’image doit être au format image et peser moins de 10 Mo." };
+  }
+
+  try {
+    const [optimized] = await toWebp([image]);
+    return { url: await uploadSiteImageToR2("newsletter", optimized) };
+  } catch {
+    return { error: "Le téléversement de l’image a échoué." };
+  }
+}
+
+export async function sendNewsletterAction(
+  _previous: SendNewsletterResult,
+  formData: FormData,
+): Promise<SendNewsletterResult> {
+  await requireAdmin();
+
+  const subject = String(formData.get("subject") ?? "").trim();
+  const html = String(formData.get("html") ?? "").trim();
+  const mode = String(formData.get("recipientMode") ?? "test");
+  const testEmail = String(formData.get("testEmail") ?? "").trim().toLowerCase();
+  const isEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+
+  if (subject.length < 3 || subject.length > 160 || /[\r\n]/.test(subject)) {
+    return { error: "L’objet doit contenir entre 3 et 160 caractères." };
+  }
+  if (html.length < 20 || html.length > 100_000) {
+    return { error: "Le contenu HTML doit contenir entre 20 et 100 000 caractères." };
+  }
+
+  let recipients: string[];
+  if (mode === "test") {
+    if (!isEmail(testEmail)) return { error: "Saisissez une adresse e-mail de test valide." };
+    recipients = [testEmail];
+  } else if (mode === "all") {
+    if (formData.get("confirmed") !== "on") {
+      return { error: "Confirmez l’envoi à tous les abonnés." };
+    }
+    recipients = [...new Set((await getSubscribers()).map((subscriber) => subscriber.email))]
+      .filter(isEmail)
+      .slice(0, 500);
+    if (recipients.length === 0) return { error: "Aucun abonné valide à contacter." };
+  } else {
+    return { error: "Choix de destinataires invalide." };
+  }
+
+  let sent = 0;
+  for (let index = 0; index < recipients.length; index += 3) {
+    const results = await Promise.all(
+      recipients
+        .slice(index, index + 3)
+        .map((recipient) => sendNewsletterEmail(recipient, subject, html)),
+    );
+    sent += results.filter(Boolean).length;
+  }
+
+  if (sent === 0) {
+    return { error: "Aucun e-mail n’a été envoyé. Vérifiez la configuration SMTP ou Resend." };
+  }
+  if (mode === "test") return { success: `E-mail de test envoyé à ${recipients[0]}.` };
+  return {
+    success:
+      sent === recipients.length
+        ? `Newsletter envoyée à ${sent} abonné${sent > 1 ? "s" : ""}.`
+        : `Newsletter envoyée à ${sent} abonné${sent > 1 ? "s" : ""} sur ${recipients.length}.`,
+  };
+}
 
 export async function resendOrderShippedAction(
   _previous: SendOrderEmailResult,

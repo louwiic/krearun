@@ -26,6 +26,7 @@ export interface ProductVariant {
   weightGrams: number;
   image: string;
   active: boolean;
+  colors?: ProductColor[];
 }
 
 export interface QuantityDiscount {

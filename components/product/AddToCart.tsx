@@ -18,7 +18,8 @@ export default function AddToCart({ product }: { product: Product }) {
   const [keychainChoice, setKeychainChoice] = useState<"1" | "2" | "">("");
   const [quantity, setQuantity] = useState(1);
   const selectedVariant = activeVariants.find((variant) => variant.id === variantId);
-  const selectedColor = product.colors.find((item) => item.name === color) ?? product.colors[0];
+  const availableColors = selectedVariant?.colors?.length ? selectedVariant.colors : product.colors;
+  const selectedColor = availableColors.find((item) => item.name === color) ?? availableColors[0];
   const selectedStock = selectedVariant?.stock ?? product.stock;
   const selectedWeight = selectedVariant?.weightGrams || product.weightGrams;
   const selectedImage = selectedColor?.image || selectedVariant?.image || product.images[0] || "";
@@ -52,12 +53,17 @@ export default function AddToCart({ product }: { product: Product }) {
                 key={variant.id}
                 type="button"
                 onClick={() => {
+                  const variantColors = variant.colors?.length ? variant.colors : product.colors;
+                  const nextColor =
+                    variantColors.find((item) => item.name === color) ?? variantColors[0];
                   setVariantId(variant.id);
+                  setColor(nextColor?.name ?? "");
                   setQuantity(1);
-                  if (variant.image) {
+                  const image = nextColor?.image || variant.image;
+                  if (image) {
                     window.dispatchEvent(
                       new CustomEvent("krearun:select-product-image", {
-                        detail: { image: variant.image },
+                        detail: { image },
                       })
                     );
                   }
@@ -148,7 +154,7 @@ export default function AddToCart({ product }: { product: Product }) {
         </div>
       ) : null}
 
-      {product.colors.length > 0 && (
+      {availableColors.length > 0 && (
         <div className="space-y-3">
           <p className="mb-2 text-sm font-bold">
             Coloris — <span className="font-semibold text-ink-soft">{publicColorName(color)}</span>
@@ -160,7 +166,7 @@ export default function AddToCart({ product }: { product: Product }) {
             />
           ) : null}
           <div className="flex flex-wrap gap-2.5">
-            {product.colors.map((c) => (
+            {availableColors.map((c) => (
               <button
                 key={c.name}
                 type="button"
