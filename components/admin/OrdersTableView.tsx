@@ -25,7 +25,7 @@ type Props = {
   onSelect: (id: string, checked: boolean) => void;
   onSelectPage: (checked: boolean) => void;
   onOpen: (order: Order) => void;
-  save: (data: FormData) => void;
+  onProductionChange: (order: Order, status: Order["status"]) => void;
   renderPayment: (order: Order) => ReactNode;
 };
 const button =
@@ -40,7 +40,7 @@ export default function OrdersTableView({
   onSelect,
   onSelectPage,
   onOpen,
-  save,
+  onProductionChange,
   renderPayment,
 }: Props) {
   const sort = table.getState().sorting[0];
@@ -149,14 +149,9 @@ export default function OrdersTableView({
               aria-label={`Production de la commande ${order.number}`}
               disabled={pending}
               value={productionStatus(order.status)}
-              onChange={(event) => {
-                const data = new FormData();
-                data.set("id", order.id);
-                data.set("updatedAt", order.updatedAt);
-                data.set("kind", "production");
-                data.set("value", event.target.value);
-                save(data);
-              }}
+              onChange={(event) =>
+                onProductionChange(order, event.target.value as Order["status"])
+              }
               className={`rounded-xl border px-3 py-2 text-sm font-semibold outline-none focus:border-terra disabled:cursor-not-allowed disabled:opacity-100 ${productionStatusStyle(order.status)}`}
             >
               {PRODUCTION_STATUSES.map((status) => (

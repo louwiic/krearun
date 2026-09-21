@@ -23,6 +23,7 @@ import {
   stringList,
 } from "@/lib/order-management";
 import type { CreateOrderInput } from "@/lib/types";
+import { sendOrderStatusChanged } from "@/lib/order-status-email";
 
 export type OrderActionResult = {
   error?: string;
@@ -182,9 +183,36 @@ export async function quickOrderAction(
       };
     } else throw new Error("Modification invalide.");
     await ensureOrderManagementSchema();
-    await updateManagedOrder(order.id, input);
+    const updatedOrder = await updateManagedOrder(order.id, input);
+    let emailSent = false;
+    let emailIssue = "";
+    if (
+      kind === "production" &&
+      data.get("notifyCustomer") === "on" &&
+      order.status !== value
+    ) {
+      if (!updatedOrder.email) {
+        emailIssue =
+          "Statut mis à jour, mais le client n’a pas d’adresse e-mail.";
+      } else {
+        try {
+          await sendOrderStatusChanged(updatedOrder);
+          emailSent = true;
+        } catch (error) {
+          console.error("E-mail de statut client :", error);
+          emailIssue =
+            "Statut mis à jour, mais l’e-mail client n’a pas pu être envoyé.";
+        }
+      }
+    }
     refresh();
-    return { message: "Commande mise à jour. Aucun e-mail envoyé." };
+    return {
+      message:
+        emailIssue ||
+        (emailSent
+          ? "Commande mise à jour. E-mail envoyé au client."
+          : "Commande mise à jour. Aucun e-mail envoyé."),
+    };
   } catch (error) {
     return { error: safeError(error) };
   }
@@ -193,9 +221,12 @@ export async function quickOrderAction(
 export async function bulkProductionAction(
   ids: string[],
   status: string,
+  notifyCustomer = false,
 ): Promise<OrderActionResult> {
   await authorize();
   let updated = 0;
+  let emailsSent = 0;
+  let emailErrors = 0;
   try {
     if (
       !Array.isArray(ids) ||
@@ -211,16 +242,30 @@ export async function bulkProductionAction(
     await ensureOrderManagementSchema();
     for (const order of orders) {
       if (!order) continue;
-      await updateManagedOrder(order.id, {
+      const saved = await updateManagedOrder(order.id, {
         status,
         paymentStatus: order.paymentStatus,
         amountPaidCents: order.amountPaidCents,
       });
       updated++;
+      if (notifyCustomer && order.status !== status) {
+        if (!saved.email) emailErrors++;
+        else {
+          try {
+            await sendOrderStatusChanged(saved);
+            emailsSent++;
+          } catch (error) {
+            console.error("E-mail de statut client :", error);
+            emailErrors++;
+          }
+        }
+      }
     }
     refresh();
     return {
-      message: `${updated} commande(s) mise(s) à jour. Aucun e-mail envoyé.`,
+      message: notifyCustomer
+        ? `${updated} commande(s) mise(s) à jour. ${emailsSent} e-mail(s) envoyé(s)${emailErrors ? `, ${emailErrors} non envoyé(s)` : ""}.`
+        : `${updated} commande(s) mise(s) à jour. Aucun e-mail envoyé.`,
     };
   } catch (error) {
     refresh();

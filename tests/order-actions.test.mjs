@@ -10,6 +10,7 @@ function fixture() {
   const records = new Map();
   let authorized = true,
     mutations = 0;
+  const statusEmails = [];
   const store = {
     ensureOrderManagementSchema: async () => {},
     getOrderById: async (id) => records.get(id) || null,
@@ -40,6 +41,9 @@ function fixture() {
     "@/lib/auth": { isAdmin: async () => authorized },
     "@/lib/store": store,
     "@/lib/order-management": management,
+    "@/lib/order-status-email": {
+      sendOrderStatusChanged: async (order) => statusEmails.push(order),
+    },
     "next/cache": { revalidatePath() {} },
     "next/navigation": {
       redirect(path) {
@@ -91,6 +95,7 @@ function fixture() {
       authorized = value;
     },
     mutations: () => mutations,
+    statusEmails,
   };
 }
 function upload(text, confirm = false) {
@@ -171,8 +176,20 @@ test("quick production edits preserve payment and stale edits are rejected", asy
   }).forEach(([k, v]) => data.set(k, v));
   const result = await f.actions.quickOrderAction(data);
   assert.equal(result.error, undefined);
+  assert.equal(f.statusEmails.length, 0);
   assert.equal(f.records.get(order.id).amountPaidCents, 1000);
   assert.equal(f.records.get(order.id).paymentStatus, "deposit");
+  data.set("value", "ready");
+  data.set("notifyCustomer", "on");
+  f.records.set(order.id, {
+    ...f.records.get(order.id),
+    email: "client@example.com",
+  });
+  assert.match(
+    (await f.actions.quickOrderAction(data)).message,
+    /E-mail envoyé/,
+  );
+  assert.equal(f.statusEmails.length, 1);
   data.set("updatedAt", "outdated");
   assert.match((await f.actions.quickOrderAction(data)).error, /Actualise/);
   f.records.set(order.id, { ...order, source: "web" });
