@@ -8,7 +8,7 @@ import {
 } from "@/app/admin/actions";
 import type { RecipientMode } from "@/lib/newsletter-targeting";
 
-type ContactOption = { email: string; ignored: boolean; subscribed: boolean };
+type ContactOption = { email: string; ignored: boolean; subscribed: boolean; hasOrdered: boolean };
 
 type TemplateOptions = {
   eyebrow: string;
@@ -117,6 +117,7 @@ export default function NewsletterComposer({ contacts, segmentCounts }: { contac
   const [html, setHtml] = useState(templates[0].html);
   const [mode, setMode] = useState<RecipientMode>("test");
   const [selected, setSelected] = useState<string[]>([]);
+  const [contactFilter, setContactFilter] = useState<"all" | "customers" | "newsletter">("all");
   const [uploadState, setUploadState] = useState("");
   const imageInput = useRef<HTMLInputElement>(null);
 
@@ -221,13 +222,23 @@ export default function NewsletterComposer({ contacts, segmentCounts }: { contac
               ))}
             </div>
             {mode === "custom" && (
-              <div className="mt-3 max-h-52 overflow-y-auto rounded-2xl border border-sand bg-cream p-3">
-                {contacts.filter((contact) => !contact.ignored).map((contact) => (
-                  <label key={contact.email} className="flex items-center gap-2 py-1 text-xs text-ink-soft">
-                    <input type="checkbox" name="selectedEmails" value={contact.email} checked={selected.includes(contact.email)} onChange={(event) => setSelected((current) => event.target.checked ? [...current, contact.email] : current.filter((email) => email !== contact.email))} className="accent-terra" />
-                    {contact.email} <span className="text-ink-faint">({contact.subscribed ? "newsletter" : "client"})</span>
-                  </label>
-                ))}
+              <div className="mt-3 rounded-2xl border border-sand bg-cream p-3">
+                <div className="mb-2 flex flex-wrap gap-2" aria-label="Filtrer les contacts">
+                  {([ ["all", "Tous"], ["customers", "Clients du site"], ["newsletter", "Newsletter"] ] as const).map(([value, label]) => (
+                    <button key={value} type="button" onClick={() => setContactFilter(value)} aria-pressed={contactFilter === value} className={`rounded-full border px-3 py-1 text-xs font-bold ${contactFilter === value ? "border-ink bg-ink text-cream" : "border-sand text-ink-soft hover:border-terra"}`}>
+                      {label}
+                    </button>
+                  ))}
+                </div>
+                {selected.map((email) => <input key={email} type="hidden" name="selectedEmails" value={email} />)}
+                <div className="max-h-52 overflow-y-auto">
+                  {contacts.filter((contact) => !contact.ignored && (contactFilter === "all" || (contactFilter === "customers" ? contact.hasOrdered : contact.subscribed))).map((contact) => (
+                    <label key={contact.email} className="flex items-center gap-2 py-1 text-xs text-ink-soft">
+                      <input type="checkbox" checked={selected.includes(contact.email)} onChange={(event) => setSelected((current) => event.target.checked ? [...current, contact.email] : current.filter((email) => email !== contact.email))} className="accent-terra" />
+                      {contact.email} <span className="text-ink-faint">({[contact.subscribed && "newsletter", contact.hasOrdered && "client site"].filter(Boolean).join(", ")})</span>
+                    </label>
+                  ))}
+                </div>
               </div>
             )}
             {mode === "test" ? (

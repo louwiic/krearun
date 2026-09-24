@@ -33,7 +33,7 @@ export default async function AdminNewsletterPage() {
         </div>
       </div>
 
-      <NewsletterComposer contacts={contacts.map(({ email, ignored, subscribed }) => ({ email, ignored, subscribed }))} segmentCounts={segmentCounts} />
+      <NewsletterComposer contacts={contacts.map(({ email, ignored, subscribed, lastOrderAt }) => ({ email, ignored, subscribed, hasOrdered: Boolean(lastOrderAt) }))} segmentCounts={segmentCounts} />
 
       <section className="mt-8">
         <h2 className="font-display text-2xl font-semibold">Liste des contacts</h2>
@@ -66,7 +66,7 @@ export default async function AdminNewsletterPage() {
                   .map((contact) => (
                     <tr key={contact.email} className="border-b border-sand/40 last:border-0">
                       <td className="px-5 py-3.5 font-semibold">{contact.email}</td>
-                      <td className="px-5 py-3.5 text-ink-soft">{contact.subscribed ? "Newsletter" : "Client"}</td>
+                      <td className="px-5 py-3.5 text-ink-soft">{[contact.subscribed && "Newsletter", contact.lastOrderAt && "Client site"].filter(Boolean).join(", ")}</td>
                       <td className="px-5 py-3.5 text-ink-soft">{contact.lastOrderAt ? formatDate(contact.lastOrderAt) : "—"}</td>
                       <td className="px-5 py-3.5 text-ink-soft">{contact.ignored ? "Ignoré" : "Actif"}</td>
                       <td className="px-5 py-3.5"><div className="flex flex-wrap gap-2">
