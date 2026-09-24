@@ -16,10 +16,10 @@ import {
   getInventoryColors,
   getOrderById,
   getProductById,
-  getSubscribers,
+  getNewsletterRecords,
   getOrders,
-  setSubscriberIgnored,
-  deleteSubscriber,
+  setMailingContactIgnored,
+  removeNewsletterContact,
   updateReviewApproval,
   saveSettings,
   updateInventoryColor,
@@ -37,7 +37,7 @@ import {
 } from "@/lib/email";
 import { slugify } from "@/lib/format";
 import { newsletterPublicUrl } from "@/lib/newsletter-urls";
-import { newsletterRecipients, type RecipientMode } from "@/lib/newsletter-targeting";
+import { mailingContacts, newsletterRecipients, type RecipientMode } from "@/lib/newsletter-targeting";
 import { uploadSiteImageToR2, uploadSiteMediaToR2 } from "@/lib/r2";
 import { DEFAULT_PICKUP_POINTS } from "@/lib/pickup";
 import { DEFAULT_STORE_CATEGORIES } from "@/lib/categories";
@@ -473,9 +473,9 @@ export async function sendNewsletterAction(
     if (formData.get("confirmed") !== "on") {
       return { error: "Confirmez l’envoi aux destinataires sélectionnés." };
     }
-    const [subscribers, orders] = await Promise.all([getSubscribers(), getOrders()]);
-    recipients = newsletterRecipients(subscribers, orders, mode as Exclude<RecipientMode, "test">, formData.getAll("selectedEmails").map(String));
-    if (recipients.length === 0) return { error: "Aucun contact inscrit dans cette sélection." };
+    const [records, orders] = await Promise.all([getNewsletterRecords(), getOrders()]);
+    recipients = newsletterRecipients(mailingContacts(records, orders), mode as Exclude<RecipientMode, "test">, formData.getAll("selectedEmails").map(String));
+    if (recipients.length === 0) return { error: "Aucun contact dans cette sélection." };
   } else {
     return { error: "Choix de destinataires invalide." };
   }
@@ -497,24 +497,25 @@ export async function sendNewsletterAction(
   return {
     success:
       sent === recipients.length
-        ? `Newsletter envoyée à ${sent} abonné${sent > 1 ? "s" : ""}.`
-        : `Newsletter envoyée à ${sent} abonné${sent > 1 ? "s" : ""} sur ${recipients.length}.`,
+        ? `Newsletter envoyée à ${sent} contact${sent > 1 ? "s" : ""}.`
+        : `Newsletter envoyée à ${sent} contact${sent > 1 ? "s" : ""} sur ${recipients.length}.`,
   };
 }
 
 export async function setSubscriberIgnoredAction(formData: FormData) {
   await requireAdmin();
-  const id = String(formData.get("id") ?? "");
-  if (!/^[a-z0-9]{15}$/.test(id)) throw new Error("Contact invalide.");
-  await setSubscriberIgnored(id, formData.get("ignored") === "true");
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error("Contact invalide.");
+  await setMailingContactIgnored(email, formData.get("ignored") === "true");
   revalidatePath("/admin/newsletter");
 }
 
 export async function deleteSubscriberAction(formData: FormData) {
   await requireAdmin();
-  const id = String(formData.get("id") ?? "");
-  if (!/^[a-z0-9]{15}$/.test(id)) throw new Error("Contact invalide.");
-  await deleteSubscriber(id);
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error("Contact invalide.");
+  const orders = await getOrders();
+  await removeNewsletterContact(email, orders.some((order) => order.status !== "cancelled" && order.email.trim().toLowerCase() === email));
   revalidatePath("/admin/newsletter");
 }
 

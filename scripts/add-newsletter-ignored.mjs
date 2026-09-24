@@ -22,14 +22,18 @@ const headers = { Authorization: token, "Content-Type": "application/json" };
 const collectionResponse = await fetch(`${url}/api/collections/newsletter`, { headers });
 if (!collectionResponse.ok) throw new Error(`Lecture de la collection : ${collectionResponse.status}`);
 const collection = await collectionResponse.json();
-if (collection.fields.some((field) => field.name === "ignored")) {
-  console.log("Champ newsletter.ignored déjà présent.");
+const missing = [
+  { name: "ignored", type: "bool" },
+  { name: "source", type: "text" },
+].filter((field) => !collection.fields.some((existing) => existing.name === field.name));
+if (missing.length === 0) {
+  console.log("Champs de ciblage newsletter déjà présents.");
 } else {
   const result = await fetch(`${url}/api/collections/newsletter`, {
     method: "PATCH",
     headers,
-    body: JSON.stringify({ fields: [...collection.fields, { name: "ignored", type: "bool" }] }),
+    body: JSON.stringify({ fields: [...collection.fields, ...missing] }),
   });
   if (!result.ok) throw new Error(`Migration newsletter.ignored : ${result.status}`);
-  console.log("Champ newsletter.ignored ajouté.");
+  console.log(`Champs de ciblage ajoutés : ${missing.map((field) => field.name).join(", ")}.`);
 }

@@ -1,20 +1,20 @@
 import NewsletterComposer from "@/components/admin/NewsletterComposer";
 import { formatDate } from "@/lib/format";
-import { getSubscribers } from "@/lib/store";
-import { getOrders } from "@/lib/store";
-import { newsletterRecipients } from "@/lib/newsletter-targeting";
+import { getNewsletterRecords, getOrders } from "@/lib/store";
+import { mailingContacts, newsletterRecipients } from "@/lib/newsletter-targeting";
 import { deleteSubscriberAction, setSubscriberIgnoredAction } from "@/app/admin/actions";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminNewsletterPage() {
-  const [subscribers, orders] = await Promise.all([getSubscribers(), getOrders()]);
-  const active = subscribers.filter((contact) => !contact.ignored);
+  const [records, orders] = await Promise.all([getNewsletterRecords(), getOrders()]);
+  const contacts = mailingContacts(records, orders);
+  const active = contacts.filter((contact) => !contact.ignored);
   const emails = active.map((s) => s.email).join(", ");
   const segmentCounts = {
-    all: newsletterRecipients(subscribers, orders, "all").length,
-    recent: newsletterRecipients(subscribers, orders, "recent").length,
-    older: newsletterRecipients(subscribers, orders, "older").length,
+    all: newsletterRecipients(contacts, "all").length,
+    recent: newsletterRecipients(contacts, "recent").length,
+    older: newsletterRecipients(contacts, "older").length,
   };
 
   return (
@@ -24,7 +24,7 @@ export default async function AdminNewsletterPage() {
           <p className="text-sm font-bold uppercase tracking-[0.18em] text-terra">Communication</p>
           <h1 className="font-display text-4xl font-semibold tracking-tight">Newsletter</h1>
           <p className="mt-2 text-sm text-ink-soft">
-            Créez, prévisualisez et envoyez vos nouvelles à vos abonnés.
+            Créez, prévisualisez et envoyez vos nouvelles aux abonnés et aux clients ayant commandé.
           </p>
         </div>
         <div className="rounded-2xl border border-sand bg-cream px-4 py-3 text-right shadow-soft">
@@ -33,14 +33,14 @@ export default async function AdminNewsletterPage() {
         </div>
       </div>
 
-      <NewsletterComposer contacts={subscribers.map(({ email, ignored }) => ({ email, ignored }))} segmentCounts={segmentCounts} />
+      <NewsletterComposer contacts={contacts.map(({ email, ignored, subscribed }) => ({ email, ignored, subscribed }))} segmentCounts={segmentCounts} />
 
       <section className="mt-8">
-        <h2 className="font-display text-2xl font-semibold">Liste des abonnés</h2>
-        {subscribers.length === 0 ? (
+        <h2 className="font-display text-2xl font-semibold">Liste des contacts</h2>
+        {contacts.length === 0 ? (
           <div className="mt-4 rounded-blob bg-cream p-10 text-center shadow-soft">
             <p className="font-display text-xl">Personne pour l&apos;instant</p>
-            <p className="mt-2 text-sm text-ink-soft">Les inscriptions de la boutique apparaîtront ici.</p>
+            <p className="mt-2 text-sm text-ink-soft">Les abonnés et les clients ayant commandé apparaîtront ici.</p>
           </div>
         ) : (
           <>
@@ -53,30 +53,32 @@ export default async function AdminNewsletterPage() {
               <thead>
                 <tr className="border-b border-sand/70 text-xs uppercase tracking-wide text-ink-faint">
                   <th className="px-5 py-4 font-bold">E-mail</th>
-                  <th className="px-5 py-4 font-bold">Inscrit le</th>
+                  <th className="px-5 py-4 font-bold">Origine</th>
+                  <th className="px-5 py-4 font-bold">Dernière commande</th>
                   <th className="px-5 py-4 font-bold">État</th>
                   <th className="px-5 py-4 font-bold">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {subscribers
+                {contacts
                   .slice()
                   .reverse()
-                  .map((subscriber) => (
-                    <tr key={subscriber.email} className="border-b border-sand/40 last:border-0">
-                      <td className="px-5 py-3.5 font-semibold">{subscriber.email}</td>
-                      <td className="px-5 py-3.5 text-ink-soft">{formatDate(subscriber.createdAt)}</td>
-                      <td className="px-5 py-3.5 text-ink-soft">{subscriber.ignored ? "Ignoré" : "Actif"}</td>
+                  .map((contact) => (
+                    <tr key={contact.email} className="border-b border-sand/40 last:border-0">
+                      <td className="px-5 py-3.5 font-semibold">{contact.email}</td>
+                      <td className="px-5 py-3.5 text-ink-soft">{contact.subscribed ? "Newsletter" : "Client"}</td>
+                      <td className="px-5 py-3.5 text-ink-soft">{contact.lastOrderAt ? formatDate(contact.lastOrderAt) : "—"}</td>
+                      <td className="px-5 py-3.5 text-ink-soft">{contact.ignored ? "Ignoré" : "Actif"}</td>
                       <td className="px-5 py-3.5"><div className="flex flex-wrap gap-2">
                         <form action={setSubscriberIgnoredAction}>
-                          <input type="hidden" name="id" value={subscriber.id} />
-                          <input type="hidden" name="ignored" value={String(!subscriber.ignored)} />
-                          <button className="rounded-full border border-sand px-3 py-1 text-xs font-bold hover:border-terra">{subscriber.ignored ? "Réactiver" : "Ignorer"}</button>
+                          <input type="hidden" name="email" value={contact.email} />
+                          <input type="hidden" name="ignored" value={String(!contact.ignored)} />
+                          <button className="rounded-full border border-sand px-3 py-1 text-xs font-bold hover:border-terra">{contact.ignored ? "Réactiver" : "Ignorer"}</button>
                         </form>
-                        <form action={deleteSubscriberAction}>
-                          <input type="hidden" name="id" value={subscriber.id} />
+                        {contact.subscribed && <form action={deleteSubscriberAction}>
+                          <input type="hidden" name="email" value={contact.email} />
                           <button className="rounded-full border border-blush px-3 py-1 text-xs font-bold text-terra hover:bg-blush/30">Supprimer</button>
-                        </form>
+                        </form>}
                       </div></td>
                     </tr>
                   ))}

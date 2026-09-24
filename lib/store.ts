@@ -813,32 +813,65 @@ export async function activateCustomerPassword(
 
 // ─── Newsletter ─────────────────────────────────────────────
 
-export async function getSubscribers(): Promise<NewsletterContact[]> {
+export async function getNewsletterRecords(): Promise<NewsletterContact[]> {
   const contacts: NewsletterContact[] = [];
   for (let page = 1; ; page++) {
-    const res = await pb<ListResult<{ id: string; email: string; created: string; ignored?: boolean }>>(
+    const res = await pb<ListResult<{ id: string; email: string; created: string; ignored?: boolean; source?: string }>>(
       `/collections/newsletter/records?perPage=500&page=${page}&sort=created,id`
     );
     contacts.push(...res.items.map((r) => ({
-      id: r.id, email: normalizeEmail(r.email), createdAt: toIso(r.created), ignored: Boolean(r.ignored),
+      id: r.id, email: normalizeEmail(r.email), createdAt: toIso(r.created), ignored: Boolean(r.ignored), source: r.source ?? "",
     })));
     if (page >= res.totalPages) return contacts;
   }
 }
 
-export async function setSubscriberIgnored(id: string, ignored: boolean): Promise<void> {
-  await pb(`/collections/newsletter/records/${id}`, { method: "PATCH", body: { ignored } });
+export async function getSubscribers(): Promise<NewsletterContact[]> {
+  return (await getNewsletterRecords()).filter((record) => record.source !== "customer");
 }
 
-export async function deleteSubscriber(id: string): Promise<void> {
-  await pb(`/collections/newsletter/records/${id}`, { method: "DELETE" });
+async function newsletterRecordByEmail(email: string) {
+  return (await getNewsletterRecords()).find((record) => record.email === normalizeEmail(email)) ?? null;
+}
+
+export async function setMailingContactIgnored(email: string, ignored: boolean): Promise<void> {
+  const existing = await newsletterRecordByEmail(email);
+  if (existing) {
+    await pb(`/collections/newsletter/records/${existing.id}`, { method: "PATCH", body: { ignored } });
+  } else if (ignored) {
+    await pb(`/collections/newsletter/records`, {
+      method: "POST", body: { email: normalizeEmail(email), ignored: true, source: "customer" },
+    });
+  }
+}
+
+export async function removeNewsletterContact(email: string, hasOrder: boolean): Promise<void> {
+  const existing = await newsletterRecordByEmail(email);
+  if (!existing || existing.source === "customer") return;
+  if (hasOrder) {
+    await pb(`/collections/newsletter/records/${existing.id}`, {
+      method: "PATCH", body: { source: "customer", ignored: true },
+    });
+  } else {
+    await pb(`/collections/newsletter/records/${existing.id}`, { method: "DELETE" });
+  }
 }
 
 export async function addSubscriber(email: string): Promise<boolean> {
   try {
+    const existing = await newsletterRecordByEmail(email);
+    if (existing) {
+      if (existing.source === "customer") {
+        await pb(`/collections/newsletter/records/${existing.id}`, {
+          method: "PATCH", body: { source: "newsletter", ignored: false },
+        });
+        return true;
+      }
+      return false;
+    }
     await pb(`/collections/newsletter/records`, {
       method: "POST",
-      body: { email: email.toLowerCase() },
+      body: { email: normalizeEmail(email), source: "newsletter" },
     });
     return true;
   } catch {

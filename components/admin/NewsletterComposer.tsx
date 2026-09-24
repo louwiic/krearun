@@ -8,7 +8,7 @@ import {
 } from "@/app/admin/actions";
 import type { RecipientMode } from "@/lib/newsletter-targeting";
 
-type ContactOption = { email: string; ignored: boolean };
+type ContactOption = { email: string; ignored: boolean; subscribed: boolean };
 
 type TemplateOptions = {
   eyebrow: string;
@@ -209,14 +209,14 @@ export default function NewsletterComposer({ contacts, segmentCounts }: { contac
               </label>
               <label className={`cursor-pointer rounded-2xl border p-3 text-sm transition-colors ${mode === "all" ? "border-terra bg-cream" : "border-sand bg-linen/50 hover:border-terra/50"}`}>
                 <input type="radio" name="recipientMode" value="all" checked={mode === "all"} onChange={() => setMode("all")} className="mr-2 accent-terra" />
-                <span className="font-bold">Tous les abonnés</span>
-                <span className="mt-1 block text-xs text-ink-soft">{subscriberCount} contact{subscriberCount > 1 ? "s" : ""} inscrit{subscriberCount > 1 ? "s" : ""}.</span>
+                <span className="font-bold">Tous les contacts</span>
+                <span className="mt-1 block text-xs text-ink-soft">{subscriberCount} abonné{subscriberCount > 1 ? "s" : ""} ou client{subscriberCount > 1 ? "s" : ""}.</span>
               </label>
               {([ ["recent", "Commande depuis moins d’un mois", segmentCounts.recent], ["older", "Dernière commande il y a plus d’un mois", segmentCounts.older], ["custom", "Choisir les contacts", selected.length] ] as const).map(([value, label, count]) => (
                 <label key={value} className={`cursor-pointer rounded-2xl border p-3 text-sm transition-colors ${mode === value ? "border-terra bg-cream" : "border-sand bg-linen/50 hover:border-terra/50"}`}>
                   <input type="radio" name="recipientMode" value={value} checked={mode === value} onChange={() => setMode(value)} className="mr-2 accent-terra" />
                   <span className="font-bold">{label}</span>
-                  <span className="mt-1 block text-xs text-ink-soft">{count} contact{count > 1 ? "s" : ""} inscrit{count > 1 ? "s" : ""}.</span>
+                  <span className="mt-1 block text-xs text-ink-soft">{count} contact{count > 1 ? "s" : ""}.</span>
                 </label>
               ))}
             </div>
@@ -225,7 +225,7 @@ export default function NewsletterComposer({ contacts, segmentCounts }: { contac
                 {contacts.filter((contact) => !contact.ignored).map((contact) => (
                   <label key={contact.email} className="flex items-center gap-2 py-1 text-xs text-ink-soft">
                     <input type="checkbox" name="selectedEmails" value={contact.email} checked={selected.includes(contact.email)} onChange={(event) => setSelected((current) => event.target.checked ? [...current, contact.email] : current.filter((email) => email !== contact.email))} className="accent-terra" />
-                    {contact.email}
+                    {contact.email} <span className="text-ink-faint">({contact.subscribed ? "newsletter" : "client"})</span>
                   </label>
                 ))}
               </div>

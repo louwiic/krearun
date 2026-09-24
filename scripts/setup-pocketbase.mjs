@@ -110,7 +110,7 @@ const collections = [
   {
     name: "newsletter",
     type: "base",
-    fields: [{ name: "email", type: "text", required: true }, { name: "ignored", type: "bool" }, ...autodates],
+    fields: [{ name: "email", type: "text", required: true }, { name: "ignored", type: "bool" }, { name: "source", type: "text" }, ...autodates],
     indexes: ["CREATE UNIQUE INDEX `idx_newsletter_email` ON `newsletter` (`email`)"],
   },
   {
