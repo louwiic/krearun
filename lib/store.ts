@@ -15,6 +15,7 @@ import type {
   OrderManagementFields,
   Product,
   Review,
+  NewsletterContact,
   Settings,
 } from "./types";
 import { uploadProductImageToR2, uploadProductMediaToR2 } from "./r2";
@@ -812,11 +813,25 @@ export async function activateCustomerPassword(
 
 // ─── Newsletter ─────────────────────────────────────────────
 
-export async function getSubscribers(): Promise<{ email: string; createdAt: string }[]> {
-  const res = await pb<ListResult<{ email: string; created: string }>>(
-    `/collections/newsletter/records?perPage=500&sort=created`
-  );
-  return res.items.map((r) => ({ email: r.email, createdAt: toIso(r.created) }));
+export async function getSubscribers(): Promise<NewsletterContact[]> {
+  const contacts: NewsletterContact[] = [];
+  for (let page = 1; ; page++) {
+    const res = await pb<ListResult<{ id: string; email: string; created: string; ignored?: boolean }>>(
+      `/collections/newsletter/records?perPage=500&page=${page}&sort=created,id`
+    );
+    contacts.push(...res.items.map((r) => ({
+      id: r.id, email: normalizeEmail(r.email), createdAt: toIso(r.created), ignored: Boolean(r.ignored),
+    })));
+    if (page >= res.totalPages) return contacts;
+  }
+}
+
+export async function setSubscriberIgnored(id: string, ignored: boolean): Promise<void> {
+  await pb(`/collections/newsletter/records/${id}`, { method: "PATCH", body: { ignored } });
+}
+
+export async function deleteSubscriber(id: string): Promise<void> {
+  await pb(`/collections/newsletter/records/${id}`, { method: "DELETE" });
 }
 
 export async function addSubscriber(email: string): Promise<boolean> {

@@ -6,48 +6,117 @@ import {
   uploadNewsletterImageAction,
   type SendNewsletterResult,
 } from "@/app/admin/actions";
+import type { RecipientMode } from "@/lib/newsletter-targeting";
+
+type ContactOption = { email: string; ignored: boolean };
+
+type TemplateOptions = {
+  eyebrow: string;
+  title: string;
+  paragraphs: string[];
+  cta: string;
+  ctaHref?: string;
+  highlight?: string;
+};
+
+function brandedTemplate({
+  eyebrow,
+  title,
+  paragraphs,
+  cta,
+  ctaHref = "https://krearun.re/boutique",
+  highlight,
+}: TemplateOptions) {
+  return `<!doctype html>
+<html lang="fr">
+<body style="margin:0;padding:0;background:#efeae0;color:#16130f;font-family:Arial,Helvetica,sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;background:#efeae0;padding:32px 12px;">
+    <tr><td align="center">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;max-width:600px;background:#ffffff;border:2px solid #16130f;">
+        <tr><td style="padding:16px 28px;background:#16130f;color:#ffffff;">
+          <span style="font-family:Impact,'Arial Black',Arial,sans-serif;font-size:30px;letter-spacing:.5px;">KREARUN<span style="color:#ff4b17;">.</span></span>
+          <span style="float:right;padding-top:8px;font-size:10px;font-weight:700;letter-spacing:1.5px;color:#b8f13a;text-transform:uppercase;">fabriké péi</span>
+        </td></tr>
+        <tr><td style="height:7px;background:#ff4b17;font-size:0;line-height:0;">&nbsp;</td></tr>
+        <tr><td style="padding:38px 30px 20px;">
+          <p style="margin:0 0 14px;font-size:11px;font-weight:700;letter-spacing:1.7px;color:#db3400;text-transform:uppercase;">${eyebrow}</p>
+          <h1 style="margin:0;font-family:Impact,'Arial Black',Arial,sans-serif;font-size:42px;font-weight:400;letter-spacing:.3px;line-height:1.02;text-transform:uppercase;color:#16130f;">${title}</h1>
+          ${highlight ? `<div style="margin:24px 0 0;padding:15px 18px;background:#b8f13a;border:2px solid #16130f;font-size:18px;font-weight:800;line-height:1.3;">${highlight}</div>` : ""}
+        </td></tr>
+        <tr><td style="padding:4px 30px 38px;font-size:16px;line-height:1.65;color:#4c463d;">
+          ${paragraphs.map((paragraph) => `<p style="margin:18px 0;">${paragraph}</p>`).join("")}
+          <p style="margin:30px 0 8px;text-align:center;"><a href="${ctaHref}" style="display:inline-block;background:#ff4b17;border:2px solid #16130f;box-shadow:4px 4px 0 #16130f;color:#ffffff;padding:14px 22px;font-size:14px;font-weight:800;text-decoration:none;text-transform:uppercase;">${cta} →</a></p>
+        </td></tr>
+        <tr><td style="padding:18px 30px;background:#16130f;color:#ffffff;font-size:12px;line-height:1.5;">
+          Une création pensée et fabriquée à La Réunion.<br/>
+          <a href="https://krearun.re" style="color:#b8f13a;font-weight:700;text-decoration:none;">krearun.re</a>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+}
 
 const templates = [
   {
     id: "nouveautes",
     label: "Nouveautés",
     subject: "Les nouveautés viennent d'arriver chez Krearun Studio",
-    html: `<h1 style="margin:0 0 16px;font-size:28px;line-height:1.2;">De nouvelles créations arrivent au studio ✿</h1>
-<p style="font-size:16px;line-height:1.65;">Bonjour,</p>
-<p style="font-size:16px;line-height:1.65;">De nouvelles pièces imprimées en 3D viennent de rejoindre la boutique. Des objets imaginés et fabriqués avec soin à La Réunion.</p>
-<p style="margin:28px 0;text-align:center;"><a href="https://krearun.re/boutique" style="display:inline-block;background:#c07a50;color:#fdfaf4;padding:14px 26px;border-radius:999px;text-decoration:none;font-weight:bold;">Découvrir les nouveautés</a></p>
-<p style="font-size:16px;line-height:1.65;">À bientôt,<br/>Krearun Studio</p>`,
+    html: brandedTemplate({
+      eyebrow: "Nouveautés de l’atelier",
+      title: "De nouvelles créations arrivent",
+      paragraphs: [
+        "Bonjour,",
+        "De nouvelles pièces imprimées en 3D viennent de rejoindre la boutique. Des objets imaginés et fabriqués avec soin à La Réunion.",
+        "Passe voir les dernières créations avant qu’elles ne quittent l’atelier.",
+      ],
+      cta: "Voir les nouveautés",
+    }),
   },
   {
     id: "promo",
     label: "Code promo",
     subject: "Une attention pour vous chez Krearun Studio",
-    html: `<h1 style="margin:0 0 16px;font-size:28px;line-height:1.2;">Une petite attention pour vous ✿</h1>
-<p style="font-size:16px;line-height:1.65;">Bonjour,</p>
-<p style="font-size:16px;line-height:1.65;">Pour vous remercier de suivre l'atelier, voici un code à utiliser sur la boutique.</p>
-<div style="margin:24px 0;padding:20px;border-radius:16px;background:#f2ebde;text-align:center;"><strong style="font-size:28px;letter-spacing:2px;">VOTRECODE</strong><br/><span style="color:#a4623c;">à remplacer par votre offre</span></div>
-<p style="margin:28px 0;text-align:center;"><a href="https://krearun.re/boutique" style="display:inline-block;background:#c07a50;color:#fdfaf4;padding:14px 26px;border-radius:999px;text-decoration:none;font-weight:bold;">J'en profite</a></p>`,
+    html: brandedTemplate({
+      eyebrow: "Une attention pour vous",
+      title: "Un code pour se faire plaisir",
+      highlight: "VOTRECODE — à remplacer par votre offre",
+      paragraphs: [
+        "Bonjour,",
+        "Pour vous remercier de suivre l’atelier, voici une petite attention à utiliser sur la boutique.",
+        "Le code est valable selon les conditions indiquées dans votre offre.",
+      ],
+      cta: "J’en profite",
+    }),
   },
   {
     id: "atelier",
     label: "Nouvelles de l'atelier",
     subject: "Les nouvelles de l'atelier Krearun",
-    html: `<h1 style="margin:0 0 16px;font-size:28px;line-height:1.2;">Les nouvelles de l'atelier</h1>
-<p style="font-size:16px;line-height:1.65;">Bonjour,</p>
-<p style="font-size:16px;line-height:1.65;">Cette semaine, on vous partage les coulisses de nos créations, les projets en cours et les prochaines idées qui arrivent sur la boutique.</p>
-<p style="font-size:16px;line-height:1.65;">Ajoutez ici votre message, une photo ou un lien vers une création.</p>
-<p style="margin:28px 0;text-align:center;"><a href="https://krearun.re/boutique" style="display:inline-block;background:#c07a50;color:#fdfaf4;padding:14px 26px;border-radius:999px;text-decoration:none;font-weight:bold;">Passer à la boutique</a></p>`,
+    html: brandedTemplate({
+      eyebrow: "Coulisses de fabrication",
+      title: "Dans l’atelier Krearun",
+      paragraphs: [
+        "Bonjour,",
+        "Cette semaine, on vous partage les coulisses de nos créations, les projets en cours et les prochaines idées qui arrivent sur la boutique.",
+        "Ajoutez ici votre message, une photo ou un lien vers une création.",
+      ],
+      cta: "Passer à la boutique",
+    }),
   },
 ];
 
 const initialState: SendNewsletterResult = {};
 
-export default function NewsletterComposer({ subscriberCount }: { subscriberCount: number }) {
+export default function NewsletterComposer({ contacts, segmentCounts }: { contacts: ContactOption[]; segmentCounts: { all: number; recent: number; older: number } }) {
+  const subscriberCount = segmentCounts.all;
   const [state, formAction, pending] = useActionState(sendNewsletterAction, initialState);
   const [template, setTemplate] = useState(templates[0].id);
   const [subject, setSubject] = useState(templates[0].subject);
   const [html, setHtml] = useState(templates[0].html);
-  const [mode, setMode] = useState<"test" | "all">("test");
+  const [mode, setMode] = useState<RecipientMode>("test");
+  const [selected, setSelected] = useState<string[]>([]);
   const [uploadState, setUploadState] = useState("");
   const imageInput = useRef<HTMLInputElement>(null);
 
@@ -68,7 +137,12 @@ export default function NewsletterComposer({ subscriberCount }: { subscriberCoun
       setUploadState(result.error ?? "Le téléversement a échoué.");
       return;
     }
-    setHtml((current) => `${current}\n<p style="margin:24px 0;text-align:center;"><img src="${result.url}" alt="" style="display:block;max-width:100%;height:auto;border-radius:16px;margin:0 auto;" /></p>`);
+    const imageHtml = `<div style="margin:28px 0;text-align:center;"><img src="${result.url}" alt="" style="display:block;max-width:100%;height:auto;border:2px solid #16130f;margin:0 auto;" /></div>`;
+    setHtml((current) =>
+      /<\/body>/i.test(current)
+        ? current.replace(/<\/body>/i, `${imageHtml}</body>`)
+        : `${current}\n${imageHtml}`,
+    );
     setUploadState("Image ajoutée au HTML.");
   }
 
@@ -138,7 +212,24 @@ export default function NewsletterComposer({ subscriberCount }: { subscriberCoun
                 <span className="font-bold">Tous les abonnés</span>
                 <span className="mt-1 block text-xs text-ink-soft">{subscriberCount} contact{subscriberCount > 1 ? "s" : ""} inscrit{subscriberCount > 1 ? "s" : ""}.</span>
               </label>
+              {([ ["recent", "Commande depuis moins d’un mois", segmentCounts.recent], ["older", "Dernière commande il y a plus d’un mois", segmentCounts.older], ["custom", "Choisir les contacts", selected.length] ] as const).map(([value, label, count]) => (
+                <label key={value} className={`cursor-pointer rounded-2xl border p-3 text-sm transition-colors ${mode === value ? "border-terra bg-cream" : "border-sand bg-linen/50 hover:border-terra/50"}`}>
+                  <input type="radio" name="recipientMode" value={value} checked={mode === value} onChange={() => setMode(value)} className="mr-2 accent-terra" />
+                  <span className="font-bold">{label}</span>
+                  <span className="mt-1 block text-xs text-ink-soft">{count} contact{count > 1 ? "s" : ""} inscrit{count > 1 ? "s" : ""}.</span>
+                </label>
+              ))}
             </div>
+            {mode === "custom" && (
+              <div className="mt-3 max-h-52 overflow-y-auto rounded-2xl border border-sand bg-cream p-3">
+                {contacts.filter((contact) => !contact.ignored).map((contact) => (
+                  <label key={contact.email} className="flex items-center gap-2 py-1 text-xs text-ink-soft">
+                    <input type="checkbox" name="selectedEmails" value={contact.email} checked={selected.includes(contact.email)} onChange={(event) => setSelected((current) => event.target.checked ? [...current, contact.email] : current.filter((email) => email !== contact.email))} className="accent-terra" />
+                    {contact.email}
+                  </label>
+                ))}
+              </div>
+            )}
             {mode === "test" ? (
               <label className="mt-3 grid gap-1.5 text-xs font-bold text-ink-soft">
                 Adresse de test
@@ -147,15 +238,15 @@ export default function NewsletterComposer({ subscriberCount }: { subscriberCoun
             ) : (
               <label className="mt-3 flex items-start gap-2 text-xs leading-relaxed text-ink-soft">
                 <input name="confirmed" type="checkbox" required className="mt-0.5 accent-terra" />
-                Je confirme l&apos;envoi de cette newsletter aux {subscriberCount} abonnés.
+                Je confirme l&apos;envoi de cette newsletter aux {mode === "all" ? subscriberCount : mode === "recent" ? segmentCounts.recent : mode === "older" ? segmentCounts.older : selected.length} contacts sélectionnés.
               </label>
             )}
           </fieldset>
 
           {state.success && <p role="status" className="rounded-2xl bg-sage/15 px-4 py-3 text-sm font-bold text-sage-deep">{state.success}</p>}
           {state.error && <p role="alert" className="rounded-2xl bg-blush/30 px-4 py-3 text-sm font-bold text-terra-deep">{state.error}</p>}
-          <button disabled={pending || (mode === "all" && subscriberCount === 0)} className="rounded-full bg-terra px-6 py-3.5 text-sm font-bold text-cream transition-colors hover:bg-terra-deep disabled:cursor-not-allowed disabled:opacity-40">
-            {pending ? "Envoi en cours…" : mode === "test" ? "Envoyer le test" : `Envoyer à ${subscriberCount} abonnés`}
+          <button disabled={pending || (mode !== "test" && (mode === "all" ? subscriberCount : mode === "recent" ? segmentCounts.recent : mode === "older" ? segmentCounts.older : selected.length) === 0)} className="rounded-full bg-terra px-6 py-3.5 text-sm font-bold text-cream transition-colors hover:bg-terra-deep disabled:cursor-not-allowed disabled:opacity-40">
+            {pending ? "Envoi en cours…" : mode === "test" ? "Envoyer le test" : "Envoyer la newsletter"}
           </button>
         </div>
 

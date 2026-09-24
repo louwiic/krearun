@@ -5,6 +5,7 @@ import {
 } from "@/app/admin/actions";
 import { formatDate } from "@/lib/format";
 import { getReviews } from "@/lib/store";
+import ReviewShareLink from "@/components/admin/ReviewShareLink";
 
 export default async function AdminReviewsPage() {
   const reviews = await getReviews();
@@ -19,9 +20,11 @@ export default async function AdminReviewsPage() {
           Avis clients
         </h1>
         <p className="mt-2 text-sm text-ink-soft">
-          Les nouveaux avis restent masqués tant qu'ils ne sont pas approuvés.
+          Les nouveaux avis restent masqués tant qu&apos;ils ne sont pas approuvés.
         </p>
       </div>
+
+      <ReviewShareLink />
 
       {reviews.length === 0 ? (
         <div className="rounded-blob bg-cream p-8 text-sm text-ink-soft shadow-soft">

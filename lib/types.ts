@@ -84,6 +84,8 @@ export interface Review {
   updatedAt: string;
 }
 
+export type NewsletterContact = { id: string; email: string; createdAt: string; ignored: boolean };
+
 export type OrderStatus =
   | "review"
   | "pending"

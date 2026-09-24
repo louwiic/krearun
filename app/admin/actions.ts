@@ -17,6 +17,9 @@ import {
   getOrderById,
   getProductById,
   getSubscribers,
+  getOrders,
+  setSubscriberIgnored,
+  deleteSubscriber,
   updateReviewApproval,
   saveSettings,
   updateInventoryColor,
@@ -34,6 +37,7 @@ import {
 } from "@/lib/email";
 import { slugify } from "@/lib/format";
 import { newsletterPublicUrl } from "@/lib/newsletter-urls";
+import { newsletterRecipients, type RecipientMode } from "@/lib/newsletter-targeting";
 import { uploadSiteImageToR2, uploadSiteMediaToR2 } from "@/lib/r2";
 import { DEFAULT_PICKUP_POINTS } from "@/lib/pickup";
 import { DEFAULT_STORE_CATEGORIES } from "@/lib/categories";
@@ -465,14 +469,13 @@ export async function sendNewsletterAction(
   if (mode === "test") {
     if (!isEmail(testEmail)) return { error: "Saisissez une adresse e-mail de test valide." };
     recipients = [testEmail];
-  } else if (mode === "all") {
+  } else if (["all", "recent", "older", "custom"].includes(mode)) {
     if (formData.get("confirmed") !== "on") {
-      return { error: "Confirmez l’envoi à tous les abonnés." };
+      return { error: "Confirmez l’envoi aux destinataires sélectionnés." };
     }
-    recipients = [...new Set((await getSubscribers()).map((subscriber) => subscriber.email))]
-      .filter(isEmail)
-      .slice(0, 500);
-    if (recipients.length === 0) return { error: "Aucun abonné valide à contacter." };
+    const [subscribers, orders] = await Promise.all([getSubscribers(), getOrders()]);
+    recipients = newsletterRecipients(subscribers, orders, mode as Exclude<RecipientMode, "test">, formData.getAll("selectedEmails").map(String));
+    if (recipients.length === 0) return { error: "Aucun contact inscrit dans cette sélection." };
   } else {
     return { error: "Choix de destinataires invalide." };
   }
@@ -497,6 +500,22 @@ export async function sendNewsletterAction(
         ? `Newsletter envoyée à ${sent} abonné${sent > 1 ? "s" : ""}.`
         : `Newsletter envoyée à ${sent} abonné${sent > 1 ? "s" : ""} sur ${recipients.length}.`,
   };
+}
+
+export async function setSubscriberIgnoredAction(formData: FormData) {
+  await requireAdmin();
+  const id = String(formData.get("id") ?? "");
+  if (!/^[a-z0-9]{15}$/.test(id)) throw new Error("Contact invalide.");
+  await setSubscriberIgnored(id, formData.get("ignored") === "true");
+  revalidatePath("/admin/newsletter");
+}
+
+export async function deleteSubscriberAction(formData: FormData) {
+  await requireAdmin();
+  const id = String(formData.get("id") ?? "");
+  if (!/^[a-z0-9]{15}$/.test(id)) throw new Error("Contact invalide.");
+  await deleteSubscriber(id);
+  revalidatePath("/admin/newsletter");
 }
 
 export async function resendOrderShippedAction(

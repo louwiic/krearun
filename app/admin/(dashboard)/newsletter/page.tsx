@@ -1,12 +1,21 @@
 import NewsletterComposer from "@/components/admin/NewsletterComposer";
 import { formatDate } from "@/lib/format";
 import { getSubscribers } from "@/lib/store";
+import { getOrders } from "@/lib/store";
+import { newsletterRecipients } from "@/lib/newsletter-targeting";
+import { deleteSubscriberAction, setSubscriberIgnoredAction } from "@/app/admin/actions";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminNewsletterPage() {
-  const subscribers = await getSubscribers();
-  const emails = subscribers.map((s) => s.email).join(", ");
+  const [subscribers, orders] = await Promise.all([getSubscribers(), getOrders()]);
+  const active = subscribers.filter((contact) => !contact.ignored);
+  const emails = active.map((s) => s.email).join(", ");
+  const segmentCounts = {
+    all: newsletterRecipients(subscribers, orders, "all").length,
+    recent: newsletterRecipients(subscribers, orders, "recent").length,
+    older: newsletterRecipients(subscribers, orders, "older").length,
+  };
 
   return (
     <div className="mx-auto max-w-6xl">
@@ -19,12 +28,12 @@ export default async function AdminNewsletterPage() {
           </p>
         </div>
         <div className="rounded-2xl border border-sand bg-cream px-4 py-3 text-right shadow-soft">
-          <p className="text-2xl font-bold text-terra">{subscribers.length}</p>
-          <p className="text-xs font-semibold text-ink-soft">abonné{subscribers.length > 1 ? "s" : ""}</p>
+          <p className="text-2xl font-bold text-terra">{segmentCounts.all}</p>
+          <p className="text-xs font-semibold text-ink-soft">contact{segmentCounts.all > 1 ? "s" : ""} actif{segmentCounts.all > 1 ? "s" : ""}</p>
         </div>
       </div>
 
-      <NewsletterComposer subscriberCount={subscribers.length} />
+      <NewsletterComposer contacts={subscribers.map(({ email, ignored }) => ({ email, ignored }))} segmentCounts={segmentCounts} />
 
       <section className="mt-8">
         <h2 className="font-display text-2xl font-semibold">Liste des abonnés</h2>
@@ -45,6 +54,8 @@ export default async function AdminNewsletterPage() {
                 <tr className="border-b border-sand/70 text-xs uppercase tracking-wide text-ink-faint">
                   <th className="px-5 py-4 font-bold">E-mail</th>
                   <th className="px-5 py-4 font-bold">Inscrit le</th>
+                  <th className="px-5 py-4 font-bold">État</th>
+                  <th className="px-5 py-4 font-bold">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -55,6 +66,18 @@ export default async function AdminNewsletterPage() {
                     <tr key={subscriber.email} className="border-b border-sand/40 last:border-0">
                       <td className="px-5 py-3.5 font-semibold">{subscriber.email}</td>
                       <td className="px-5 py-3.5 text-ink-soft">{formatDate(subscriber.createdAt)}</td>
+                      <td className="px-5 py-3.5 text-ink-soft">{subscriber.ignored ? "Ignoré" : "Actif"}</td>
+                      <td className="px-5 py-3.5"><div className="flex flex-wrap gap-2">
+                        <form action={setSubscriberIgnoredAction}>
+                          <input type="hidden" name="id" value={subscriber.id} />
+                          <input type="hidden" name="ignored" value={String(!subscriber.ignored)} />
+                          <button className="rounded-full border border-sand px-3 py-1 text-xs font-bold hover:border-terra">{subscriber.ignored ? "Réactiver" : "Ignorer"}</button>
+                        </form>
+                        <form action={deleteSubscriberAction}>
+                          <input type="hidden" name="id" value={subscriber.id} />
+                          <button className="rounded-full border border-blush px-3 py-1 text-xs font-bold text-terra hover:bg-blush/30">Supprimer</button>
+                        </form>
+                      </div></td>
                     </tr>
                   ))}
               </tbody>
