@@ -123,6 +123,7 @@ const collections = [
       { name: "email", type: "text", required: true },
       { name: "rating", type: "number", onlyInt: true, required: true },
       { name: "message", type: "text", max: 5000, required: true },
+      { name: "imageUrl", type: "text" },
       { name: "approved", type: "bool" },
       ...autodates,
     ],

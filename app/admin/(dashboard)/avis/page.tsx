@@ -62,6 +62,12 @@ export default async function AdminReviewsPage() {
               <p className="mt-4 text-sm leading-relaxed text-ink-soft">
                 {review.message}
               </p>
+              {review.imageUrl && (
+                <a href={review.imageUrl} target="_blank" rel="noopener noreferrer" className="mt-4 inline-block">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={review.imageUrl} alt={`Photo de l’avis de ${review.authorName}`} className="max-h-64 max-w-full rounded-2xl border border-sand object-contain" />
+                </a>
+              )}
 
               <div className="mt-5 flex flex-wrap gap-3">
                 {!review.approved && (

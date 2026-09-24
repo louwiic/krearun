@@ -16,29 +16,29 @@ export default function ReviewForm({
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
-    setStatus("sending");
-    setError("");
-    const res = await fetch("/api/reviews", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        productId,
-        productName,
-        authorName: formData.get("authorName"),
-        email: formData.get("email"),
-        rating: formData.get("rating"),
-        message: formData.get("message"),
-      }),
-    });
-
-    if (!res.ok) {
-      const data = await res.json().catch(() => null);
-      setError(data?.error ?? "Impossible d'envoyer l'avis pour le moment.");
+    const photo = formData.get("photo");
+    if (photo instanceof File && photo.size > 0 && (photo.size > 5 * 1024 * 1024 || !["image/jpeg", "image/png", "image/webp"].includes(photo.type))) {
+      setError("Choisissez une photo JPEG, PNG ou WebP de moins de 5 Mo.");
       setStatus("error");
       return;
     }
-
-    setStatus("sent");
+    formData.set("productId", productId);
+    formData.set("productName", productName);
+    setStatus("sending");
+    setError("");
+    try {
+      const res = await fetch("/api/reviews", { method: "POST", body: formData });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        setError(data?.error ?? "Impossible d'envoyer l'avis pour le moment.");
+        setStatus("error");
+        return;
+      }
+      setStatus("sent");
+    } catch {
+      setError("Impossible d'envoyer l'avis pour le moment.");
+      setStatus("error");
+    }
   }
 
   if (status === "sent") {
@@ -102,6 +102,12 @@ export default function ReviewForm({
           rows={4}
           className="resize-none rounded-2xl border border-sand bg-linen px-4 py-3 font-normal text-ink outline-none focus:border-terra"
         />
+      </label>
+
+      <label className="grid gap-1.5 text-sm font-semibold text-ink-soft">
+        Ajouter une photo (facultatif)
+        <input name="photo" type="file" accept="image/jpeg,image/png,image/webp" className="rounded-2xl border border-sand bg-linen px-4 py-3 font-normal text-ink outline-none focus:border-terra" />
+        <span className="text-xs font-normal text-ink-faint">Une photo JPEG, PNG ou WebP, 5 Mo maximum.</span>
       </label>
 
       {error && <p className="text-sm font-semibold text-terra">{error}</p>}

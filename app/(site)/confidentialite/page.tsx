@@ -28,7 +28,7 @@ const sections: Section[] = [
       "identité et coordonnées : prénom, nom, e-mail, téléphone, adresse de livraison ou point de retrait ;",
       "données de commande : articles, options de personnalisation, coloris, montant, remise, mode de livraison, suivi et historique de commande ;",
       "données de compte : adresse e-mail, mot de passe chiffré et historique de commandes ;",
-      "contenu volontairement transmis : message de contact, avis client et inscription à la newsletter.",
+      "contenu volontairement transmis : message de contact, avis client, photo facultative jointe à un avis et inscription à la newsletter.",
     ],
   },
   {
@@ -77,7 +77,7 @@ const sections: Section[] = [
   {
     title: "Newsletter et avis clients",
     paragraphs: [
-      `La newsletter est envoyée uniquement après votre accord explicite. Vous pouvez vous désinscrire à tout moment via les indications présentes dans les e-mails ou en écrivant à ${contactEmail}. Les avis sont modérés avant publication : seuls le prénom, la note, le message et le produit concerné peuvent apparaître sur le site.`,
+      `La newsletter est envoyée uniquement après votre accord explicite. Vous pouvez vous désinscrire à tout moment via les indications présentes dans les e-mails ou en écrivant à ${contactEmail}. Les avis sont modérés avant publication : seuls le prénom, la note, le message, la photo facultative et le produit concerné peuvent apparaître sur le site.`,
     ],
   },
   {

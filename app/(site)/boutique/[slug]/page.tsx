@@ -224,6 +224,12 @@ export default async function ProductPage({
                   <blockquote className="text-sm leading-relaxed text-ink-soft">
                     « {review.message} »
                   </blockquote>
+                  {review.imageUrl && (
+                    <a href={review.imageUrl} target="_blank" rel="noopener noreferrer" className="mt-4 inline-block">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={review.imageUrl} alt={`Photo de l’avis de ${review.authorName}`} className="max-h-64 max-w-full rounded-2xl border border-sand object-contain" />
+                    </a>
+                  )}
                   <figcaption className="mt-4 text-sm font-bold">
                     {review.authorName}
                   </figcaption>

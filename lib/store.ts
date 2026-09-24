@@ -300,6 +300,7 @@ interface PbReview {
   email: string;
   rating: number;
   message: string;
+  imageUrl?: string;
   approved: boolean;
   created: string;
   updated: string;
@@ -314,6 +315,7 @@ function mapReview(r: PbReview): Review {
     email: r.email ?? "",
     rating: r.rating ?? 5,
     message: r.message ?? "",
+    imageUrl: r.imageUrl ?? "",
     approved: Boolean(r.approved),
     createdAt: toIso(r.created),
     updatedAt: toIso(r.updated),
@@ -353,6 +355,7 @@ export async function createReview(input: {
   email: string;
   rating: number;
   message: string;
+  imageUrl: string;
 }): Promise<Review> {
   const record = await pb<PbReview>(`/collections/reviews/records`, {
     method: "POST",

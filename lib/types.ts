@@ -79,6 +79,7 @@ export interface Review {
   email: string;
   rating: number;
   message: string;
+  imageUrl: string;
   approved: boolean;
   createdAt: string;
   updatedAt: string;
