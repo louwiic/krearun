@@ -6,6 +6,14 @@ export function orderItemDetails(item: OrderItem) {
     { label: "Coloris", value: item.color },
     { label: "Prénom / personnalisation", value: item.customName },
     { label: "Porte-clés offert", value: item.keychainChoice },
+    ...(item.clickerConfiguration ? [
+      { label: "Texte du clicker", value: item.clickerConfiguration.text },
+      { label: "Symbole", value: item.clickerConfiguration.symbol || "Aucun" },
+      { label: "Placement du symbole", value: item.clickerConfiguration.symbolNote },
+      { label: "Base", value: item.clickerConfiguration.baseColor },
+      { label: "Caps", value: item.clickerConfiguration.capColor },
+      { label: "Lettres et symbole", value: item.clickerConfiguration.letterColor },
+    ] : []),
     ...(item.letterConfiguration ? [
       { label: "Initiale", value: item.letterConfiguration.initial },
       { label: "Hauteur", value: `${item.letterConfiguration.height} mm` },

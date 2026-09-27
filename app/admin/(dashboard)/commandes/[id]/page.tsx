@@ -10,6 +10,7 @@ import ColissimoPanel from "@/components/admin/ColissimoPanel";
 import { formatDate, formatPrice } from "@/lib/format";
 import { ORDER_SOURCES, PAYMENT_STATUSES, PRODUCTION_STATUSES, productionStatus, remainingCents } from "@/lib/order-management";
 import OrderEmailComposer from "@/components/admin/OrderEmailComposer";
+import { orderItemDetails } from "@/lib/order-details";
 
 export const dynamic = "force-dynamic";
 
@@ -69,6 +70,13 @@ export default async function CommandeDetailPage({
                       <p className="text-xs font-semibold text-terra-deep">
                         Prénom : {item.customName}
                       </p>
+                    )}
+                    {item.clickerConfiguration && (
+                      <div className="mt-2 space-y-0.5 text-xs text-ink-soft">
+                        {orderItemDetails(item).filter((detail) => ["Texte du clicker", "Symbole", "Placement du symbole", "Base", "Caps", "Lettres et symbole"].includes(detail.label)).map((detail) => (
+                          <p key={detail.label}><strong>{detail.label} :</strong> {detail.value}</p>
+                        ))}
+                      </div>
                     )}
                   </div>
                   <p className="text-sm text-ink-soft">× {item.quantity}</p>
