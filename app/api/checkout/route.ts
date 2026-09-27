@@ -8,6 +8,8 @@ import { calculateShippingCents, parseShippingRates } from "@/lib/shipping";
 import { getPickupPoint } from "@/lib/pickup";
 import type { CheckoutCustomer, FulfillmentMethod } from "@/lib/types";
 import { discountedUnitPriceCents } from "@/lib/quantity-discounts";
+import { CLICKER_PRODUCT, CLICKER_PRODUCT_ID } from "@/lib/clicker";
+import type { ClickerConfiguration } from "@/lib/types";
 
 interface CheckoutItem {
   productId: string;
@@ -16,6 +18,7 @@ interface CheckoutItem {
   color: string;
   customName?: string;
   keychainChoice?: string;
+  clickerConfiguration?: ClickerConfiguration;
 }
 
 interface CheckoutBody {
@@ -126,13 +129,13 @@ export async function POST(req: Request) {
     };
     quantity: number;
   }[] = [];
-  const metadataItems: { p: string; q: number; c: string; u: number; n?: string; v?: string; k?: string }[] = [];
+  const metadataItems: { p: string; q: number; c: string; u: number; n?: string; v?: string; k?: string; d?: string }[] = [];
   let subtotalCents = 0;
   let totalWeightGrams = 0;
   let missingBillableWeight = false;
 
   for (const item of items) {
-    const product = await getProductById(item.productId);
+    const product = item.productId === CLICKER_PRODUCT_ID ? CLICKER_PRODUCT : await getProductById(item.productId);
     if (!product || !product.active) {
       return NextResponse.json(
         { error: "Un article du panier n'est plus disponible." },
@@ -161,6 +164,10 @@ export async function POST(req: Request) {
     const customName = product.namePersonalizationEnabled
       ? normalizeCustomName(item.customName)
       : "";
+    const clicker = product.id === CLICKER_PRODUCT_ID ? item.clickerConfiguration : undefined;
+    if (product.id === CLICKER_PRODUCT_ID && (!clicker?.text || !clicker.baseColor || !clicker.capColor || !clicker.letterColor)) {
+      return NextResponse.json({ error: "La configuration du clicker est incomplète." }, { status: 400 });
+    }
     const keychainChoice = text(item.keychainChoice, 1);
     if (product.slug === "porte-canette-monster" && !["1", "2"].includes(keychainChoice)) {
       return NextResponse.json(
@@ -171,6 +178,10 @@ export async function POST(req: Request) {
     const optionParts = [
       variant?.name || "",
       publicColorName(item.color),
+      clicker ? `Texte : ${text(clicker.text, 14)}` : "",
+      clicker ? `Caps : ${text(clicker.capColor, 60)}` : "",
+      clicker ? `Lettres : ${text(clicker.letterColor, 60)}` : "",
+      clicker ? `Symbole : ${text(clicker.symbol || "aucun", 30)}` : "",
       customName ? `Prénom : ${customName}` : "",
       keychainChoice ? `Porte-clés offert : choix ${keychainChoice}` : "",
     ].filter(Boolean);
@@ -205,6 +216,7 @@ export async function POST(req: Request) {
       ...(customName ? { n: customName } : {}),
       ...(variant ? { v: variant.id } : {}),
       ...(keychainChoice ? { k: keychainChoice } : {}),
+      ...(clicker ? { d: JSON.stringify(clicker) } : {}),
     });
   }
 

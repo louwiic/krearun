@@ -1,12 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import type { InventoryColor } from "@/lib/types";
 import { publicColorName } from "@/lib/colors";
 import { formatPrice } from "@/lib/format";
+import { CLICKER_PRICE_CENTS, CLICKER_PRODUCT_ID } from "@/lib/clicker";
+import { useCart } from "@/components/cart/CartContext";
 
 const CHARACTER_COUNTS = Array.from({ length: 14 }, (_, index) => index + 1);
-const CLICKER_PRICE_CENTS = 1200;
 const SYMBOLS = [
   { value: "★", label: "Étoile" },
   { value: "♥", label: "Cœur" },
@@ -203,6 +204,7 @@ function ClickerSteps({ colors }: { colors: InventoryColor[] }) {
 }
 
 export default function ClickerConfigurator({ colors: inventoryColors }: { colors: InventoryColor[] }) {
+  const { addItem } = useCart();
   const colors = inventoryColors.length > 0 ? inventoryColors : FALLBACK_COLORS;
   const [characterCount, setCharacterCount] = useState(1);
   const [text, setText] = useState("");
@@ -214,20 +216,16 @@ export default function ClickerConfigurator({ colors: inventoryColors }: { color
 
   const price = CLICKER_PRICE_CENTS;
   const displayedText = (text || "KREA").slice(0, characterCount).toUpperCase();
-  const emailBody = useMemo(() => encodeURIComponent([
-    "Bonjour,",
-    "",
-    "Je souhaite commander un clicker personnalisé :",
-    `- ${characterCount} caractère(s) — ${formatPrice(price)}`,
-    `- Texte : ${displayedText}`,
-    `- Symbole : ${symbol ? SYMBOLS.find((item) => item.value === symbol)?.label : "Aucun"}`,
-    symbolNote.trim() ? `- Note symbole : ${symbolNote.trim()}` : "",
-    `- Base : ${publicColorName(baseColor.name)}`,
-    `- Capuchon : ${publicColorName(capColor.name)}`,
-    `- Lettres et symbole : ${publicColorName(letterColor.name)}`,
-    "",
-    "Merci !",
-  ].join("\n")), [baseColor.name, capColor.name, characterCount, displayedText, letterColor.name, price, symbol, symbolNote]);
+  const clickerConfiguration = {
+    text: displayedText,
+    characterCount,
+    symbol: symbol || undefined,
+    symbolNote: symbolNote.trim() || undefined,
+    baseColor: publicColorName(baseColor.name),
+    capColor: publicColorName(capColor.name),
+    letterColor: publicColorName(letterColor.name),
+  };
+  const configurationKey = `${characterCount}-${displayedText}-${symbol}-${symbolNote}-${baseColor.id}-${capColor.id}-${letterColor.id}`;
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
@@ -311,8 +309,8 @@ export default function ClickerConfigurator({ colors: inventoryColors }: { color
             <div className="flex justify-between gap-4"><dt>Caractères</dt><dd className="font-bold text-cream">{characterCount}</dd></div>
           </dl>
           <div className="mt-7 flex items-end justify-between border-t border-cream/20 pt-5"><span className="text-sm text-cream/70">À partir de</span><strong className="font-display text-4xl text-cream">{formatPrice(price)}</strong></div>
-          <a href={`mailto:contact@krearun.re?subject=${encodeURIComponent(`Clicker Studio — ${displayedText}`)}&body=${emailBody}`} className="mt-6 block w-full bg-terra px-5 py-4 text-center text-sm font-bold uppercase tracking-[0.08em] text-cream transition hover:bg-terra-deep">Demander ce clicker</a>
-          <p className="mt-4 text-center text-xs leading-5 text-cream/55">Nous confirmons la disponibilité des coloris et le délai de fabrication avant validation.</p>
+          <button type="button" onClick={() => addItem({ productId: CLICKER_PRODUCT_ID, slug: "clicker-studio", name: "Clicker Studio personnalisé", priceCents: price, color: clickerConfiguration.baseColor, customName: displayedText, variantId: `clicker-${configurationKey}`, variantName: `${characterCount} caractère(s) · Caps ${clickerConfiguration.capColor} · Lettres ${clickerConfiguration.letterColor}`, image: "/images/clicker-studio-product.png", stock: 999, weightGrams: 30, preorder: true, clickerConfiguration })} className="mt-6 block w-full bg-terra px-5 py-4 text-center text-sm font-bold uppercase tracking-[0.08em] text-cream transition hover:bg-terra-deep">Ajouter au panier — {formatPrice(price)}</button>
+          <p className="mt-4 text-center text-xs leading-5 text-cream/55">La configuration sera vérifiée avant fabrication.</p>
         </aside>
       </div>
     </div>

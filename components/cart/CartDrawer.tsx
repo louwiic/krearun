@@ -158,7 +158,7 @@ export default function CartDrawer({
                         )}
                       </div>
                       <button
-                        onClick={() => removeItem(item.productId, item.color, item.customName, item.variantId, item.keychainChoice)}
+                        onClick={() => removeItem(item.productId, item.color, item.customName, item.variantId, item.keychainChoice, item.clickerConfiguration)}
                         aria-label="Retirer l'article"
                         className="text-ink-faint transition-colors hover:text-terra"
                       >
@@ -177,7 +177,8 @@ export default function CartDrawer({
                               item.customName,
                               item.quantity - 1,
                               item.variantId,
-                              item.keychainChoice
+                              item.keychainChoice,
+                              item.clickerConfiguration
                             )
                           }
                           className="px-3 py-1 text-ink-soft hover:text-ink"
@@ -194,7 +195,8 @@ export default function CartDrawer({
                               item.customName,
                               item.quantity + 1,
                               item.variantId,
-                              item.keychainChoice
+                              item.keychainChoice,
+                              item.clickerConfiguration
                             )
                           }
                           className="px-3 py-1 text-ink-soft hover:text-ink disabled:opacity-30"

@@ -16,6 +16,8 @@ import {
 } from "@/lib/email";
 import type { CheckoutCustomer, OrderItem } from "@/lib/types";
 import { CUSTOM_LETTER_PRICE_CENTS, parseLetterConfiguration } from "@/lib/custom-letter-settings";
+import { CLICKER_PRODUCT, CLICKER_PRODUCT_ID } from "@/lib/clicker";
+import type { ClickerConfiguration } from "@/lib/types";
 
 function metadataCustomer(session: Stripe.Checkout.Session): CheckoutCustomer | null {
   const metadata = session.metadata ?? {};
@@ -74,7 +76,7 @@ export async function POST(req: Request) {
     }
 
     const raw = session.metadata?.items;
-    const parsed: { p: string; q: number; c: string; u?: number; n?: string; v?: string; k?: string }[] = raw
+    const parsed: { p: string; q: number; c: string; u?: number; n?: string; v?: string; k?: string; d?: string }[] = raw
       ? JSON.parse(raw)
       : [];
 
@@ -89,8 +91,12 @@ export async function POST(req: Request) {
       });
     }
     for (const it of parsed) {
-      const product = await getProductById(it.p);
+      const product = it.p === CLICKER_PRODUCT_ID ? CLICKER_PRODUCT : await getProductById(it.p);
       const variant = product?.variants.find((candidate) => candidate.id === it.v);
+      let clickerConfiguration: ClickerConfiguration | undefined;
+      if (it.d) {
+        try { clickerConfiguration = JSON.parse(it.d) as ClickerConfiguration; } catch { clickerConfiguration = undefined; }
+      }
       items.push({
         productId: it.p,
         name: product?.name ?? "Article",
@@ -106,6 +112,7 @@ export async function POST(req: Request) {
         variantId: variant?.id,
         variantName: variant?.name,
         keychainChoice: it.k,
+        clickerConfiguration,
         image: variant?.image || product?.images[0] || "",
       });
     }

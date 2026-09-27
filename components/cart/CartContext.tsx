@@ -21,14 +21,15 @@ interface CartContextValue {
   openCart: () => void;
   closeCart: () => void;
   addItem: (item: Omit<CartItem, "quantity">, quantity?: number) => void;
-  removeItem: (productId: string, color: string, customName?: string, variantId?: string, keychainChoice?: string) => void;
+  removeItem: (productId: string, color: string, customName?: string, variantId?: string, keychainChoice?: string, clickerConfiguration?: CartItem["clickerConfiguration"]) => void;
   setQuantity: (
     productId: string,
     color: string,
     customName: string | undefined,
     quantity: number,
     variantId?: string,
-    keychainChoice?: string
+    keychainChoice?: string,
+    clickerConfiguration?: CartItem["clickerConfiguration"]
   ) => void;
   clearCart: () => void;
 }
@@ -42,19 +43,21 @@ function maxQuantity(item: Pick<CartItem, "stock" | "preorder">) {
 }
 
 function sameLine(
-  item: Pick<CartItem, "productId" | "color" | "customName" | "variantId" | "keychainChoice">,
+  item: Pick<CartItem, "productId" | "color" | "customName" | "variantId" | "keychainChoice" | "clickerConfiguration">,
   productId: string,
   color: string,
   customName?: string,
   variantId?: string,
-  keychainChoice?: string
+  keychainChoice?: string,
+  clickerConfiguration?: CartItem["clickerConfiguration"]
 ) {
   return (
     item.productId === productId &&
     item.color === color &&
     (item.customName ?? "") === (customName ?? "") &&
     (item.variantId ?? "") === (variantId ?? "") &&
-    (item.keychainChoice ?? "") === (keychainChoice ?? "")
+    (item.keychainChoice ?? "") === (keychainChoice ?? "") &&
+    JSON.stringify(item.clickerConfiguration ?? null) === JSON.stringify(clickerConfiguration ?? null)
   );
 }
 
@@ -98,7 +101,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     (item: Omit<CartItem, "quantity">, quantity = 1) => {
       setItems((prev) => {
         const existing = prev.find(
-          (i) => sameLine(i, item.productId, item.color, item.customName, item.variantId, item.keychainChoice)
+          (i) => sameLine(i, item.productId, item.color, item.customName, item.variantId, item.keychainChoice, item.clickerConfiguration)
         );
         if (existing) {
           return prev.map((i) =>
@@ -118,19 +121,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
     []
   );
 
-  const removeItem = useCallback((productId: string, color: string, customName?: string, variantId?: string, keychainChoice?: string) => {
+  const removeItem = useCallback((productId: string, color: string, customName?: string, variantId?: string, keychainChoice?: string, clickerConfiguration?: CartItem["clickerConfiguration"]) => {
     setItems((prev) =>
-      prev.filter((i) => !sameLine(i, productId, color, customName, variantId, keychainChoice))
+      prev.filter((i) => !sameLine(i, productId, color, customName, variantId, keychainChoice, clickerConfiguration))
     );
   }, []);
 
   const setQuantity = useCallback(
-    (productId: string, color: string, customName: string | undefined, quantity: number, variantId?: string, keychainChoice?: string) => {
+    (productId: string, color: string, customName: string | undefined, quantity: number, variantId?: string, keychainChoice?: string, clickerConfiguration?: CartItem["clickerConfiguration"]) => {
       setItems((prev) =>
         quantity <= 0
-          ? prev.filter((i) => !sameLine(i, productId, color, customName, variantId, keychainChoice))
+          ? prev.filter((i) => !sameLine(i, productId, color, customName, variantId, keychainChoice, clickerConfiguration))
           : prev.map((i) =>
-              sameLine(i, productId, color, customName, variantId, keychainChoice)
+              sameLine(i, productId, color, customName, variantId, keychainChoice, clickerConfiguration)
                 ? { ...i, quantity: Math.min(quantity, maxQuantity(i)) }
                 : i
             )

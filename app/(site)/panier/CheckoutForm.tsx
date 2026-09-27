@@ -118,6 +118,7 @@ export default function CheckoutForm({
             customName: item.customName,
             variantId: item.variantId,
             keychainChoice: item.keychainChoice,
+            clickerConfiguration: item.clickerConfiguration,
           })),
         }),
       });
@@ -396,7 +397,7 @@ export default function CheckoutForm({
                   </div>
                   <button
                     type="button"
-                    onClick={() => removeItem(item.productId, item.color, item.customName, item.variantId, item.keychainChoice)}
+                    onClick={() => removeItem(item.productId, item.color, item.customName, item.variantId, item.keychainChoice, item.clickerConfiguration)}
                     className="text-sm text-ink-faint hover:text-terra"
                   >
                     Retirer
@@ -413,7 +414,8 @@ export default function CheckoutForm({
                           item.customName,
                           item.quantity - 1,
                           item.variantId,
-                          item.keychainChoice
+                          item.keychainChoice,
+                          item.clickerConfiguration
                         )
                       }
                       className="px-3 py-1 text-ink-soft hover:text-ink"
@@ -432,7 +434,8 @@ export default function CheckoutForm({
                           item.customName,
                           item.quantity + 1,
                           item.variantId,
-                          item.keychainChoice
+                          item.keychainChoice,
+                          item.clickerConfiguration
                         )
                       }
                       disabled={item.quantity >= (item.preorder ? 20 : item.stock)}

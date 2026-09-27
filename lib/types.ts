@@ -29,6 +29,16 @@ export interface ProductVariant {
   colors?: ProductColor[];
 }
 
+export interface ClickerConfiguration {
+  text: string;
+  characterCount: number;
+  symbol?: string;
+  symbolNote?: string;
+  baseColor: string;
+  capColor: string;
+  letterColor: string;
+}
+
 export interface QuantityDiscount {
   minQuantity: number;
   percent: number;
@@ -110,6 +120,7 @@ export const ORDER_STATUSES: { value: OrderStatus; label: string }[] = [
 
 export interface OrderItem {
   letterConfiguration?: LetterConfiguration;
+  clickerConfiguration?: ClickerConfiguration;
   productId: string;
   name: string;
   priceCents: number;
@@ -210,6 +221,7 @@ export interface Settings {
 }
 
 export interface CartItem {
+  clickerConfiguration?: ClickerConfiguration;
   productId: string;
   slug: string;
   name: string;
