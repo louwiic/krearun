@@ -53,7 +53,13 @@ async function withInbox<T>(callback: (client: ImapFlow) => Promise<T>): Promise
     const detail = error instanceof Error && error.message
       ? error.message
       : "le serveur a refusé la commande IMAP";
-    throw new Error(`IMAP — ${phase} : ${detail}`);
+    const code = typeof error === "object" && error && "code" in error
+      ? String(error.code)
+      : "";
+    const response = typeof error === "object" && error && "response" in error
+      ? String((error.response as { text?: string } | undefined)?.text || "")
+      : "";
+    throw new Error(`IMAP — ${phase} : ${detail}${code ? ` [${code}]` : ""}${response ? ` — ${response}` : ""}`);
   } finally {
     await client.logout().catch(() => undefined);
   }
