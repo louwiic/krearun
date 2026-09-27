@@ -231,18 +231,30 @@ export default function ClickerConfigurator({ colors: inventoryColors }: { color
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
       <section className="overflow-hidden border-2 border-ink bg-[#fff8e8] shadow-hard-terra">
-        <div className="px-6 py-10 sm:px-12 lg:py-14">
+        <div className="grid items-center gap-8 px-6 py-10 sm:px-12 lg:grid-cols-[minmax(0,1fr)_330px] lg:py-14">
           <div>
             <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-terra">KreaRun Studio · sur mesure</p>
             <h1 className="font-display text-5xl uppercase leading-[0.9] sm:text-7xl">Clicker<br /><span className="text-terra">Studio</span></h1>
             <p className="mt-5 max-w-xl text-base leading-7 text-ink-soft sm:text-lg">Compose ton clicker personnalisé : choisis le nombre de caractères, les couleurs disponibles à l’atelier et ton symbole préféré.</p>
           </div>
+          <div className="mx-auto aspect-square w-full max-w-[330px] overflow-hidden border-2 border-ink bg-white shadow-hard">
+            <img src="/images/clicker-studio-product.png" alt="Clickers personnalisés KreaRun" className="h-full w-full object-cover" />
+          </div>
         </div>
       </section>
 
       <section className="mt-8 grid gap-5 lg:grid-cols-[minmax(0,1.55fr)_minmax(280px,0.7fr)]" aria-label="Exemples et étapes de personnalisation">
-        <div className="flex h-[300px] items-center justify-center overflow-hidden border-2 border-ink bg-white shadow-soft sm:h-[440px]">
-          <img src="/images/clicker-studio-product.png" alt="Exemples de clickers personnalisés KreaRun" className="block h-full w-auto max-w-full object-contain" />
+        <div className="relative flex h-[300px] items-center justify-center overflow-hidden border-2 border-ink bg-black shadow-soft sm:h-[440px]">
+          <video className="h-full w-full object-cover" src="/videos/demo_clicker.mp4" poster="/images/clicker-studio-product.png" autoPlay muted loop playsInline controls />
+          <div className="pointer-events-none absolute left-4 top-4 flex -rotate-2 items-center gap-3 rounded-2xl border-2 border-cream bg-terra px-4 py-3 text-cream shadow-[4px_4px_0_rgba(22,19,15,.8)] sm:left-6 sm:top-6">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-cream text-xl text-ink">🔊</span>
+            <span className="leading-none"><strong className="block font-display text-xl uppercase tracking-wide sm:text-2xl">Click · Click</strong><small className="mt-1 block text-[10px] font-bold uppercase tracking-[0.14em] text-cream/90 sm:text-xs">Monte le son !</small></span>
+            <span className="relative ml-1 flex h-5 w-5"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-cream opacity-60" /><span className="relative inline-flex h-5 w-5 rounded-full bg-cream" /></span>
+          </div>
+          <div className="pointer-events-none absolute bottom-4 left-1/2 flex -translate-x-1/2 flex-col items-center rounded-full bg-ink/80 px-5 py-2 text-center text-xs font-bold uppercase tracking-[0.12em] text-cream shadow-lg">
+            <span>Descends pour personnaliser le tien</span>
+            <span className="mt-1 animate-bounce text-2xl leading-5 text-terra">↓</span>
+          </div>
         </div>
         <ClickerSteps colors={colors} />
       </section>
