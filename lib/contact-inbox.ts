@@ -14,9 +14,11 @@ export type ContactMessage = {
 };
 
 function config() {
-  const host = process.env.CONTACT_IMAP_HOST?.trim();
-  const user = process.env.CONTACT_IMAP_USER?.trim();
-  const password = process.env.CONTACT_IMAP_PASSWORD;
+  // Réutilise les identifiants SMTP existants si aucun réglage IMAP dédié
+  // n'est défini : il s'agit de la même boîte de messagerie.
+  const host = (process.env.CONTACT_IMAP_HOST || process.env.SMTP_HOST)?.trim();
+  const user = (process.env.CONTACT_IMAP_USER || process.env.SMTP_USER)?.trim();
+  const password = process.env.CONTACT_IMAP_PASSWORD || process.env.SMTP_PASSWORD;
   if (!host || !user || !password) return null;
   return {
     host,
