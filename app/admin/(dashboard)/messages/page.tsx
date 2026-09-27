@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getContactMessage, getContactMessages, isContactInboxConfigured } from "@/lib/contact-inbox";
+import { sendContactReplyAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -14,9 +15,9 @@ function dateLabel(value: string) {
 export default async function AdminMessagesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ uid?: string }>;
+  searchParams: Promise<{ uid?: string; sent?: string; error?: string }>;
 }) {
-  const { uid } = await searchParams;
+  const { uid, sent, error: queryError } = await searchParams;
   const configured = isContactInboxConfigured();
   let error = "";
   let messages: Awaited<ReturnType<typeof getContactMessages>> = [];
@@ -75,6 +76,8 @@ export default async function AdminMessagesPage({
           <section className="min-h-80 rounded-blob bg-white p-6 shadow-soft">
             {selected ? (
               <>
+                {sent ? <p className="mb-4 rounded-xl bg-sage/20 px-4 py-3 text-sm font-semibold text-sage-deep">Réponse envoyée.</p> : null}
+                {queryError ? <p className="mb-4 rounded-xl bg-blush/20 px-4 py-3 text-sm font-semibold text-terra-deep">La réponse n’a pas pu être envoyée.</p> : null}
                 <h2 className="font-display text-2xl font-semibold">{selected.subject}</h2>
                 <dl className="mt-4 space-y-1 border-b border-sand/60 pb-4 text-xs text-ink-soft">
                   <div><dt className="inline font-bold">De :</dt> <dd className="inline">{selected.from}</dd></div>
@@ -82,6 +85,14 @@ export default async function AdminMessagesPage({
                   <div><dt className="inline font-bold">Date :</dt> <dd className="inline">{dateLabel(selected.date)}</dd></div>
                 </dl>
                 <div className="mt-5 whitespace-pre-wrap text-sm leading-7 text-ink">{selected.text || "(Message sans contenu texte)"}</div>
+                <form action={sendContactReplyAction} className="mt-7 border-t border-sand/60 pt-5">
+                  <input type="hidden" name="uid" value={selected.uid} />
+                  <input type="hidden" name="to" value={selected.fromEmail} />
+                  <input type="hidden" name="subject" value={selected.subject} />
+                  <label htmlFor="reply-text" className="mb-2 block text-sm font-bold">Répondre à ce message</label>
+                  <textarea id="reply-text" name="text" required rows={6} placeholder="Votre réponse…" className="w-full resize-y rounded-2xl border border-sand bg-linen px-4 py-3 text-sm outline-none focus:border-terra" />
+                  <button type="submit" className="mt-3 rounded-full bg-terra px-5 py-3 text-sm font-bold text-cream transition hover:bg-terra-deep">Envoyer la réponse</button>
+                </form>
               </>
             ) : <p className="text-sm text-ink-soft">Sélectionnez un message pour le lire.</p>}
           </section>

@@ -2,11 +2,13 @@ import "server-only";
 
 import { ImapFlow } from "imapflow";
 import { simpleParser, type ParsedMail } from "mailparser";
+import nodemailer from "nodemailer";
 
 export type ContactMessage = {
   uid: number;
   subject: string;
   from: string;
+  fromEmail: string;
   to: string;
   date: string;
   text: string;
@@ -50,10 +52,14 @@ async function withInbox<T>(callback: (client: ImapFlow) => Promise<T>): Promise
 }
 
 function toMessage(uid: number, parsed: ParsedMail, flags?: Set<string>): ContactMessage {
+  const addressEntries = (Array.isArray(parsed.from) ? parsed.from : parsed.from?.value ?? []).flatMap((entry) =>
+    "value" in entry ? entry.value : [entry],
+  );
   return {
     uid,
     subject: parsed.subject || "(Sans objet)",
     from: addresses(parsed.from),
+    fromEmail: addressEntries.find((entry) => entry.address)?.address || "",
     to: addresses(parsed.to),
     date: (parsed.date || new Date()).toISOString(),
     text: (parsed.text || "").trim(),
@@ -89,4 +95,14 @@ export async function getContactMessage(uid: number): Promise<ContactMessage | n
 
 export function isContactInboxConfigured(): boolean {
   return Boolean(config());
+}
+
+export async function sendContactReply(to: string, subject: string, text: string): Promise<void> {
+  const host = process.env.SMTP_HOST?.trim();
+  const user = process.env.SMTP_USER?.trim();
+  const password = process.env.SMTP_PASSWORD;
+  const port = Number(process.env.SMTP_PORT || 465);
+  if (!host || !user || !password) throw new Error("SMTP non configuré.");
+  const transporter = nodemailer.createTransport({ host, port, secure: port === 465, auth: { user, pass: password } });
+  await transporter.sendMail({ from: user, to, subject, text });
 }
