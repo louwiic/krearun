@@ -1,6 +1,6 @@
 [
   {
-    "name": "PLA rose fluo",
+    "name": "rose fluo",
     "hex": "#ff2f7d",
     "stockGrams": 1000,
     "active": true,
@@ -8,7 +8,7 @@
     "sortOrder": 10
   },
   {
-    "name": "PLA gris clair",
+    "name": "gris clair",
     "hex": "#9aa8ad",
     "stockGrams": 1000,
     "active": true,
@@ -16,7 +16,7 @@
     "sortOrder": 20
   },
   {
-    "name": "PLA orange fluo",
+    "name": "orange fluo",
     "hex": "#ff5a00",
     "stockGrams": 1000,
     "active": true,
@@ -24,7 +24,7 @@
     "sortOrder": 30
   },
   {
-    "name": "PLA bois clair",
+    "name": "bois clair",
     "hex": "#c49a63",
     "stockGrams": 1000,
     "active": true,
@@ -32,7 +32,7 @@
     "sortOrder": 40
   },
   {
-    "name": "PLA cuivre",
+    "name": "cuivre",
     "hex": "#a96b2f",
     "stockGrams": 1000,
     "active": true,
@@ -40,7 +40,7 @@
     "sortOrder": 50
   },
   {
-    "name": "PLA jaune",
+    "name": "jaune",
     "hex": "#ffd600",
     "stockGrams": 1000,
     "active": true,
@@ -48,7 +48,7 @@
     "sortOrder": 60
   },
   {
-    "name": "PLA turquoise",
+    "name": "turquoise",
     "hex": "#00c8b8",
     "stockGrams": 1000,
     "active": true,
@@ -56,7 +56,7 @@
     "sortOrder": 70
   },
   {
-    "name": "PLA menthe",
+    "name": "menthe",
     "hex": "#bcefe3",
     "stockGrams": 1000,
     "active": true,
@@ -64,7 +64,7 @@
     "sortOrder": 80
   },
   {
-    "name": "PLA paillete rose",
+    "name": "paillete rose",
     "hex": "#d4a0c2",
     "stockGrams": 1000,
     "active": true,
@@ -72,7 +72,7 @@
     "sortOrder": 90
   },
   {
-    "name": "PLA bleu",
+    "name": "bleu",
     "hex": "#0056d6",
     "stockGrams": 1000,
     "active": true,
@@ -80,7 +80,7 @@
     "sortOrder": 100
   },
   {
-    "name": "PLA noir",
+    "name": "noir",
     "hex": "#111111",
     "stockGrams": 1000,
     "active": true,
@@ -88,7 +88,7 @@
     "sortOrder": 110
   },
   {
-    "name": "PLA blanc translucide",
+    "name": "blanc translucide",
     "hex": "#f1f4ef",
     "stockGrams": 1000,
     "active": true,

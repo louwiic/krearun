@@ -31,7 +31,7 @@ export default async function InventairePage() {
         <form action={saveInventoryColorAction} className="grid gap-5 md:grid-cols-[1.2fr_0.8fr_0.8fr_0.7fr]">
           <label>
             <span className={label}>Nom</span>
-            <input name="name" required className={field} placeholder="PLA rose fluo" />
+            <input name="name" required className={field} placeholder="rose fluo" />
           </label>
           <label>
             <span className={label}>Couleur</span>
