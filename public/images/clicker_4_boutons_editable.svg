@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="600" viewBox="0 0 1200 600">
+  <defs>
+    <linearGradient id="baseTop" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7350a5"/>
+      <stop offset="1" stop-color="#65448f"/>
+    </linearGradient>
+    <linearGradient id="baseFront" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#684796"/>
+      <stop offset="1" stop-color="#583b82"/>
+    </linearGradient>
+    <linearGradient id="buttonTop" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#805bb4"/>
+      <stop offset="1" stop-color="#6c4a9d"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-30%" width="150%" height="170%">
+      <feDropShadow dx="0" dy="14" stdDeviation="13" flood-color="#000" flood-opacity=".22"/>
+    </filter>
+  </defs>
+
+  <!-- Background: delete this rect for transparency -->
+  <rect id="background" width="1200" height="600" fill="#eeeeef"/>
+
+  <g id="clicker" filter="url(#shadow)">
+    <!-- Cable -->
+    <path id="cable" d="M0 355 C65 354 83 360 126 362" fill="none" stroke="#171717" stroke-width="8" stroke-linecap="round"/>
+
+    <!-- BASE: change fills here -->
+    <g id="base">
+      <path id="base-front" d="M125 314 L1085 314 L1085 460 Q1085 482 1063 488 L151 488 Q125 486 125 462 Z"
+            fill="url(#baseFront)"/>
+      <path id="base-top" d="M125 314 L168 275 L1045 275 L1085 314 L1046 353 L165 353 Z"
+            fill="url(#baseTop)"/>
+      <path id="slot-shadow" d="M155 309 L1055 309 L1042 338 L169 338 Z" fill="#2f2341" opacity=".85"/>
+      <path id="base-highlight" d="M142 326 L142 452 Q142 468 159 470" fill="none"
+            stroke="#8262ad" stroke-width="6" opacity=".35"/>
+    </g>
+
+    <!-- BUTTONS: each button is an independent editable group -->
+    <g id="buttons">
+      <g id="button-1">
+        <path d="M174 286 L330 286 L349 305 L337 348 Q333 365 315 369 L190 369 Q173 367 168 351 L157 307 Z"
+              fill="#5b3e82" opacity=".65"/>
+        <path d="M174 211 Q178 188 201 181 L302 181 Q325 187 330 211 L337 306 Q338 326 317 334 L188 334 Q167 328 168 307 Z"
+              fill="url(#buttonTop)"/>
+        <path d="M184 208 Q188 196 203 191 L299 191 Q313 195 318 208" fill="none" stroke="#9372c2" stroke-width="6" opacity=".45"/>
+      </g>
+
+      <g id="button-2">
+        <path d="M393 286 L549 286 L568 305 L556 348 Q552 365 534 369 L409 369 Q392 367 387 351 L376 307 Z"
+              fill="#5b3e82" opacity=".65"/>
+        <path d="M393 211 Q397 188 420 181 L521 181 Q544 187 549 211 L556 306 Q557 326 536 334 L407 334 Q386 328 387 307 Z"
+              fill="url(#buttonTop)"/>
+        <path d="M403 208 Q407 196 422 191 L518 191 Q532 195 537 208" fill="none" stroke="#9372c2" stroke-width="6" opacity=".45"/>
+      </g>
+
+      <g id="button-3">
+        <path d="M612 286 L768 286 L787 305 L775 348 Q771 365 753 369 L628 369 Q611 367 606 351 L595 307 Z"
+              fill="#5b3e82" opacity=".65"/>
+        <path d="M612 211 Q616 188 639 181 L740 181 Q763 187 768 211 L775 306 Q776 326 755 334 L626 334 Q605 328 606 307 Z"
+              fill="url(#buttonTop)"/>
+        <path d="M622 208 Q626 196 641 191 L737 191 Q751 195 756 208" fill="none" stroke="#9372c2" stroke-width="6" opacity=".45"/>
+      </g>
+
+      <g id="button-4">
+        <path d="M831 286 L987 286 L1006 305 L994 348 Q990 365 972 369 L847 369 Q830 367 825 351 L814 307 Z"
+              fill="#5b3e82" opacity=".65"/>
+        <path d="M831 211 Q835 188 858 181 L959 181 Q982 187 987 211 L994 306 Q995 326 974 334 L845 334 Q824 328 825 307 Z"
+              fill="url(#buttonTop)"/>
+        <path d="M841 208 Q845 196 860 191 L956 191 Q970 195 975 208" fill="none" stroke="#9372c2" stroke-width="6" opacity=".45"/>
+      </g>
+    </g>
+  </g>
+</svg>

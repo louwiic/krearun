@@ -14,6 +14,7 @@ export default function Navbar({ categories }: { categories: StoreCategory[] }) 
   const links = [
     { href: "/boutique", label: "Boutique" },
     { href: "/lettre-personnalisee", label: "Lettre personnalisée" },
+    { href: "/clicker-studio", label: "Clicker Studio" },
     ...categories
       .filter((category) => category.value === "veilleuses")
       .map((category) => ({
