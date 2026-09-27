@@ -259,7 +259,7 @@ export default function ClickerConfigurator({ colors: inventoryColors }: { color
             <div>
             <label htmlFor="clicker-count" className="mb-2 block text-sm font-bold uppercase tracking-[0.08em] text-ink-soft">Nombre de caractères (lettres + symboles)</label>
             <select id="clicker-count" value={characterCount} onChange={(event) => { const count = Number(event.target.value); setCharacterCount(count); setText((current) => current.slice(0, count)); }} className="w-full rounded-lg border-2 border-sand bg-white px-4 py-3 text-lg outline-none focus:border-terra">
-              {CHARACTER_COUNTS.map((count) => <option key={count} value={count}>{count} ({formatPrice(CLICKER_PRICE_CENTS)})</option>)}
+              {CHARACTER_COUNTS.map((count) => <option key={count} value={count}>{count}</option>)}
             </select>
             </div>
 
