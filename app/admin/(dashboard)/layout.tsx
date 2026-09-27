@@ -12,6 +12,7 @@ const nav = [
   { href: "/admin/calculateur", label: "Calculateur", icon: "🧮" },
   { href: "/admin/generateur-3d", label: "Prénoms 3D", icon: "✍️" },
   { href: "/admin/commandes", label: "Commandes", icon: "📦" },
+  { href: "/admin/messages", label: "Messages", icon: "✉️" },
   { href: "/admin/codes-promo", label: "Codes promo", icon: "🏷️" },
   { href: "/admin/clients", label: "Clients", icon: "👥" },
   { href: "/admin/avis", label: "Avis", icon: "⭐" },
