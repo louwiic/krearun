@@ -56,10 +56,17 @@ async function withInbox<T>(callback: (client: ImapFlow) => Promise<T>): Promise
     const code = typeof error === "object" && error && "code" in error
       ? String(error.code)
       : "";
+    const responseStatus = typeof error === "object" && error && "responseStatus" in error
+      ? String(error.responseStatus || "")
+      : "";
+    const responseText = typeof error === "object" && error && "responseText" in error
+      ? String(error.responseText || "")
+      : "";
     const response = typeof error === "object" && error && "response" in error
       ? String((error.response as { text?: string } | undefined)?.text || "")
       : "";
-    throw new Error(`IMAP — ${phase} : ${detail}${code ? ` [${code}]` : ""}${response ? ` — ${response}` : ""}`);
+    const diagnostic = [code, responseStatus, responseText, response].filter(Boolean).join(" · ");
+    throw new Error(`IMAP — ${phase} : ${detail}${diagnostic ? ` [${diagnostic}]` : ""}`);
   } finally {
     await client.logout().catch(() => undefined);
   }
