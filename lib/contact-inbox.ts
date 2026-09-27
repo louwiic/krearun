@@ -42,10 +42,18 @@ async function withInbox<T>(callback: (client: ImapFlow) => Promise<T>): Promise
   const options = config();
   if (!options) throw new Error("Boîte contact non configurée dans Coolify.");
   const client = new ImapFlow(options);
-  await client.connect();
+  let phase = "connexion au serveur IMAP";
   try {
+    await client.connect();
+    phase = `ouverture de ${options.mailbox}`;
     await client.mailboxOpen(options.mailbox, { readOnly: true });
+    phase = "lecture des messages";
     return await callback(client);
+  } catch (error) {
+    const detail = error instanceof Error && error.message
+      ? error.message
+      : "le serveur a refusé la commande IMAP";
+    throw new Error(`IMAP — ${phase} : ${detail}`);
   } finally {
     await client.logout().catch(() => undefined);
   }
