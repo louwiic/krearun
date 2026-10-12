@@ -58,7 +58,7 @@ const collections = [
         name: "category",
         type: "select",
         maxSelect: 1,
-        values: ["veilleuses", "vases", "bureau", "rangement", "deco"],
+        values: ["veilleuses", "vases", "bureau", "rangement", "salle-de-bain", "deco", "porte-boisson"],
       },
       { name: "images", type: "json" },
       { name: "videoUrl", type: "text" },
