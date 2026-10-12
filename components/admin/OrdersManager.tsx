@@ -30,6 +30,7 @@ import {
 } from "@/lib/order-management";
 import { formatPrice } from "@/lib/format";
 import type { Order } from "@/lib/types";
+import type { OrderColorCatalog } from "@/lib/order-colors";
 import {
   paymentStatusStyle,
   productionStatusStyle,
@@ -418,9 +419,11 @@ function StatusChangeDialog({
 export default function OrdersManager({
   orders,
   initialMonth,
+  colorCatalog,
 }: {
   orders: Order[];
   initialMonth: string;
+  colorCatalog?: OrderColorCatalog;
 }) {
   const [search, setSearch] = useState("");
   const [statuses, setStatuses] = useState<string[]>([
@@ -1030,6 +1033,7 @@ export default function OrdersManager({
       )}
       {paginationControls("haut")}
       <OrdersTableView
+        colorCatalog={colorCatalog}
         table={table}
         orders={pagination.items}
         selected={selected}
@@ -1061,6 +1065,7 @@ export default function OrdersManager({
         )}
       />
       <OrderDetailsDialog
+        colorCatalog={colorCatalog}
         order={detailsOrder}
         onClose={() => setDetailsId(null)}
       />

@@ -1,13 +1,17 @@
 import type { OrderItem } from "@/lib/types";
 import { orderItemDetails } from "@/lib/order-details";
 import { formatPrice } from "@/lib/format";
+import { isOrderColorDetail, type OrderColorCatalog } from "@/lib/order-colors";
+import OrderColorName from "./OrderColorName";
 
 export default function OrderItems({
   items,
   compact = false,
+  colorCatalog,
 }: {
   items: OrderItem[];
   compact?: boolean;
+  colorCatalog?: OrderColorCatalog;
 }) {
   return (
     <ul className="space-y-4">
@@ -20,7 +24,9 @@ export default function OrderItems({
             {orderItemDetails(item).map((detail) => (
               <div key={detail.label}>
                 <dt className="inline font-semibold">{detail.label} : </dt>
-                <dd className="inline whitespace-pre-wrap">{detail.value}</dd>
+                <dd className="inline whitespace-pre-wrap">{isOrderColorDetail(detail.label)
+                  ? <OrderColorName name={detail.value} item={item} catalog={colorCatalog} />
+                  : detail.value}</dd>
               </div>
             ))}
           </dl>

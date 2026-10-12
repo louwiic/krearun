@@ -12,6 +12,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import * as management from "../lib/order-management.ts";
 import * as details from "../lib/order-details.ts";
+import * as orderColors from "../lib/order-colors.ts";
 import * as format from "../lib/format.ts";
 import * as style from "../lib/order-status-style.ts";
 import { paginateRows, togglePageSelection } from "../lib/order-list.ts";
@@ -236,15 +237,18 @@ test("description, search and export text retain product options even with a man
 });
 
 const sharedMocks = {
+  "@/lib/order-colors": orderColors,
   "@/lib/order-details": details,
   "@/lib/format": format,
   "@/lib/order-management": management,
   "@/lib/order-status-style": style,
   "next/link": ({ children, ...props }) => createElement("a", props, children),
 };
+sharedMocks["./OrderColorName"] = load("../components/admin/OrderColorName.tsx", sharedMocks);
 const itemsModule = load("../components/admin/OrderItems.tsx", sharedMocks);
 const dialogMocks = {
   ...sharedMocks,
+  "./ResendShippingEmail": () => null,
   "./OrderItems": itemsModule,
   "./OrderEmailComposer": ({ order }) =>
     createElement("div", null, `Envoyer un e-mail à ${order.email}`),
@@ -274,6 +278,22 @@ function renderOrdersTable(records, extra = {}) {
     }),
   );
 }
+
+test("order rows show inventory swatches for every clicker part and product colors", () => {
+  const markup = renderOrdersTable([order("id1", {
+    items: [{
+      productId: "clicker-studio", name: "Clicker", quantity: 1, priceCents: 1200,
+      color: "bleu", image: "",
+      clickerConfiguration: { text: "MANUA", baseColor: "bleu", capColor: "Blanc", letterColor: "Bleu Galaxy" },
+    }],
+  })], { colorCatalog: {
+    products: {}, inventory: [{ name: "bleu", hex: "#0155bb" }, { name: "Blanc", hex: "#ffffff" }, { name: "Bleu Galaxy", hex: "#14253f" }],
+  } });
+  assert.equal((markup.match(/data-color-swatch=/g) ?? []).length, 4);
+  assert.ok(markup.includes('data-color-swatch="#14253f"'));
+  assert.ok(markup.includes('data-color-swatch="#0155bb"'));
+  assert.ok(markup.includes("Bleu Galaxy"));
+});
 
 test("shipped orders show a safe La Poste tracking link directly below their status", () => {
   const markup = renderOrdersTable([

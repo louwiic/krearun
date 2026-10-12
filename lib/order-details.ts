@@ -16,6 +16,8 @@ export function orderItemDetails(item: OrderItem) {
     ] : []),
     ...(item.letterConfiguration ? [
       { label: "Initiale", value: item.letterConfiguration.initial },
+      { label: "Couleur de la lettre", value: item.letterConfiguration.baseColor },
+      { label: "Couleur du prénom", value: item.letterConfiguration.nameColor },
       { label: "Hauteur", value: `${item.letterConfiguration.height} mm` },
       { label: "Largeur du prénom", value: `${item.letterConfiguration.nameWidth} %` },
       { label: "Position verticale", value: `${item.letterConfiguration.position} %` },

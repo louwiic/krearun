@@ -15,8 +15,10 @@ import { formatPrice } from "@/lib/format";
 import { formatOrderDate } from "@/lib/order-details";
 import { productionStatusStyle } from "@/lib/order-status-style";
 import OrderItems from "./OrderItems";
+import type { OrderColorCatalog } from "@/lib/order-colors";
 
 type Props = {
+  colorCatalog?: OrderColorCatalog;
   table: Table<Order>;
   orders: Order[];
   selected: string[];
@@ -32,6 +34,7 @@ const button =
   "rounded-full border border-sand bg-cream px-3 py-2 text-sm font-semibold hover:bg-linen";
 
 export default function OrdersTableView({
+  colorCatalog,
   table,
   orders,
   selected,
@@ -100,7 +103,7 @@ export default function OrdersTableView({
             {order.description && (
               <p className="whitespace-pre-wrap">{order.description}</p>
             )}
-            <OrderItems items={order.items} compact />
+            <OrderItems items={order.items} compact colorCatalog={colorCatalog} />
             {!order.items.length && !order.description && (
               <p className="text-ink-soft">Non renseignée</p>
             )}

@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { isAdmin } from "@/lib/auth";
 import StatusBadge from "@/components/admin/StatusBadge";
 import { updateOrderStatusAction } from "@/app/admin/actions";
-import { getOrderById, getColissimoShipment } from "@/lib/store";
+import { getOrderById, getColissimoShipment, getProducts, getInventoryColors } from "@/lib/store";
 import { colissimoConfig } from "@/lib/colissimo-server";
 import { orderDateKey } from "@/lib/order-list";
 import ColissimoPanel from "@/components/admin/ColissimoPanel";
@@ -11,6 +11,8 @@ import { formatDate, formatPrice } from "@/lib/format";
 import { ORDER_SOURCES, PAYMENT_STATUSES, PRODUCTION_STATUSES, productionStatus, remainingCents } from "@/lib/order-management";
 import OrderEmailComposer from "@/components/admin/OrderEmailComposer";
 import { orderItemDetails } from "@/lib/order-details";
+import { buildOrderColorCatalog, isOrderColorDetail } from "@/lib/order-colors";
+import OrderColorName from "@/components/admin/OrderColorName";
 
 export const dynamic = "force-dynamic";
 
@@ -23,6 +25,10 @@ export default async function CommandeDetailPage({
   if (!(await isAdmin())) redirect("/admin/login");
   const order = await getOrderById(id);
   if (!order) notFound();
+  const [products, colors] = await Promise.all([
+    getProducts({ includeInactive: true }), getInventoryColors({ includeInactive: true }),
+  ]);
+  const colorCatalog = buildOrderColorCatalog(products, colors);
   const shipmentResult = await getColissimoShipment(id)
     .then((shipment) => ({ shipment, storageError: false }))
     .catch(() => ({ shipment: null, storageError: true }));
@@ -65,16 +71,18 @@ export default async function CommandeDetailPage({
                         Porte-clés offert : choix {item.keychainChoice}
                       </p>
                     )}
-                    {item.color && <p className="text-xs text-ink-soft">Coloris : {item.color}</p>}
+                    {item.color && <p className="text-xs text-ink-soft">Coloris : <OrderColorName name={item.color} item={item} catalog={colorCatalog} /></p>}
                     {item.customName && (
                       <p className="text-xs font-semibold text-terra-deep">
                         Prénom : {item.customName}
                       </p>
                     )}
-                    {item.clickerConfiguration && (
+                    {(item.clickerConfiguration || item.letterConfiguration) && (
                       <div className="mt-2 space-y-0.5 text-xs text-ink-soft">
-                        {orderItemDetails(item).filter((detail) => ["Texte du clicker", "Symbole", "Placement du symbole", "Base", "Caps", "Lettres et symbole"].includes(detail.label)).map((detail) => (
-                          <p key={detail.label}><strong>{detail.label} :</strong> {detail.value}</p>
+                        {orderItemDetails(item).filter((detail) => ["Texte du clicker", "Symbole", "Placement du symbole", "Base", "Caps", "Lettres et symbole", "Initiale", "Couleur de la lettre", "Couleur du prénom", "Hauteur", "Largeur du prénom", "Position verticale"].includes(detail.label)).map((detail) => (
+                          <p key={detail.label}><strong>{detail.label} :</strong> {isOrderColorDetail(detail.label)
+                            ? <OrderColorName name={detail.value} item={item} catalog={colorCatalog} />
+                            : detail.value}</p>
                         ))}
                       </div>
                     )}

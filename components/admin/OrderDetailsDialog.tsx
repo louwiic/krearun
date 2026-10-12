@@ -18,6 +18,7 @@ import {
 import { formatOrderDate } from "@/lib/order-details";
 import { formatPrice } from "@/lib/format";
 import OrderItems from "./OrderItems";
+import type { OrderColorCatalog } from "@/lib/order-colors";
 import OrderEmailComposer from "./OrderEmailComposer";
 import ResendShippingEmail from "./ResendShippingEmail";
 
@@ -35,9 +36,11 @@ function Detail({ label, children }: { label: string; children: ReactNode }) {
 export default function OrderDetailsDialog({
   order,
   onClose,
+  colorCatalog,
 }: {
   order: Order | null;
   onClose: () => void;
+  colorCatalog?: OrderColorCatalog;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   useEffect(() => {
@@ -135,7 +138,7 @@ export default function OrderDetailsDialog({
                       Quantité / précisions : {order.quantityText}
                     </p>
                   )}
-                  <OrderItems items={order.items} />
+                  <OrderItems items={order.items} colorCatalog={colorCatalog} />
                   {!order.items.length && !order.description && (
                     <p className="text-sm text-ink-soft">
                       Aucun détail produit enregistré.
