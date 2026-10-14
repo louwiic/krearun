@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import opentype from "opentype.js";
+import {holderTextContours} from "@/lib/holder-text.mjs";
 import { SVGLoader } from "three/addons/loaders/SVGLoader.js";
 import { HOLDER_PRESET_PALETTES, holderModel, type HolderConfiguration, type HolderModel } from "@/lib/custom-holder";
 
@@ -12,6 +14,8 @@ function loadModel(model:HolderModel) {
   if(!templates.has(model))templates.set(model,new GLTFLoader().loadAsync(`/models/holders/${model}.glb`).then(gltf=>gltf.scene).catch(error=>{templates.delete(model);throw error;}));
   return templates.get(model)!;
 }
+let fontPromise:Promise<opentype.Font>|undefined;
+function loadTextFont(){return fontPromise??=fetch('/fonts/DejaVuSansCondensed-Bold.ttf').then(response=>{if(!response.ok)throw new Error('Font unavailable');return response.arrayBuffer();}).then(buffer=>opentype.parse(buffer)).catch(error=>{fontPromise=undefined;throw error;});}
 let lettering:ReturnType<SVGLoader['parse']>|undefined;
 async function brandLettering() {
   if(!lettering){const response=await fetch('/models/holders/krearun.svg');if(!response.ok)throw new Error('Lettering unavailable');lettering=new SVGLoader().parse(await response.text());}
@@ -51,7 +55,7 @@ export default function HolderPreview3D({configuration,logo,thumbnail=false}:{co
         object.geometry=object.geometry.clone();
         const cloneMaterial=(original:THREE.Material)=>{
           const material=original.clone() as THREE.MeshStandardMaterial;
-          if(!object.name.startsWith('logo_'))material.color.set(configuration.bodyColor);
+          if(!object.name.startsWith('logo_'))material.color.set(object.name.startsWith('top_')?(configuration.topColor??configuration.bodyColor):object.name.startsWith('bottom_')?(configuration.bottomColor??configuration.bodyColor):configuration.bodyColor);
           else if(selectedModel!=='custom'&&logoColorKey){
             const palette=HOLDER_PRESET_PALETTES[selectedModel];const rgb=material.color.clone().convertLinearToSRGB();
             const distances=palette.map(hex=>{const reference=new THREE.Color(hex).convertLinearToSRGB();return (reference.r-rgb.r)**2+(reference.g-rgb.g)**2+(reference.b-rgb.b)**2;});
@@ -61,12 +65,13 @@ export default function HolderPreview3D({configuration,logo,thumbnail=false}:{co
         };
         object.material=Array.isArray(object.material)?object.material.map(cloneMaterial):cloneMaterial(object.material);
       });model.add(copy);render();
+      let logoHeight=8;
       if(selectedModel==='custom'){
         if(logo){
           const texture=await new THREE.TextureLoader().loadAsync(logo);if(disposed){texture.dispose();return;}
           textures.push(texture);texture.colorSpace=THREE.SRGBColorSpace;texture.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());
           const image=texture.image as HTMLImageElement;const ratio=image.width/image.height;
-          const width=configuration.logoWidth,height=Math.min(88,width/ratio),segments=80,radius=38.65;
+          const width=configuration.logoWidth,height=Math.min(88,width/ratio),segments=80,radius=38.65;logoHeight=height;
           const positions:number[]=[],uv:number[]=[],indices:number[]=[];
           for(let y=0;y<=1;y++)for(let x=0;x<=segments;x++){
             const u=x/segments,theta=(u-.5)*width/radius;positions.push(Math.sin(theta)*radius,(y-.5)*height+configuration.logoOffset+5,Math.cos(theta)*radius);uv.push(u,y);
@@ -85,11 +90,22 @@ export default function HolderPreview3D({configuration,logo,thumbnail=false}:{co
           for(const geometry of geometries){const vertices=geometry.getAttribute('position');for(let i=0;i<vertices.count;i++){const x=(vertices.getX(i)-center.x)*scale,y=-(vertices.getY(i)-center.y)*scale+5,radius=38.5+vertices.getZ(i);const theta=x/38.5;vertices.setXYZ(i,Math.sin(theta)*radius,y,Math.cos(theta)*radius);}geometry.computeVertexNormals();for(let face=0;face<logoFaces;face++){const mesh=new THREE.Mesh(face?geometry.clone():geometry,material);mesh.rotation.y=face*Math.PI;model.add(mesh);}}
         }
       }
+      if(configuration.verticalName||configuration.engravingText){
+        const font=await loadTextFont();if(disposed)return;
+        for(const text of holderTextContours(font,{model:selectedModel,logoFaces:configuration.logoFaces,logoOffset:configuration.logoOffset,verticalName:configuration.verticalName,engravingText:configuration.engravingText},logoHeight)){
+          const paths=new THREE.ShapePath();for(const polygon of text.polygons){if(!polygon.length)continue;paths.moveTo(polygon[0][0],polygon[0][1]);for(const [x,y] of polygon.slice(1))paths.lineTo(x,y);paths.currentPath?.closePath();}
+          for(const shape of paths.toShapes()){
+            const geometry=new THREE.ShapeGeometry(shape);const vertices=geometry.getAttribute('position');for(let i=0;i<vertices.count;i++){const angle=vertices.getX(i)/38.38+text.angle;vertices.setXYZ(i,Math.sin(angle)*38.65,vertices.getY(i)+5,Math.cos(angle)*38.65);}geometry.computeVertexNormals();
+            // Dark recess shading on the body; the exported mesh contains the real cut.
+            model.add(new THREE.Mesh(geometry,new THREE.MeshStandardMaterial({color:new THREE.Color(configuration.bodyColor).getHSL({h:0,s:0,l:0}).l<.25?0x77716b:0x302d29,roughness:1,side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:-1})));
+          }
+        }
+      }
       render();if(!disposed)setLoading(false);
     }
     void decorate().catch(()=>{if(!disposed){setLoading(false);setError("Le modèle 3D n’a pas pu être chargé. Actualisez la page pour réessayer.");}});
     return()=>{disposed=true;observer.disconnect();controls.dispose();const materials=new Set<THREE.Material>();model.traverse(object=>{if(object instanceof THREE.Mesh){object.geometry.dispose();(Array.isArray(object.material)?object.material:[object.material]).forEach(material=>materials.add(material));}});materials.forEach(material=>material.dispose());textures.forEach(texture=>texture.dispose());renderer.dispose();renderer.forceContextLoss();renderer.domElement.remove();};
-  },[configuration.bodyColor,configuration.logoWidth,configuration.logoOffset,selectedModel,logo,thumbnail,logoColorKey,logoFaces]);
+  },[configuration.bodyColor,configuration.logoWidth,configuration.logoOffset,selectedModel,logo,thumbnail,logoColorKey,logoFaces,configuration.topColor,configuration.bottomColor,configuration.verticalName,configuration.engravingText]);
   return <div className={`relative overflow-hidden bg-cream ${thumbnail?'pointer-events-none rounded-lg':'rounded-2xl border-2 border-ink'}`}>
     <div ref={host} className={thumbnail?'h-[130px] w-full':'h-[360px] w-full touch-none sm:h-[440px]'}/>
     {!thumbnail&&<><span className="pointer-events-none absolute left-4 top-3 text-xs font-bold uppercase tracking-wide">Aperçu 3D • 500 ml</span><button type="button" onClick={()=>reset.current()} aria-label="Réinitialiser la vue 3D" className="absolute right-3 top-2 rounded-full bg-white/90 px-3 py-2 text-lg">↺</button></>}

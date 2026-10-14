@@ -168,3 +168,8 @@ test('submission enforces black/white bodies and stores the chosen model and log
   assert.equal(saved.configuration.model,'om');assert.deepEqual(saved.palette,['#0000ff']);
   const {data}=await sharp(storedLogo).ensureAlpha().raw().toBuffer({resolveWithObject:true});for(let i=0;i<data.length;i+=4)if(data[i+3])assert.deepEqual([...data.subarray(i,i+3)],[0,0,255]);
 });
+
+test('engraving text and ring colors are normalized and validated without altering older configurations',()=>{
+ const parsed=holder.parseHolderConfiguration({...base.configuration,verticalName:' LOÏC ',engravingText:' Mon équipe ',topColor:'#FFAA00',bottomColor:'#FFFFFF'});assert.equal(parsed.verticalName,'LOÏC');assert.equal(parsed.engravingText,'Mon équipe');assert.equal(parsed.topColor,'#ffaa00');
+ for(const patch of [{verticalName:'x'.repeat(13)},{engravingText:'x'.repeat(33)},{verticalName:'<script>'},{engravingText:'😊'},{topColor:'red'},{bottomColor:'url(x)'}])assert.throws(()=>holder.parseHolderConfiguration({...base.configuration,...patch}));
+});

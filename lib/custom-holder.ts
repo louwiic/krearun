@@ -19,6 +19,10 @@ export interface HolderConfiguration {
   logoFaces?: 1 | 2;
   bodyColor: string;
   bodyColorName: string;
+  topColor?: string;
+  bottomColor?: string;
+  verticalName?: string;
+  engravingText?: string;
   logoWidth: number;
   logoOffset: number;
 }
@@ -70,6 +74,8 @@ export function holderTotal(request: HolderRequest): number {
 export function parseHolderConfiguration(value: unknown): HolderConfiguration {
   if (!value || typeof value !== "object") throw new Error("Configuration invalide.");
   const input = value as Record<string, unknown>;
+  for(const key of ['topColor','bottomColor'])if(input[key]!==undefined&&(typeof input[key]!=='string'||!/^#[a-f0-9]{6}$/i.test(input[key] as string)))throw new Error("Couleur de bague invalide.");
+  for(const [key,max] of [['verticalName',12],['engravingText',32]] as const)if(input[key]!==undefined&&(typeof input[key]!=='string'||Array.from(key==='verticalName'?(input[key] as string).trim().toUpperCase():(input[key] as string).trim()).length>max||!/^[\p{Script=Latin}\p{N} .,'’!?&+()\-]*$/u.test(input[key] as string)))throw new Error(`Texte invalide : ${max} caractères maximum, lettres, chiffres et ponctuation simple.`);
   if(input.logoFaces!==undefined&&input.logoFaces!==1&&input.logoFaces!==2)throw new Error("Nombre de faces du logo invalide.");
   if(input.logoColors!==undefined&&(!Array.isArray(input.logoColors)||input.logoColors.length<1||input.logoColors.length>4||input.logoColors.some(color=>typeof color!=='string'||!/^#[a-f0-9]{6}$/i.test(color))))throw new Error("Choisissez au maximum quatre couleurs pour le logo.");
   if (input.model !== undefined && !HOLDER_MODELS.some(model=>model.id===input.model)) throw new Error("Choisissez un modèle disponible.");
@@ -80,6 +86,10 @@ export function parseHolderConfiguration(value: unknown): HolderConfiguration {
     throw new Error("Configuration du porte-boisson invalide.");
   }
   return { bodyColor: input.bodyColor.toLowerCase(), bodyColorName: input.bodyColorName.trim().slice(0,80), logoWidth: input.logoWidth, logoOffset: input.logoOffset,
+    ...(input.topColor===undefined?{}:{topColor:(input.topColor as string).toLowerCase()}),
+    ...(input.bottomColor===undefined?{}:{bottomColor:(input.bottomColor as string).toLowerCase()}),
+    ...(input.verticalName===undefined?{}:{verticalName:(input.verticalName as string).trim()}),
+    ...(input.engravingText===undefined?{}:{engravingText:(input.engravingText as string).trim()}),
     ...(input.logoFaces===undefined?{}:{logoFaces:input.logoFaces as 1 | 2}),
     ...(input.logoColors===undefined?{}:{logoColors:(input.logoColors as string[]).map(color=>color.toLowerCase())}),
     ...(input.model === undefined ? {} : { model: input.model as HolderModel }),

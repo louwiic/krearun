@@ -66,3 +66,16 @@ test('two-sided customization cuts opposing pockets and provides two separate fl
  const source=JSON.parse(gunzipSync(readFileSync(new URL('../assets/holder-manufacturing/custom.json.gz',import.meta.url)))).objects.find(o=>o.plate===4).parts[0];const original=new wasm.Manifold(new wasm.Mesh({numProp:3,vertProperties:new Float32Array(source.vertices),triVerts:new Uint32Array(source.triangles)}));const removed=original.subtract(body);
  const front=removed.intersect(wasm.Manifold.cube([100,50,140],true).translate([0,-25,0])).volume(),back=removed.intersect(wasm.Manifold.cube([100,50,140],true).translate([0,25,0])).volume();assert.ok(front>100);assert.ok(Math.abs(front-back)<.1,'both sides have the same pocket');
 });
+
+test('names and captions are actual recesses and screw rings have independent filament assignments',async()=>{
+ const logo=await sharp({create:{width:40,height:20,channels:4,background:{r:255,g:0,b:0,alpha:1}}}).png().toBuffer();
+ for(const model of ['custom','arsenal']){
+  const config={...configuration,model,logoFaces:2,verticalName:'LOÏC',engravingText:'MON ÉQUIPE',topColor:'#ffa500',bottomColor:'#ffffff'};
+  const result=await buildHolderManufacturing({requestId:'engraving',configuration:config,palette:model==='custom'?['#ff0000']:palette,logo});const parsed=parse(result.file);
+  assert.ok(parsed.report.engraving.removedVolumeMm3>1);assert.equal(parsed.report.engraving.depthMm,.4);assert.equal(parsed.report.engraving.placements,6);
+  const parent=parsed.objects.filter(o=>o.getElementsByTagName('components').length),materials=Array.from(parsed.root.getElementsByTagName('base')).map(m=>m.getAttribute('displaycolor'));
+  for(const [i,color]of [[0,'#FFA500FF'],[1,'#FFFFFFFF']]){const childId=parent[i].getElementsByTagName('component')[0].getAttribute('objectid');const mesh=parsed.meshes.find(m=>m.getAttribute('id')===childId);assert.equal(materials[Number(mesh.getAttribute('pindex'))],color);}
+  const bodyData=meshData(parsed.meshes.find(m=>m.getAttribute('name').startsWith('Cylindre')));const wasm=await Module();wasm.setup();const body=new wasm.Manifold(new wasm.Mesh({numProp:3,vertProperties:bodyData.vertices,triVerts:bodyData.triangles}));assert.equal(body.status(),'NoError');assert.ok(body.volume()>0);
+  const settings=JSON.parse(strFromU8(parsed.archive['Metadata/project_settings.config']));assert.equal(settings.filament_colour.length,materials.length);assert.equal(settings.filament_type.length,materials.length);
+ }
+});

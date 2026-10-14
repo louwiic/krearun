@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-img-element -- Prepared logos and protected customer files must load directly. */
 "use client";
 
+import HolderConfigurationDetails from "./HolderConfigurationDetails";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useState } from "react";
@@ -20,6 +21,7 @@ export default function HolderRequestCard({request}:{request:HolderRequest}) {
     <div className="flex items-start gap-4"><img src={logo} alt="Logo de votre demande" className="h-20 w-20 rounded-xl border border-sand bg-white object-contain"/>
       <div className="min-w-0"><h3 className="font-display text-xl">Porte-boisson 500 ml personnalisé</h3><p className="mt-2 text-xs text-ink-soft">{formatDate(request.created)} · {request.quantity} exemplaire(s) · {request.configuration.bodyColorName} · {holderModelLabel(request.configuration)}</p><p className="mt-2 text-sm font-bold text-terra-deep">{HOLDER_STATUS_LABELS[holderStatus(request)]}</p></div>
     </div>
+    <HolderConfigurationDetails configuration={request.configuration}/>
     {request.note&&<p className="mt-4 whitespace-pre-wrap text-sm text-ink-soft">Votre message : {request.note}</p>}
     {request.decision?.message&&<div className="mt-4 rounded-xl bg-linen p-4 text-sm"><p className="font-bold">Réponse de l’atelier</p><p className="mt-2 whitespace-pre-wrap">{request.decision.message}</p></div>}
     {request.decision?.status==='approved'&&<dl className="mt-4 space-y-2 text-sm"><div className="flex justify-between gap-3"><dt>{request.quantity} × {formatPrice(request.decision.unitPriceCents)}</dt><dd>{formatPrice(request.quantity*request.decision.unitPriceCents)}</dd></div><div className="flex justify-between"><dt>Livraison</dt><dd>{formatPrice(request.decision.shippingCents)}</dd></div><div className="flex justify-between border-t border-sand pt-2 font-bold"><dt>{request.orderId?'Total payé':'Total à payer'}</dt><dd>{formatPrice(holderTotal(request))}</dd></div></dl>}

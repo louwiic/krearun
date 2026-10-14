@@ -142,6 +142,14 @@ Les nouvelles demandes personnalisées placent le logo sur deux faces opposées 
 180° (`logoFaces: 2`). Le 3MF contient les deux logements et deux inserts à plat,
 séparés sur le plateau des logos. Les demandes existantes sans ce champ conservent
 leur face unique pour respecter la configuration déjà validée.
+Le configurateur fixe désormais le logo au centre (`logoOffset: 0`) et propose
+`verticalName` (12 caractères, lettres empilées sur la face opposée à l’anse) et
+`engravingText` (32 caractères, sous les deux logos). Les contours typographiques
+DejaVu sont communs à l’aperçu et à l’export ; le 3MF découpe une gravure réelle de
+0,4 mm, hors filetages. Sur OM/Arsenal les nouvelles gravures s’ajoutent aux décors
+natifs. Les bagues haut/bas ont leurs couleurs `topColor` et `bottomColor`, contrôlées
+contre les filaments de l’atelier ; le corps reste noir ou blanc. Ces choix et textes
+restent visibles dans l’administration et dans la demande de l’espace client.
 Valeurs initiales : creux 0,6 mm, jeu latéral 0,2 mm, épaisseur du logo 1 mm, jeu de
 colle au fond 0,02 mm. La largeur à plat est compensée pour la fibre neutre du cintrage
 pour retrouver le placement de l’aperçu. Le logo doit être mis en forme selon le

@@ -26,6 +26,7 @@ export async function POST(request:Request) {
     if(requests.filter(r=>Date.parse(r.created)>Date.now()-86400000).length>=10)throw new Error("Vous avez atteint la limite de 10 demandes par jour.");
     const color=colors.find(c=>c.hex.toLowerCase()===configuration.bodyColor && c.name===configuration.bodyColorName);
     if(!color||!isHolderBodyColor(color))throw new Error("Le corps est disponible uniquement en noir ou en blanc.");
+    for(const hex of [configuration.topColor,configuration.bottomColor])if(hex&&!colors.some(c=>c.hex.toLowerCase()===hex))throw new Error("Choisissez une couleur disponible pour les bagues.");
     const source=model==='custom'?await prepareHolderLogo(file as File):await prepareHolderPreset(model);
     if(configuration.logoColors?.some((hex,index)=>hex!==source.palette[index]&&!colors.some(color=>color.hex.toLowerCase()===hex)))throw new Error("Choisissez une couleur disponible pour le logo.");
     const prepared=await recolorHolderLogo(source,configuration.logoColors);
