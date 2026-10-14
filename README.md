@@ -129,11 +129,43 @@ en tête du script). Les projets d’impression originaux ne sont pas modifiés.
 Les logos OM / Arsenal restent à leur placement d’origine et leurs couleurs sont modifiables ; le logo importé est
 projeté en texture sur le corps courbe, avec largeur et position réglables.
 
-L’aperçu reste indicatif ; aucun fichier de fabrication STL/3MF n’est généré par
-ce configurateur, la faisabilité du logo est vérifiée par l’atelier.
+Dans `/admin/personnalisations`, « Générer le 3MF de fabrication » télécharge
+un projet Bambu Studio avec les pièces séparées sur leurs plateaux, leurs couleurs,
+le cylindre avec logement et le logo à plat. L’export est réservé aux administrateurs,
+y compris pour une demande encore en attente afin d’en vérifier la faisabilité.
+
+Pour un logo personnalisé, le contour du PNG préparé (aussi utilisé pour un SVG
+importé) est vectorisé en conservant transparence, trous et îlots. Les petites marches
+issues du raster sont simplifiées à 0,025 mm. Une sous-couche commune de la couleur
+dominante relie les zones adjacentes ; les îlots transparents restent séparés.
+Valeurs initiales : creux 0,6 mm, jeu latéral 0,2 mm, épaisseur du logo 1 mm, jeu de
+colle au fond 0,02 mm. La largeur à plat est compensée pour la fibre neutre du cintrage
+pour retrouver le placement de l’aperçu. Le logo doit être mis en forme selon le
+matériau avant collage. Les filetages sont exclus de la découpe et un logo qui
+empiète sur leur zone est refusé à l’export. Le contrôle vérifie les volumes fermés
+et l’absence d’intersection entre l’insert cintré et le logement.
+
+Les modèles OM / Arsenal conservent exactement les géométries et placements de
+leurs projets d’impression ; seules les affectations des couleurs sont remplacées.
+Les maillages de fabrication non décimés sont dans `assets/holder-manufacturing`
+(hors du dossier public). `scripts/prepare-holder-manufacturing.py` les extrait des
+3MF sources et reconstruit le cylindre neutre, sans modifier les fichiers originaux.
+Le calcul Manifold WASM s’exécute dans un worker Node jetable, limité à deux minutes,
+avec un seul export simultané par processus. Aucun service CAO externe ni Python
+n’est nécessaire sur le serveur. Un projet correspond à UN exemplaire ; la quantité
+commandée ne duplique pas les pièces. Le rapport et la notice sont inclus dans
+`Metadata/krearun-fabrication.json` et `Metadata/NOTICE-COLLAGE.txt` du 3MF.
+Affecter les filaments réels et recalculer la purge dans Bambu Studio (la matrice
+initiale est conservatrice), puis contrôler le tranchage et une première pièce
+avant série. La génération d’un fichier ne vaut pas validation du devis.
+
+L’aperçu du Clicker Studio comporte aussi une scène Three.js orientable et zoomable,
+avec autant de touches que de lettres/symboles affichés, et les trois couleurs de
+la configuration. Le placement libre du symbole demandé en note reste vérifié
+à l’atelier. Ce modèle indicatif n’est pas un fichier de fabrication du clicker.
 
 ```bash
-node --experimental-strip-types --test tests/custom-holder.test.mjs
+node --test tests/custom-holder.test.mjs tests/holder-manufacturing.test.mjs
 ```
 
 ## API publique pour les sites partenaires

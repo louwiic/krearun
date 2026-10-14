@@ -1,11 +1,14 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useState } from "react";
 import type { InventoryColor } from "@/lib/types";
 import { publicColorName } from "@/lib/colors";
 import { formatPrice } from "@/lib/format";
 import { CLICKER_PRICE_CENTS, CLICKER_PRODUCT_ID } from "@/lib/clicker";
 import { useCart } from "@/components/cart/CartContext";
+
+const OrbitPreview=dynamic(()=>import('./ClickerOrbitPreview'),{ssr:false,loading:()=> <div className="flex h-[280px] items-center justify-center text-xs">Chargement de l’aperçu 3D…</div>});
 
 const CHARACTER_COUNTS = Array.from({ length: 14 }, (_, index) => index + 1);
 const SYMBOLS = [
@@ -68,7 +71,7 @@ function ClickerPreview({ text, symbol, baseColor, capColor, letterColor }: { te
               return (
                 <g key={`${tile}-${index}`} transform={`translate(${x} ${y})`}>
                   <rect width={tileSize} height={tileSize} rx="16" fill={baseColor} stroke="#fff" strokeWidth="4" />
-                  <rect x="5" y="5" width={tileSize - 10} height={tileSize - 10} rx="12" fill={isSymbol ? "#fffdf8" : capColor} stroke="#17120f" strokeOpacity=".18" strokeWidth="2" />
+                  <rect x="5" y="5" width={tileSize - 10} height={tileSize - 10} rx="12" fill={capColor} stroke="#17120f" strokeOpacity=".18" strokeWidth="2" />
                   <text x={tileSize / 2} y={isSymbol ? 42 : 43} textAnchor="middle" fontFamily="Arial, sans-serif" fontSize={isSymbol ? 31 : 34} fontWeight="800" fill={letterColor}>{tile}</text>
                 </g>
               );
@@ -76,106 +79,6 @@ function ClickerPreview({ text, symbol, baseColor, capColor, letterColor }: { te
           </g>
         );
       })}
-    </svg>
-  );
-}
-
-function ClickerPreview3D({ text, symbol, baseColor, capColor, letterColor }: { text: string; symbol: string; baseColor: string; capColor: string; letterColor: string }) {
-  const tiles = symbol ? [...text.split(""), symbol] : text.split("");
-  const perRow = tiles.length > 7 ? 5 : tiles.length;
-  const rows = Array.from({ length: Math.ceil(tiles.length / perRow) }, (_, index) => tiles.slice(index * perRow, (index + 1) * perRow));
-  const size = 54;
-  const gap = 9;
-  const width = Math.max(180, perRow * size + (perRow - 1) * gap + 30);
-  const depth = 16;
-  const height = rows.length * (size + gap + depth) + 28;
-
-  return (
-    <svg viewBox={`0 0 ${width} ${height}`} className="w-full" role="img" aria-label={`Aperçu 3D du clicker ${text} ${symbol}`}>
-      <defs><filter id="clicker-3d-shadow" x="-20%" y="-20%" width="150%" height="170%"><feDropShadow dx="2" dy="5" stdDeviation="2.5" floodOpacity=".24" /></filter></defs>
-      {rows.map((row, rowIndex) => {
-        const y = 12 + rowIndex * (size + gap + depth);
-        return row.map((tile, index) => {
-          const x = 15 + index * (size + gap);
-          const isSymbol = Boolean(symbol) && rowIndex === rows.length - 1 && index === row.length - 1;
-          return (
-            <g key={`${tile}-${rowIndex}-${index}`} transform={`translate(${x} ${y}) skewY(-5)`} filter="url(#clicker-3d-shadow)">
-              {/* Vue de côté : le corps épais reste visible à gauche et sous la face avant. */}
-              <path d={`M 0 ${depth} L ${size} ${depth} L ${size} ${size + depth - 5} Q ${size} ${size + depth} ${size - 5} ${size + depth} L 0 ${size + depth} Q -5 ${size + depth} -5 ${size + depth - 5} L -5 ${depth + 5} Z`} fill={baseColor} fillOpacity=".68" stroke="#17120f" strokeOpacity=".3" strokeWidth="2" />
-              <path d={`M 0 0 L ${size} 0 L ${size} ${size - 1} L 0 ${size - 1} Z`} fill={baseColor} stroke="#fff" strokeWidth="3" />
-              <rect x="5" y="5" width={size - 10} height={size - 10} rx="10" fill={isSymbol ? "#fffdf8" : capColor} stroke="#17120f" strokeOpacity=".2" strokeWidth="2" />
-              <text x={size / 2} y={isSymbol ? 38 : 39} textAnchor="middle" fontFamily="Arial, sans-serif" fontSize={isSymbol ? 27 : 30} fontWeight="800" fill={letterColor}>{tile}</text>
-            </g>
-          );
-        });
-      })}
-    </svg>
-  );
-}
-
-function ClickerBarPreview3D({ tiles, baseColor, capColor, letterColor }: { tiles: string[]; baseColor: string; capColor: string; letterColor: string }) {
-  const slot = 48;
-  const gap = 7;
-  const left = 25;
-  const right = 18;
-  const barWidth = Math.max(190, left + tiles.length * slot + Math.max(0, tiles.length - 1) * gap + right);
-  const depth = 13;
-  const top = 24;
-  const barHeight = 62;
-
-  return (
-    <svg viewBox={`0 0 ${barWidth + 18} 118`} className="w-full" role="img" aria-label={`Aperçu 3D horizontal du clicker ${tiles.join(" ")}`}>
-      <defs><filter id="clicker-bar-shadow" x="-15%" y="-25%" width="135%" height="170%"><feDropShadow dx="3" dy="7" stdDeviation="3" floodOpacity=".25" /></filter></defs>
-      <g transform="skewX(-8)" filter="url(#clicker-bar-shadow)">
-        <circle cx="12" cy="57" r="10" fill="none" stroke="#9b9b9b" strokeWidth="5" />
-        <path d={`M ${left - 3} ${top + depth} L ${barWidth - 3} ${top + depth} L ${barWidth - 3} ${top + barHeight - 8} Q ${barWidth - 3} ${top + barHeight + depth} ${barWidth - 13} ${top + barHeight + depth} L ${left - 3} ${top + barHeight + depth} Q ${left - 13} ${top + barHeight + depth} ${left - 13} ${top + barHeight - 8} Z`} fill={baseColor} fillOpacity=".72" stroke="#17120f" strokeOpacity=".28" strokeWidth="2" />
-        <rect x={left} y={top} width={barWidth - left} height={barHeight} rx="17" fill={baseColor} stroke="#fff" strokeWidth="3" />
-        {tiles.map((tile, index) => {
-          const x = left + 8 + index * (slot + gap);
-          const isSymbol = !/[A-Z0-9À-ÿ]/i.test(tile);
-          return (
-            <g key={`${tile}-${index}`}>
-              <rect x={x + 2} y={top + 7} width={slot} height={slot} rx="11" fill="#000" fillOpacity=".16" />
-              <rect x={x} y={top + 3} width={slot} height={slot} rx="11" fill={isSymbol ? "#fffdf8" : capColor} stroke="#17120f" strokeOpacity=".18" strokeWidth="2" />
-              <text x={x + slot / 2} y={top + (isSymbol ? 37 : 39)} textAnchor="middle" fontFamily="Arial, sans-serif" fontSize={isSymbol ? 25 : 29} fontWeight="800" fill={letterColor}>{tile}</text>
-            </g>
-          );
-        })}
-      </g>
-    </svg>
-  );
-}
-
-function ClickerEditablePreview3D({ tiles, baseColor, capColor, letterColor }: { tiles: string[]; baseColor: string; capColor: string; letterColor: string }) {
-  const buttonOffsets = [0, 219, 438, 657];
-  return (
-    <svg viewBox="0 0 1200 600" className="w-full" role="img" aria-label="Aperçu 3D du clicker avec base et caps colorés">
-      <defs>
-        <linearGradient id="editable-base-top" x1="0" y1="0" x2="0" y2="1"><stop stopColor={baseColor} /><stop offset="1" stopColor={baseColor} stopOpacity=".78" /></linearGradient>
-        <linearGradient id="editable-base-front" x1="0" y1="0" x2="0" y2="1"><stop stopColor={baseColor} stopOpacity=".88" /><stop offset="1" stopColor={baseColor} stopOpacity=".62" /></linearGradient>
-        <linearGradient id="editable-button-top" x1="0" y1="0" x2="0" y2="1"><stop stopColor={capColor} /><stop offset="1" stopColor={capColor} stopOpacity=".78" /></linearGradient>
-        <filter id="editable-shadow" x="-20%" y="-30%" width="150%" height="170%"><feDropShadow dx="0" dy="14" stdDeviation="13" floodColor="#000" floodOpacity=".22" /></filter>
-      </defs>
-      <g filter="url(#editable-shadow)">
-        <path d="M0 355 C65 354 83 360 126 362" fill="none" stroke="#777" strokeWidth="8" strokeLinecap="round" />
-        <g>
-          <path d="M125 314 L1085 314 L1085 460 Q1085 482 1063 488 L151 488 Q125 486 125 462 Z" fill="url(#editable-base-front)" />
-          <path d="M125 314 L168 275 L1045 275 L1085 314 L1046 353 L165 353 Z" fill="url(#editable-base-top)" />
-          <path d="M155 309 L1055 309 L1042 338 L169 338 Z" fill="#17120f" opacity=".42" />
-          <path d="M142 326 L142 452 Q142 468 159 470" fill="none" stroke="#fff" strokeWidth="6" opacity=".22" />
-        </g>
-        {buttonOffsets.map((offset, index) => {
-          const tile = tiles[index] ?? "";
-          return (
-            <g key={`${tile}-${index}`} transform={`translate(${offset} 0)`}>
-              <path d="M174 286 L330 286 L349 305 L337 348 Q333 365 315 369 L190 369 Q173 367 168 351 L157 307 Z" fill={baseColor} opacity=".72" />
-              <path d="M174 211 Q178 188 201 181 L302 181 Q325 187 330 211 L337 306 Q338 326 317 334 L188 334 Q167 328 168 307 Z" fill="url(#editable-button-top)" />
-              <path d="M184 208 Q188 196 203 191 L299 191 Q313 195 318 208" fill="none" stroke="#fff" strokeWidth="6" opacity=".25" />
-              {tile && <text x="252" y="276" textAnchor="middle" fontFamily="Arial, sans-serif" fontSize={tile.length > 1 ? 46 : 68} fontWeight="800" fill={letterColor}>{tile}</text>}
-            </g>
-          );
-        })}
-      </g>
     </svg>
   );
 }
@@ -294,8 +197,8 @@ export default function ClickerConfigurator({ colors: inventoryColors }: { color
             <p className="mb-3 text-xs font-bold uppercase tracking-[0.15em] text-ink-soft">Aperçu en direct</p>
             <ClickerPreview text={displayedText} symbol={symbol} baseColor={baseColor.hex} capColor={capColor.hex} letterColor={letterColor.hex} />
             <div className="mt-6 border-t-2 border-ink/15 pt-4">
-              <p className="mb-3 text-xs font-bold uppercase tracking-[0.15em] text-ink-soft">Aperçu 3D · vue de côté</p>
-              <ClickerEditablePreview3D tiles={[...displayedText.split(""), ...(symbol ? [symbol] : [])]} baseColor={baseColor.hex} capColor={capColor.hex} letterColor={letterColor.hex} />
+              <p className="mb-3 text-xs font-bold uppercase tracking-[0.15em] text-ink-soft">Aperçu 3D · tourne ton clicker</p>
+              <OrbitPreview text={displayedText} symbol={symbol} baseColor={baseColor.hex} capColor={capColor.hex} letterColor={letterColor.hex} />
             </div>
           </div>
         </section>
