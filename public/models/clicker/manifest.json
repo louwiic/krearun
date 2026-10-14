@@ -1,0 +1,651 @@
+{
+  "pitchMm": 20.5,
+  "baseHeightMm": 16,
+  "capBottomMm": 17,
+  "capBodyHeightMm": 5,
+  "bases": {
+    "1": {
+      "file": "base-1.glb",
+      "triangles": 1940,
+      "bytes": 35728,
+      "slots": 1,
+      "sourceDerived": false,
+      "sizeMm": [
+        25.8799058,
+        22.0,
+        16.0
+      ]
+    },
+    "2": {
+      "file": "base-2.glb",
+      "triangles": 3228,
+      "bytes": 58864,
+      "slots": 2,
+      "sourceDerived": false,
+      "sizeMm": [
+        46.3799058,
+        22.0,
+        16.0
+      ]
+    },
+    "3": {
+      "file": "base-3.glb",
+      "triangles": 4512,
+      "bytes": 81928,
+      "slots": 3,
+      "sourceDerived": false,
+      "sizeMm": [
+        66.8799058,
+        22.0,
+        16.0
+      ]
+    },
+    "4": {
+      "file": "base-4.glb",
+      "triangles": 5796,
+      "bytes": 104992,
+      "slots": 4,
+      "sourceDerived": false,
+      "sizeMm": [
+        87.3799058,
+        22.0,
+        16.0
+      ]
+    },
+    "5": {
+      "file": "base-5.glb",
+      "triangles": 7080,
+      "bytes": 128056,
+      "slots": 5,
+      "sourceDerived": false,
+      "sizeMm": [
+        107.8799058,
+        22.0,
+        16.0
+      ]
+    },
+    "6": {
+      "file": "base-6.glb",
+      "triangles": 8362,
+      "bytes": 151088,
+      "slots": 6,
+      "sourceDerived": false,
+      "sizeMm": [
+        128.3799057,
+        22.0,
+        16.0
+      ]
+    },
+    "7": {
+      "file": "base-7.glb",
+      "triangles": 9646,
+      "bytes": 174152,
+      "slots": 7,
+      "sourceDerived": false,
+      "sizeMm": [
+        148.8799057,
+        22.0,
+        16.0
+      ]
+    },
+    "8": {
+      "file": "base-8.glb",
+      "triangles": 10932,
+      "bytes": 197252,
+      "slots": 8,
+      "sourceDerived": false,
+      "sizeMm": [
+        169.3799057,
+        22.0,
+        16.0
+      ]
+    },
+    "9": {
+      "file": "base-9.glb",
+      "triangles": 12214,
+      "bytes": 220280,
+      "slots": 9,
+      "sourceDerived": false,
+      "sizeMm": [
+        189.8799057,
+        22.0,
+        16.0
+      ]
+    },
+    "10": {
+      "file": "base-10.glb",
+      "triangles": 13500,
+      "bytes": 243380,
+      "slots": 10,
+      "sourceDerived": false,
+      "sizeMm": [
+        210.379906,
+        22.0,
+        16.0
+      ]
+    },
+    "11": {
+      "file": "base-11.glb",
+      "triangles": 14828,
+      "bytes": 267236,
+      "slots": 11,
+      "sourceDerived": true,
+      "sizeMm": [
+        230.87991333007812,
+        22.0,
+        16.0
+      ]
+    },
+    "12": {
+      "file": "base-12.glb",
+      "triangles": 16136,
+      "bytes": 290732,
+      "slots": 12,
+      "sourceDerived": true,
+      "sizeMm": [
+        251.37991333007812,
+        22.0,
+        16.0
+      ]
+    },
+    "13": {
+      "file": "base-13.glb",
+      "triangles": 17444,
+      "bytes": 314232,
+      "slots": 13,
+      "sourceDerived": true,
+      "sizeMm": [
+        271.8799133300781,
+        22.0,
+        16.0
+      ]
+    },
+    "14": {
+      "file": "base-14.glb",
+      "triangles": 18752,
+      "bytes": 337728,
+      "slots": 14,
+      "sourceDerived": true,
+      "sizeMm": [
+        292.3799133300781,
+        22.0,
+        16.0
+      ]
+    },
+    "15": {
+      "file": "base-15.glb",
+      "triangles": 20060,
+      "bytes": 361224,
+      "slots": 15,
+      "sourceDerived": true,
+      "sizeMm": [
+        312.8799133300781,
+        22.0,
+        16.0
+      ]
+    }
+  },
+  "caps": {
+    "heart": {
+      "file": "cap-heart.glb",
+      "triangles": 6112,
+      "bytes": 111608,
+      "sourceName": "keycap - heart",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "star": {
+      "file": "cap-star.glb",
+      "triangles": 6360,
+      "bytes": 116072,
+      "sourceName": "keycap - star",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "cloud": {
+      "file": "cap-cloud.glb",
+      "triangles": 6124,
+      "bytes": 111828,
+      "sourceName": "keycap - cloud",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "clover": {
+      "file": "cap-clover.glb",
+      "triangles": 7016,
+      "bytes": 127884,
+      "sourceName": "keycap - clover",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "blank": {
+      "file": "cap-blank.glb",
+      "triangles": 5364,
+      "bytes": 97400,
+      "sourceName": "keycap",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "1": {
+      "file": "cap-1.glb",
+      "triangles": 5872,
+      "bytes": 107288,
+      "sourceName": "keycap-char-1",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "2": {
+      "file": "cap-2.glb",
+      "triangles": 6228,
+      "bytes": 113700,
+      "sourceName": "keycap-char-2",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "3": {
+      "file": "cap-3.glb",
+      "triangles": 6568,
+      "bytes": 119820,
+      "sourceName": "keycap-char-3",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "4": {
+      "file": "cap-4.glb",
+      "triangles": 6108,
+      "bytes": 111540,
+      "sourceName": "keycap-char-4",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "5": {
+      "file": "cap-5.glb",
+      "triangles": 6392,
+      "bytes": 116652,
+      "sourceName": "keycap-char-5",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "6": {
+      "file": "cap-6.glb",
+      "triangles": 6356,
+      "bytes": 115980,
+      "sourceName": "keycap-char-6",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "7": {
+      "file": "cap-7.glb",
+      "triangles": 5876,
+      "bytes": 107364,
+      "sourceName": "keycap-char-7",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "8": {
+      "file": "cap-8.glb",
+      "triangles": 6364,
+      "bytes": 116100,
+      "sourceName": "keycap-char-8",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "9": {
+      "file": "cap-9.glb",
+      "triangles": 6340,
+      "bytes": 115692,
+      "sourceName": "keycap-char-9",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "0": {
+      "file": "cap-0.glb",
+      "triangles": 6156,
+      "bytes": 112380,
+      "sourceName": "keycap-char-0",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "A": {
+      "file": "cap-A.glb",
+      "triangles": 6192,
+      "bytes": 113028,
+      "sourceName": "keycap-char-A",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "B": {
+      "file": "cap-B.glb",
+      "triangles": 6340,
+      "bytes": 115668,
+      "sourceName": "keycap-char-B",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "C": {
+      "file": "cap-C.glb",
+      "triangles": 6268,
+      "bytes": 114424,
+      "sourceName": "keycap-char-C",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "D": {
+      "file": "cap-D.glb",
+      "triangles": 6100,
+      "bytes": 111372,
+      "sourceName": "keycap-char-D",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "E": {
+      "file": "cap-E.glb",
+      "triangles": 6168,
+      "bytes": 112620,
+      "sourceName": "keycap-char-E",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "F": {
+      "file": "cap-F.glb",
+      "triangles": 6060,
+      "bytes": 110676,
+      "sourceName": "keycap-char-F",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "G": {
+      "file": "cap-G.glb",
+      "triangles": 6492,
+      "bytes": 118452,
+      "sourceName": "keycap-char-G",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "H": {
+      "file": "cap-H.glb",
+      "triangles": 6220,
+      "bytes": 113556,
+      "sourceName": "keycap-char-H",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "I": {
+      "file": "cap-I.glb",
+      "triangles": 5696,
+      "bytes": 104124,
+      "sourceName": "keycap-char-I",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "J": {
+      "file": "cap-J.glb",
+      "triangles": 5984,
+      "bytes": 109308,
+      "sourceName": "keycap-char-J",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "K": {
+      "file": "cap-K.glb",
+      "triangles": 6172,
+      "bytes": 112688,
+      "sourceName": "keycap-char-K",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "L": {
+      "file": "cap-L.glb",
+      "triangles": 5820,
+      "bytes": 106356,
+      "sourceName": "keycap-char-L",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "M": {
+      "file": "cap-M.glb",
+      "triangles": 6396,
+      "bytes": 116724,
+      "sourceName": "keycap-char-M",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "N": {
+      "file": "cap-N.glb",
+      "triangles": 6144,
+      "bytes": 112188,
+      "sourceName": "keycap-char-N",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "O": {
+      "file": "cap-O.glb",
+      "triangles": 6216,
+      "bytes": 113460,
+      "sourceName": "keycap-char-O",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "P": {
+      "file": "cap-P.glb",
+      "triangles": 6092,
+      "bytes": 111228,
+      "sourceName": "keycap-char-P",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "Q": {
+      "file": "cap-Q.glb",
+      "triangles": 6232,
+      "bytes": 113748,
+      "sourceName": "keycap-char-Q",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "R": {
+      "file": "cap-R.glb",
+      "triangles": 6236,
+      "bytes": 113820,
+      "sourceName": "keycap-char-R",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "S": {
+      "file": "cap-S.glb",
+      "triangles": 6456,
+      "bytes": 117804,
+      "sourceName": "keycap-char-S",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "T": {
+      "file": "cap-T.glb",
+      "triangles": 5964,
+      "bytes": 108948,
+      "sourceName": "keycap-char-T",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "U": {
+      "file": "cap-U.glb",
+      "triangles": 6024,
+      "bytes": 110028,
+      "sourceName": "keycap-char-U",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "V": {
+      "file": "cap-V.glb",
+      "triangles": 5932,
+      "bytes": 108372,
+      "sourceName": "keycap-char-V",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "W": {
+      "file": "cap-W.glb",
+      "triangles": 6388,
+      "bytes": 116580,
+      "sourceName": "keycap-char-W",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "X": {
+      "file": "cap-X.glb",
+      "triangles": 6368,
+      "bytes": 116220,
+      "sourceName": "keycap-char-X",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "Y": {
+      "file": "cap-Y.glb",
+      "triangles": 5960,
+      "bytes": 108876,
+      "sourceName": "keycap-char-Y",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "Z": {
+      "file": "cap-Z.glb",
+      "triangles": 6044,
+      "bytes": 110388,
+      "sourceName": "keycap-char-Z",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    }
+  },
+  "sources": [
+    {
+      "file": "Compact+Fidget+Clicker+-+Base.3mf",
+      "sha256": "cf239abde95eb89203989416f42933b7670b40199b65558b111d3c093a7014ab"
+    },
+    {
+      "file": "Chunky+Keycaps+-+Alphabets,+Numbers,+Icons,+and+Blank.3mf",
+      "sha256": "c10374c1f63bc8395c8892be95ed4666f066918178ffb6288556d0ac30257fe2"
+    }
+  ]
+}

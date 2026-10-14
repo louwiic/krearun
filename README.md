@@ -162,7 +162,20 @@ avant série. La génération d’un fichier ne vaut pas validation du devis.
 L’aperçu du Clicker Studio comporte aussi une scène Three.js orientable et zoomable,
 avec autant de touches que de lettres/symboles affichés, et les trois couleurs de
 la configuration. Le placement libre du symbole demandé en note reste vérifié
-à l’atelier. Ce modèle indicatif n’est pas un fichier de fabrication du clicker.
+à l’atelier. La géométrie vient des 3MF `Compact+Fidget+Clicker+-+Base`
+et `Chunky+Keycaps+-+Alphabets,+Numbers,+Icons,+and+Blank` du dossier
+`/Users/loic/3D/Bibliotheque_3D/clicker 3D print`. Les bases 1 à 10 touches
+sont celles du fichier ; les bases 11 à 15 répètent son module central de 20,5 mm,
+sans étirer les logements. Les lettres A–Z, chiffres et symboles étoile/cœur/nuage/
+trèfle utilisent leurs reliefs natifs. Les autres caractères utilisent la touche
+vierge réelle et un marquage de surface. L’assemblage à l’écran est indicatif ;
+ces fichiers d’aperçu ne sont pas des fichiers de fabrication.
+
+`export-clicker-preview.py` génère les GLB publics et leur manifeste avec empreintes
+des sources. La vignette de boutique du porte-boisson est également calculée depuis
+le GLB réel : `node scripts/render-holder-catalog.mjs` régénère
+`public/products/porte-boisson-personnalise.svg` avec le marquage KREARUN,
+sans charger de scène Three.js dans les cartes de la boutique.
 
 ```bash
 node --test tests/custom-holder.test.mjs tests/holder-manufacturing.test.mjs
