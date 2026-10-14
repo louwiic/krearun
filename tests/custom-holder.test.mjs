@@ -42,6 +42,8 @@ test('webhook requires paid status and the exact stored session, owner and amoun
 });
 test('configuration rejects malformed colors, ranges and nonfinite values',()=>{
   assert.deepEqual(holder.parseHolderConfiguration(base.configuration),base.configuration);
+  assert.equal(holder.parseHolderConfiguration({...base.configuration,logoFaces:2}).logoFaces,2);
+  assert.throws(()=>holder.parseHolderConfiguration({...base.configuration,logoFaces:3}));
   for(const patch of [{bodyColor:'url(javascript:alert(1))'},{logoWidth:0},{logoOffset:26},{logoWidth:NaN}])assert.throws(()=>holder.parseHolderConfiguration({...base.configuration,...patch}));
   assert.equal(holder.euroCents('17,90'),1790);assert.equal(holder.euroCents('0',true),0);assert.throws(()=>holder.euroCents('-1'));assert.throws(()=>holder.euroCents('1.999'));
 });

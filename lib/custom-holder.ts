@@ -16,6 +16,7 @@ export function holderModelLabel(configuration: HolderConfiguration): string { r
 export interface HolderConfiguration {
   model?: HolderModel;
   logoColors?: string[];
+  logoFaces?: 1 | 2;
   bodyColor: string;
   bodyColorName: string;
   logoWidth: number;
@@ -69,6 +70,7 @@ export function holderTotal(request: HolderRequest): number {
 export function parseHolderConfiguration(value: unknown): HolderConfiguration {
   if (!value || typeof value !== "object") throw new Error("Configuration invalide.");
   const input = value as Record<string, unknown>;
+  if(input.logoFaces!==undefined&&input.logoFaces!==1&&input.logoFaces!==2)throw new Error("Nombre de faces du logo invalide.");
   if(input.logoColors!==undefined&&(!Array.isArray(input.logoColors)||input.logoColors.length<1||input.logoColors.length>4||input.logoColors.some(color=>typeof color!=='string'||!/^#[a-f0-9]{6}$/i.test(color))))throw new Error("Choisissez au maximum quatre couleurs pour le logo.");
   if (input.model !== undefined && !HOLDER_MODELS.some(model=>model.id===input.model)) throw new Error("Choisissez un modèle disponible.");
   if (typeof input.bodyColor !== "string" || !/^#[0-9a-f]{6}$/i.test(input.bodyColor)
@@ -78,6 +80,7 @@ export function parseHolderConfiguration(value: unknown): HolderConfiguration {
     throw new Error("Configuration du porte-boisson invalide.");
   }
   return { bodyColor: input.bodyColor.toLowerCase(), bodyColorName: input.bodyColorName.trim().slice(0,80), logoWidth: input.logoWidth, logoOffset: input.logoOffset,
+    ...(input.logoFaces===undefined?{}:{logoFaces:input.logoFaces as 1 | 2}),
     ...(input.logoColors===undefined?{}:{logoColors:(input.logoColors as string[]).map(color=>color.toLowerCase())}),
     ...(input.model === undefined ? {} : { model: input.model as HolderModel }),
   };

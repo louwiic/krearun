@@ -54,3 +54,15 @@ test('manufacturing exports require admin access before private files are read',
  const call=()=>route.POST(new Request('https://krearun.re/api/porte-boisson/demandes/x/export',{method:'POST',body:'{}'}),{params:Promise.resolve({id:'aaaaaaaaaaaaaaa'})});
  assert.equal((await call()).status,401);assert.equal(reads,0);assert.equal(calls,0);admin=true;const response=await call();assert.equal(response.status,200);assert.equal(response.headers.get('content-type'),'model/3mf');assert.match(response.headers.get('cache-control'),/no-store/);assert.equal(calls,1);
 });
+
+test('two-sided customization cuts opposing pockets and provides two separate flat inserts',async()=>{
+ const logo=await sharp({create:{width:48,height:24,channels:4,background:{r:255,g:0,b:0,alpha:1}}}).png().toBuffer();
+ const result=await buildHolderManufacturing({requestId:'two-faces',configuration:{...configuration,logoFaces:2},palette:['#ff0000'],logo});const parsed=parse(result.file);
+ assert.equal(parsed.report.settings.faces,2);assert.equal(parsed.root.getElementsByTagName('item').length,6);assert.ok(parsed.report.checks.insertBodyOverlapMm3<=.02);
+ const inserts=parsed.objects.filter(o=>o.getAttribute('name')?.startsWith('Logo multicolore à plat'));assert.equal(inserts.length,2);
+ const items=Array.from(parsed.root.getElementsByTagName('item')).filter(item=>inserts.some(o=>o.getAttribute('id')===item.getAttribute('objectid')));
+ const y=items.map(item=>Number(item.getAttribute('transform').split(' ')[10]));assert.ok(Math.abs(y[1]-y[0])>parsed.report.logoBoundsMm.height);
+ const wasm=await Module();wasm.setup();const bodyData=meshData(parsed.meshes.find(o=>o.getAttribute('name').startsWith('Cylindre')));const body=new wasm.Manifold(new wasm.Mesh({numProp:3,vertProperties:bodyData.vertices,triVerts:bodyData.triangles}));
+ const source=JSON.parse(gunzipSync(readFileSync(new URL('../assets/holder-manufacturing/custom.json.gz',import.meta.url)))).objects.find(o=>o.plate===4).parts[0];const original=new wasm.Manifold(new wasm.Mesh({numProp:3,vertProperties:new Float32Array(source.vertices),triVerts:new Uint32Array(source.triangles)}));const removed=original.subtract(body);
+ const front=removed.intersect(wasm.Manifold.cube([100,50,140],true).translate([0,-25,0])).volume(),back=removed.intersect(wasm.Manifold.cube([100,50,140],true).translate([0,25,0])).volume();assert.ok(front>100);assert.ok(Math.abs(front-back)<.1,'both sides have the same pocket');
+});

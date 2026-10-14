@@ -138,6 +138,10 @@ Pour un logo personnalisé, le contour du PNG préparé (aussi utilisé pour un 
 importé) est vectorisé en conservant transparence, trous et îlots. Les petites marches
 issues du raster sont simplifiées à 0,025 mm. Une sous-couche commune de la couleur
 dominante relie les zones adjacentes ; les îlots transparents restent séparés.
+Les nouvelles demandes personnalisées placent le logo sur deux faces opposées à
+180° (`logoFaces: 2`). Le 3MF contient les deux logements et deux inserts à plat,
+séparés sur le plateau des logos. Les demandes existantes sans ce champ conservent
+leur face unique pour respecter la configuration déjà validée.
 Valeurs initiales : creux 0,6 mm, jeu latéral 0,2 mm, épaisseur du logo 1 mm, jeu de
 colle au fond 0,02 mm. La largeur à plat est compensée pour la fibre neutre du cintrage
 pour retrouver le placement de l’aperçu. Le logo doit être mis en forme selon le

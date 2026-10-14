@@ -23,6 +23,7 @@ export default function HolderPreview3D({configuration,logo,thumbnail=false}:{co
   const reset=useRef<()=>void>(()=>{});
   const [error,setError]=useState('');const [loading,setLoading]=useState(true);
   const selectedModel=holderModel(configuration);
+  const logoFaces=configuration.logoFaces??1;
   const logoColorKey=configuration.logoColors?.join(',')??'';
   useEffect(()=>{
     const element=host.current;if(!element)return;
@@ -72,7 +73,8 @@ export default function HolderPreview3D({configuration,logo,thumbnail=false}:{co
           }
           for(let x=0;x<segments;x++){const top=segments+1+x;indices.push(x,x+1,top,top,x+1,top+1);}
           const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));geometry.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));geometry.setIndex(indices);geometry.computeVertexNormals();
-          model.add(new THREE.Mesh(geometry,new THREE.MeshStandardMaterial({map:texture,transparent:true,alphaTest:.5,roughness:.65,side:THREE.DoubleSide})));
+          const material=new THREE.MeshStandardMaterial({map:texture,transparent:true,alphaTest:.5,roughness:.65,side:THREE.FrontSide});
+          for(let face=0;face<logoFaces;face++){const mesh=new THREE.Mesh(face?geometry.clone():geometry,material);mesh.rotation.y=face*Math.PI;model.add(mesh);}
         }else{
           const svg=await brandLettering();if(disposed)return;
           const geometries=svg.paths.flatMap(path=>SVGLoader.createShapes(path)).map(shape=>new THREE.ExtrudeGeometry(shape,{depth:.8,bevelEnabled:false,steps:1,curveSegments:8}));
@@ -80,14 +82,14 @@ export default function HolderPreview3D({configuration,logo,thumbnail=false}:{co
           const center=bounds.getCenter(new THREE.Vector3()),scale=50/(bounds.max.x-bounds.min.x);
           const bodyColor=new THREE.Color(configuration.bodyColor);const lightness=.2126*bodyColor.r+.7152*bodyColor.g+.0722*bodyColor.b;
           const material=new THREE.MeshStandardMaterial({color:lightness>.45?0x191815:0xffffff,roughness:.6});
-          for(const geometry of geometries){const vertices=geometry.getAttribute('position');for(let i=0;i<vertices.count;i++){const x=(vertices.getX(i)-center.x)*scale,y=-(vertices.getY(i)-center.y)*scale+5,radius=38.5+vertices.getZ(i);const theta=x/38.5;vertices.setXYZ(i,Math.sin(theta)*radius,y,Math.cos(theta)*radius);}geometry.computeVertexNormals();model.add(new THREE.Mesh(geometry,material));}
+          for(const geometry of geometries){const vertices=geometry.getAttribute('position');for(let i=0;i<vertices.count;i++){const x=(vertices.getX(i)-center.x)*scale,y=-(vertices.getY(i)-center.y)*scale+5,radius=38.5+vertices.getZ(i);const theta=x/38.5;vertices.setXYZ(i,Math.sin(theta)*radius,y,Math.cos(theta)*radius);}geometry.computeVertexNormals();for(let face=0;face<logoFaces;face++){const mesh=new THREE.Mesh(face?geometry.clone():geometry,material);mesh.rotation.y=face*Math.PI;model.add(mesh);}}
         }
       }
       render();if(!disposed)setLoading(false);
     }
     void decorate().catch(()=>{if(!disposed){setLoading(false);setError("Le modèle 3D n’a pas pu être chargé. Actualisez la page pour réessayer.");}});
     return()=>{disposed=true;observer.disconnect();controls.dispose();const materials=new Set<THREE.Material>();model.traverse(object=>{if(object instanceof THREE.Mesh){object.geometry.dispose();(Array.isArray(object.material)?object.material:[object.material]).forEach(material=>materials.add(material));}});materials.forEach(material=>material.dispose());textures.forEach(texture=>texture.dispose());renderer.dispose();renderer.forceContextLoss();renderer.domElement.remove();};
-  },[configuration.bodyColor,configuration.logoWidth,configuration.logoOffset,selectedModel,logo,thumbnail,logoColorKey]);
+  },[configuration.bodyColor,configuration.logoWidth,configuration.logoOffset,selectedModel,logo,thumbnail,logoColorKey,logoFaces]);
   return <div className={`relative overflow-hidden bg-cream ${thumbnail?'pointer-events-none rounded-lg':'rounded-2xl border-2 border-ink'}`}>
     <div ref={host} className={thumbnail?'h-[130px] w-full':'h-[360px] w-full touch-none sm:h-[440px]'}/>
     {!thumbnail&&<><span className="pointer-events-none absolute left-4 top-3 text-xs font-bold uppercase tracking-wide">Aperçu 3D • 500 ml</span><button type="button" onClick={()=>reset.current()} aria-label="Réinitialiser la vue 3D" className="absolute right-3 top-2 rounded-full bg-white/90 px-3 py-2 text-lg">↺</button></>}
