@@ -97,6 +97,37 @@ public/products/   → visuels générés
 public/uploads/    → photos ajoutées depuis l'admin
 ```
 
+## Porte-boisson 500 ml personnalisé
+
+La fiche `/boutique/porte-boisson-500ml-personnalise` propose un dépôt PNG/JPG/WebP
+(5 Mo et 4096 pixels maximum), une préparation du logo en quatre couleurs maximum
+et un aperçu Three.js orientable avec réglage de la couleur, de la largeur et du
+placement. Le client vérifie l’aperçu avant l’envoi. Un compte est nécessaire pour
+envoyer la demande ; `/compte/inscription` envoie un lien d’activation aux nouveaux clients.
+
+Les logos original et préparé sont des fichiers **protégés** dans PocketBase,
+consultables uniquement par le propriétaire de la demande et l’administrateur.
+Dans `/admin/personnalisations`, l’atelier vérifie la faisabilité, saisit le prix
+unitaire et la livraison, puis accepte ou refuse avec un message. Le devis accepté
+est immuable. Le client retrouve la réponse et le paiement dans `/compte`.
+Seule une confirmation Stripe signée crée la commande payée. Des index uniques
+protègent l’envoi, la décision et la création de commande contre les doublons.
+
+Provisionner avant déploiement :
+
+```bash
+node --env-file=.env scripts/setup-custom-holder.mjs
+```
+
+Ce script crée `holder_requests`, `holder_decisions`, l’index des commandes et la
+fiche produit inactive. Activer la fiche dans l’admin une fois le code déployé.
+L’aperçu reste indicatif ; aucun fichier de fabrication STL/3MF n’est généré par
+ce configurateur, la faisabilité du logo est vérifiée par l’atelier.
+
+```bash
+node --experimental-strip-types --test tests/custom-holder.test.mjs
+```
+
 ## API publique pour les sites partenaires
 
 `GET /api/partenaires/produits` renvoie en JSON uniquement les produits actifs

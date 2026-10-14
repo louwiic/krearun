@@ -18,6 +18,7 @@ import type { CheckoutCustomer, OrderItem } from "@/lib/types";
 import { CUSTOM_LETTER_PRICE_CENTS, parseLetterConfiguration } from "@/lib/custom-letter-settings";
 import { CLICKER_PRODUCT, CLICKER_PRODUCT_ID } from "@/lib/clicker";
 import type { ClickerConfiguration } from "@/lib/types";
+import { fulfillHolderPayment } from "@/lib/custom-holder-fulfillment";
 
 function metadataCustomer(session: Stripe.Checkout.Session): CheckoutCustomer | null {
   const metadata = session.metadata ?? {};
@@ -69,6 +70,12 @@ export async function POST(req: Request) {
 
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
+
+    if (session.metadata?.customHolderRequest) {
+      try { await fulfillHolderPayment(session); }
+      catch { console.error("[Holder] Payment fulfillment failed"); return NextResponse.json({error:"Confirmation à réessayer."},{status:500}); }
+      return NextResponse.json({received:true});
+    }
 
     // Idempotence : ne pas recréer la commande si le webhook rejoue
     if (await getOrderByStripeSession(session.id)) {

@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import { HOLDER_SLUG } from "@/lib/custom-holder";
 import { useCart } from "@/components/cart/CartContext";
 import { publicColorName } from "@/lib/colors";
 import { formatPrice } from "@/lib/format";
@@ -39,6 +41,8 @@ export default function AddToCart({ product }: { product: Product }) {
   const discountedConfiguredPriceCents =
     discountedUnitPriceCents(modelPriceCents, product.quantityDiscounts, quantity) +
     personalizationPriceCents;
+
+  if (product.slug === HOLDER_SLUG) return <Link href={`/boutique/${HOLDER_SLUG}`} className="inline-flex rounded-full bg-terra px-6 py-4 font-bold text-white">Personnaliser et demander une validation →</Link>;
 
   return (
     <div className="space-y-5">

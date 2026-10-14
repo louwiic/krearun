@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import Link from "next/link";
 import { customerLoginAction } from "./actions";
 
 const field = "w-full rounded-2xl border border-sand bg-linen px-4 py-3 text-sm outline-none focus:border-terra";
@@ -21,7 +22,7 @@ export default function LoginForm() {
       <button disabled={pending} className="w-full rounded-full bg-terra px-8 py-4 text-sm font-bold text-cream hover:bg-terra-deep disabled:opacity-60">
         {pending ? "Connexion…" : "Me connecter"}
       </button>
-      <p className="text-center text-xs leading-5 text-ink-faint">Votre compte est créé automatiquement lors de votre première commande. Utilisez le lien reçu par e-mail pour définir votre mot de passe.</p>
+      <p className="text-center text-xs leading-5 text-ink-faint">Votre compte est créé lors de votre première commande. Pour envoyer un logo avant de commander, <Link href="/compte/inscription" className="font-bold text-terra underline">créez votre compte ici</Link>. Utilisez le lien reçu par e-mail pour définir votre mot de passe.</p>
     </form>
   );
 }

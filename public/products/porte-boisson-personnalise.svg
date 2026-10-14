@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="1000" viewBox="0 0 1000 1000">
+  <defs><linearGradient id="body"><stop stop-color="#121313"/><stop offset=".46" stop-color="#454847"/><stop offset="1" stop-color="#161817"/></linearGradient><linearGradient id="can"><stop stop-color="#aaaeb4"/><stop offset=".4" stop-color="#f3f5f5"/><stop offset="1" stop-color="#a4a8ad"/></linearGradient></defs>
+  <rect width="1000" height="1000" fill="#eeeae0"/><circle cx="490" cy="490" r="340" fill="#e4dfd4"/>
+  <ellipse cx="515" cy="862" rx="220" ry="30" fill="#171713" opacity=".12"/>
+  <path d="M620 394h107q50 0 50 50v216q0 48-50 48H620v-34h95q28 0 28-28V458q0-28-28-28h-95z" fill="#222524" stroke="#131615" stroke-width="4"/>
+  <path d="M337 219h291v130H337z" fill="url(#can)"/><ellipse cx="482" cy="219" rx="145" ry="30" fill="#c6cbd0" stroke="#989da3" stroke-width="5"/><ellipse cx="482" cy="219" rx="125" ry="21" fill="#e4e7e9"/><ellipse cx="480" cy="218" rx="29" ry="10" fill="#a0a6ac"/>
+  <path d="M323 320h318v470q0 56-159 56t-159-56z" fill="url(#body)" stroke="#191c1b" stroke-width="4"/><ellipse cx="482" cy="320" rx="159" ry="32" fill="#222524"/><ellipse cx="482" cy="317" rx="147" ry="23" fill="url(#can)"/>
+  <circle cx="450" cy="525" r="37" fill="#f45b2b"/><path d="M500 488h64v74h-64z" fill="#c2f05d"/><path d="m482 569 50 82H432z" fill="#48bccc"/><circle cx="480" cy="690" r="18" fill="#f8f4ea"/>
+  <text x="480" y="749" text-anchor="middle" fill="#f8f4ea" font-family="Arial,sans-serif" font-weight="bold" font-size="25">VOTRE LOGO</text>
+  <rect x="73" y="70" width="202" height="60" rx="30" fill="#f45b2b"/><text x="174" y="109" fill="white" text-anchor="middle" font-family="Arial,sans-serif" font-size="25" font-weight="bold">500 ML</text>
+  <text x="75" y="934" fill="#171713" font-family="Arial,sans-serif" font-size="38" font-weight="bold">CRÉEZ LE VÔTRE.</text>
+</svg>

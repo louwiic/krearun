@@ -10,6 +10,7 @@ import type { CheckoutCustomer, FulfillmentMethod } from "@/lib/types";
 import { discountedUnitPriceCents } from "@/lib/quantity-discounts";
 import { CLICKER_PRODUCT, CLICKER_PRODUCT_ID } from "@/lib/clicker";
 import type { ClickerConfiguration } from "@/lib/types";
+import { HOLDER_SLUG } from "@/lib/custom-holder";
 
 interface CheckoutItem {
   productId: string;
@@ -142,6 +143,7 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
+    if (product.slug === HOLDER_SLUG) return NextResponse.json({error:"Ce produit personnalisé nécessite une demande validée. Payez-le depuis votre espace client."},{status:400});
     const activeVariants = product.variants.filter((variant) => variant.active);
     const variant = activeVariants.find((candidate) => candidate.id === text(item.variantId, 80));
     if (activeVariants.length > 0 && !variant) {

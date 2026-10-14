@@ -5,6 +5,7 @@ import { formatPrice } from "@/lib/format";
 import { hasFreeShipping } from "@/lib/free-shipping";
 import { publicProductCopy } from "@/lib/public-copy";
 import type { Product, Review, Settings } from "@/lib/types";
+import { HOLDER_SLUG } from "@/lib/custom-holder";
 
 export default function SingleProductHome({
   product,
@@ -56,7 +57,7 @@ export default function SingleProductHome({
             <div className="mt-6 flex items-end gap-3 border-b-2 border-ink/15 pb-6">
               <span className="font-display text-4xl leading-none text-ink sm:text-5xl">
                 {variantPrices.length > 1 && <span className="mr-2 text-base">Dès</span>}
-                {formatPrice(displayPrice)}
+                {product.slug === HOLDER_SLUG ? "Sur validation" : formatPrice(displayPrice)}
               </span>
               {product.compareAtCents ? (
                 <span className="pb-1 text-lg text-ink-faint line-through">

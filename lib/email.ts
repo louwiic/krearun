@@ -3,6 +3,8 @@
 // ne doit jamais faire échouer un paiement ou une mise à jour de commande.
 import nodemailer from "nodemailer";
 import type { Order } from "./types";
+import { holderTotal, type HolderRequest } from "./custom-holder";
+import { holderSiteUrl } from "./custom-holder-http";
 import { publicColorName } from "./colors";
 import { formatPrice } from "./format";
 import { normalizeNewsletterUrls } from "./newsletter-urls";
@@ -225,20 +227,37 @@ export async function sendCustomerActivation(
   name: string,
   token: string,
 ) {
-  const prenom = name.split(" ")[0] || "vous";
-  const url = `${process.env.NEXT_PUBLIC_SITE_URL || ""}/compte/activer?token=${encodeURIComponent(token)}`;
-  await sendEmail(
+  const prenom = escapeHtml(name.split(" ")[0] || "vous");
+  const url = `${holderSiteUrl()}/compte/activer?token=${encodeURIComponent(token)}`;
+  return sendEmail(
     email,
     "Activez votre espace client Krearun Studio",
     layout(`
 <h1 style="font-size:24px;margin:0 0 16px;">Votre espace client est prêt, ${prenom}.</h1>
-<p>Nous avons créé votre compte client pour retrouver vos commandes et suivre leur préparation.</p>
+<p>Votre compte client vous permet de retrouver vos commandes, vos demandes de personnalisation et leur suivi.</p>
 <p>Il ne reste qu'à définir votre mot de passe. Ce lien est valable 7 jours.</p>
 <p style="text-align:center;margin:28px 0;">
 <a href="${url}" style="background:#c07a50;color:#fdfaf4;text-decoration:none;padding:14px 32px;border-radius:999px;font-size:14px;font-weight:bold;">Définir mon mot de passe</a>
 </p>
-<p style="color:#877867;font-size:13px;">Si vous n'êtes pas à l'origine de cette commande, ignorez simplement ce message.</p>`),
+<p style="color:#877867;font-size:13px;">Si vous n'êtes pas à l'origine de cette demande, ignorez simplement ce message.</p>`),
   );
+}
+
+export async function sendHolderRequestNotification(request: HolderRequest) {
+  const site=holderSiteUrl();
+  return sendEmail(ADMIN_EMAIL,"Nouvelle demande de porte-boisson personnalisé",layout(`
+    <h1>Un logo à vérifier</h1><p>${escapeHtml(request.customerName)} demande ${request.quantity} porte-boisson(s) 500 ml.</p>
+    <p>Couleur : ${escapeHtml(request.configuration.bodyColorName)} · ${request.palette.length} couleur(s) dans le logo.</p>
+    <p><a href="${site}/admin/personnalisations#${request.id}">Examiner la demande dans l’administration</a></p>`));
+}
+export async function sendHolderDecisionNotification(request: HolderRequest) {
+  const site=holderSiteUrl();
+  const approved=request.decision?.status==='approved';
+  return sendEmail(request.customerEmail,approved?"Votre porte-boisson personnalisé est validé":"Votre demande de personnalisation a été examinée",layout(`
+    <h1>${approved?"Votre logo est réalisable !":"Votre demande a été examinée"}</h1>
+    ${approved?`<p>Votre demande a été validée. Montant total : <strong>${formatPrice(holderTotal(request))}</strong>, livraison comprise.</p><p>Vous pouvez maintenant payer depuis votre espace client.</p>`:'<p>Nous ne pouvons pas réaliser cette personnalisation dans sa forme actuelle. Aucun paiement ne vous est demandé.</p>'}
+    ${request.decision?.message?`<p>${escapeHtml(request.decision.message)}</p>`:''}
+    <p><a href="${site}/compte#personnalisations">Ouvrir mon espace client</a></p>`));
 }
 
 export async function sendOrderShipped(order: Order) {

@@ -4,6 +4,7 @@ import { formatPrice } from "@/lib/format";
 import { publicColorName } from "@/lib/colors";
 import { hasFreeShipping } from "@/lib/free-shipping";
 import { publicProductCopy } from "@/lib/public-copy";
+import { HOLDER_SLUG } from "@/lib/custom-holder";
 
 export default function ProductCard({
   product,
@@ -22,7 +23,8 @@ export default function ProductCard({
     .map((variant) => variant.priceCents || product.priceCents)
     .filter((price) => price > 0);
   const displayPrice = variantPrices.length > 0 ? Math.min(...variantPrices) : product.priceCents;
-  const soldOut = availableStock <= 0 && !product.preorder;
+  const personalized = product.slug === HOLDER_SLUG;
+  const soldOut = !personalized && availableStock <= 0 && !product.preorder;
 
   return (
     <Link
@@ -101,7 +103,7 @@ export default function ProductCard({
         </div>
         <div className="shrink-0 sm:text-right">
           <p className="font-display text-lg leading-none text-terra sm:text-xl">
-            {variantPrices.length > 1 && "Dès "}{formatPrice(displayPrice)}
+            {personalized ? "Sur validation" : <>{variantPrices.length > 1 && "Dès "}{formatPrice(displayPrice)}</>}
           </p>
           {product.compareAtCents && (
             <p className="mt-1 text-xs text-ink-faint line-through">
@@ -112,7 +114,7 @@ export default function ProductCard({
       </div>
       {showCta && (
         <span className="mt-3 flex w-full items-center justify-center border-2 border-ink bg-ink px-4 py-3 text-xs font-bold uppercase tracking-[0.06em] text-cream transition-all group-hover:bg-terra group-hover:border-terra sm:text-sm">
-          {soldOut ? "Voir le produit" : "Choisir ce produit"}
+          {personalized ? "Personnaliser" : soldOut ? "Voir le produit" : "Choisir ce produit"}
           <span aria-hidden className="ml-2 transition-transform group-hover:translate-x-1">
             →
           </span>

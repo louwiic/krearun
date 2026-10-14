@@ -11,6 +11,8 @@ import { hasFreeShipping } from "@/lib/free-shipping";
 import { publicProductCopy } from "@/lib/public-copy";
 import { formatWeight } from "@/lib/shipping";
 import { getVisibleCategories } from "@/lib/categories";
+import { HOLDER_SLUG } from "@/lib/custom-holder";
+import CustomHolderProduct from "@/components/custom-holder/CustomHolderProduct";
 
 export const dynamic = "force-dynamic";
 
@@ -50,6 +52,8 @@ export default async function ProductPage({
     !product.active ||
     !categories.some((category) => category.value === product.category)
   ) notFound();
+
+  if (slug === HOLDER_SLUG) return <CustomHolderProduct />;
 
   const [all, reviews] = await Promise.all([
     getProducts(),

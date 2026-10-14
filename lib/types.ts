@@ -120,6 +120,7 @@ export const ORDER_STATUSES: { value: OrderStatus; label: string }[] = [
 ];
 
 export interface OrderItem {
+  holderRequestId?: string;
   letterConfiguration?: LetterConfiguration;
   clickerConfiguration?: ClickerConfiguration;
   productId: string;

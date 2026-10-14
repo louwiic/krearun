@@ -3,6 +3,7 @@ import { orderItemDetails } from "@/lib/order-details";
 import { formatPrice } from "@/lib/format";
 import { isOrderColorDetail, type OrderColorCatalog } from "@/lib/order-colors";
 import OrderColorName from "./OrderColorName";
+import Link from "next/link";
 
 export default function OrderItems({
   items,
@@ -30,6 +31,7 @@ export default function OrderItems({
               </div>
             ))}
           </dl>
+          {item.holderRequestId&&<Link href={`/admin/personnalisations#${item.holderRequestId}`} className="mt-2 inline-flex text-xs font-bold text-terra">Voir le logo et la personnalisation validée ↗</Link>}
           {!compact && (
             <>
               <p className="mt-2 text-sm">

@@ -31,8 +31,8 @@ export async function isAdmin(): Promise<boolean> {
   const token = cookieStore.get(COOKIE_NAME)?.value;
   if (!token) return false;
   try {
-    await jwtVerify(token, secret());
-    return true;
+    const { payload } = await jwtVerify(token, secret());
+    return payload.role === "admin";
   } catch {
     return false;
   }
@@ -41,8 +41,8 @@ export async function isAdmin(): Promise<boolean> {
 export async function verifyAdminToken(token: string | undefined): Promise<boolean> {
   if (!token) return false;
   try {
-    await jwtVerify(token, secret());
-    return true;
+    const { payload } = await jwtVerify(token, secret());
+    return payload.role === "admin";
   } catch {
     return false;
   }

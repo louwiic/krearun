@@ -65,6 +65,7 @@ export default async function CommandeDetailPage({
                   )}
                   <div className="flex-1">
                     <p className="text-sm font-bold">{item.name}</p>
+                    {item.holderRequestId&&<Link href={`/admin/personnalisations#${item.holderRequestId}`} className="mt-2 inline-flex text-xs font-bold text-terra">Voir le logo et la personnalisation validée ↗</Link>}
                     {item.variantName && <p className="text-xs text-ink-soft">Modèle : {item.variantName}</p>}
                     {item.keychainChoice && (
                       <p className="text-xs font-semibold text-terra-deep">

@@ -2,6 +2,7 @@
 // orders, newsletter, settings — règles null, accès superuser uniquement).
 // Tout le site passe par ces fonctions, exécutées côté serveur seulement.
 import crypto from "node:crypto";
+import type { HolderRequest, HolderDecision } from "./custom-holder";
 import type { ShipmentSummary } from "./colissimo";
 import type { ColissimoDocuments } from "./colissimo-response";
 import type { LetterEvent } from "./letter-events";
@@ -80,6 +81,81 @@ async function pb<T = unknown>(
 
 function escapeFilter(value: string): string {
   return value.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+}
+
+// Custom holder assets stay protected in PocketBase, never on public R2.
+type PbHolderRequest = HolderRequest & { expand?: { holder_decisions_via_requestId?: HolderDecision | HolderDecision[] } };
+const HOLDER_EXPAND = "expand=holder_decisions_via_requestId";
+function mapHolderRequest(record: PbHolderRequest): HolderRequest {
+  const { expand, ...request } = record;
+  const decision = expand?.holder_decisions_via_requestId;
+  return { ...request, decision: Array.isArray(decision) ? decision[0] : decision };
+}
+export async function getHolderRequest(id: string): Promise<HolderRequest | null> {
+  if (!/^[a-z0-9]{15}$/.test(id)) return null;
+  const list = await pb<ListResult<PbHolderRequest>>(`/collections/holder_requests/records?perPage=1&${HOLDER_EXPAND}&filter=${encodeURIComponent(`id='${id}'`)}`);
+  return list.items[0] ? mapHolderRequest(list.items[0]) : null;
+}
+export async function getHolderRequests(customerId?: string): Promise<HolderRequest[]> {
+  if (customerId && !/^[a-z0-9]{15}$/.test(customerId)) return [];
+  const requests: HolderRequest[]=[];
+  for (let page=1;;page++) {
+    const list=await pb<ListResult<PbHolderRequest>>(`/collections/holder_requests/records?perPage=100&page=${page}&sort=-created&${HOLDER_EXPAND}${customerId?`&filter=${encodeURIComponent(`customerId='${customerId}'`)}`:''}`);
+    requests.push(...list.items.map(mapHolderRequest));
+    if (page>=list.totalPages) break;
+  }
+  return requests;
+}
+export async function createHolderRequest(input: Pick<HolderRequest, "customerId" | "customerEmail" | "customerName" | "quantity" | "note" | "configuration" | "palette" | "submissionKey">, logo: Buffer, original: Buffer): Promise<HolderRequest> {
+  const filter=encodeURIComponent(`submissionKey='${escapeFilter(input.submissionKey)}'`);
+  const existing=await pb<ListResult<PbHolderRequest>>(`/collections/holder_requests/records?perPage=1&${HOLDER_EXPAND}&filter=${filter}`);
+  if (existing.items[0]) return mapHolderRequest(existing.items[0]);
+  const form=new FormData();
+  for (const [key,value] of Object.entries(input)) form.set(key,typeof value==='object'?JSON.stringify(value):String(value));
+  form.set("logo",new Blob([new Uint8Array(logo)],{type:"image/png"}),"logo-4-couleurs.png");
+  form.set("originalLogo",new Blob([new Uint8Array(original)],{type:"image/png"}),"logo-original.png");
+  const send=async()=>fetch(`${PB_URL}/api/collections/holder_requests/records`,{method:"POST",headers:{Authorization:await getToken()},body:form,cache:"no-store"});
+  let response=await send();
+  if(response.status===401){cachedToken=null;response=await send();}
+  if(!response.ok) {
+    const duplicate=await pb<ListResult<PbHolderRequest>>(`/collections/holder_requests/records?perPage=1&${HOLDER_EXPAND}&filter=${filter}`);
+    if(duplicate.items[0])return mapHolderRequest(duplicate.items[0]);
+    throw new Error("Impossible d'enregistrer la demande.");
+  }
+  return mapHolderRequest(await response.json() as PbHolderRequest);
+}
+export async function createHolderDecision(requestId: string, input: Omit<HolderDecision,"id"|"requestId"|"created">) {
+  if(!/^[a-z0-9]{15}$/.test(requestId))throw new Error("Demande invalide.");
+  // Unique requestId index makes the first decision final, including concurrent reviews.
+  return pb<HolderDecision>("/collections/holder_decisions/records",{method:"POST",body:{requestId,...input}});
+}
+export async function saveHolderCheckout(id: string, stripeSessionId: string) {
+  if(!/^[a-z0-9]{15}$/.test(id))throw new Error("Demande invalide.");
+  await pb(`/collections/holder_requests/records/${id}`,{method:"PATCH",body:{stripeSessionId}});
+}
+export async function markHolderPaid(id: string, orderId: string) {
+  if(!/^[a-z0-9]{15}$/.test(id) || !/^[a-z0-9]{15}$/.test(orderId))throw new Error("Demande invalide.");
+  await pb(`/collections/holder_requests/records/${id}`,{method:"PATCH",body:{orderId}});
+}
+export async function getHolderLogo(request: HolderRequest, original=false): Promise<Buffer> {
+  const {token}=await pb<{token:string}>("/files/token",{method:"POST"});
+  const filename=original?request.originalLogo:request.logo;
+  const response=await fetch(`${PB_URL}/api/files/holder_requests/${request.id}/${encodeURIComponent(filename)}?token=${encodeURIComponent(token)}`,{cache:"no-store"});
+  if(!response.ok)throw new Error("Logo indisponible.");
+  return Buffer.from(await response.arrayBuffer());
+}
+export async function registerCustomizationCustomer(email: string, name: string) {
+  const recent=await pb<ListResult<PbCustomerActivation>>(`/collections/customer_activation_tokens/records?perPage=1&sort=-created&filter=${encodeURIComponent(`email='${escapeFilter(normalizeEmail(email))}'`)}`);
+  if(recent.items[0]&&Date.parse(recent.items[0].expiresAt)>Date.now()+7*86400000-60000)throw new Error("Un lien vient d’être envoyé. Patientez une minute avant de réessayer.");
+  const existing=await pb<ListResult<PbCustomer>>(`/collections/customers/records?perPage=1&filter=${encodeURIComponent(`email='${escapeFilter(normalizeEmail(email))}'`)}`);
+  if(existing.items.length)return;
+  const password=randomPassword();
+  try {
+    await pb("/collections/customers/records",{method:"POST",body:{email:normalizeEmail(email),name,password,passwordConfirm:password,verified:false,country:"RE"}});
+  } catch(error) {
+    const duplicate=await pb<ListResult<PbCustomer>>(`/collections/customers/records?perPage=1&filter=${encodeURIComponent(`email='${escapeFilter(normalizeEmail(email))}'`)}`);
+    if(!duplicate.items.length)throw error;
+  }
 }
 
 function normalizeEmail(email: string): string {
