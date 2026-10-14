@@ -147,8 +147,9 @@ Le configurateur fixe désormais le logo au centre (`logoOffset: 0`) et propose
 `engravingText` (32 caractères, sous les deux logos). Les contours typographiques
 DejaVu sont communs à l’aperçu et à l’export ; le 3MF découpe une gravure réelle de
 0,4 mm, hors filetages. Sur OM/Arsenal les nouvelles gravures s’ajoutent aux décors
-natifs. Les bagues haut/bas ont leurs couleurs `topColor` et `bottomColor`, contrôlées
-contre les filaments de l’atelier ; le corps reste noir ou blanc. Ces choix et textes
+natifs. Le choix unique de couleur des bagues est enregistré dans `topColor` et
+`bottomColor` avec la même valeur, contrôlée contre les filaments de l’atelier ;
+le corps reste noir ou blanc. Les anciennes demandes gardent leurs couleurs enregistrées. Ces choix et textes
 restent visibles dans l’administration et dans la demande de l’espace client.
 Valeurs initiales : creux 0,6 mm, jeu latéral 0,2 mm, épaisseur du logo 1 mm, jeu de
 colle au fond 0,02 mm. La largeur à plat est compensée pour la fibre neutre du cintrage
