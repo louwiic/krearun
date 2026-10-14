@@ -1,3 +1,10 @@
+export function recolorLogoPixels(pixels:Uint8Array|Uint8ClampedArray,source:string[],target:string[]):Uint8Array {
+  if(source.length!==target.length)throw new Error("La palette du logo a changé. Importez-le à nouveau.");
+  const mapping=new Map(source.map((hex,index)=>[hex.toLowerCase(),target[index]]));
+  const output=new Uint8Array(pixels);
+  for(let i=0;i<output.length;i+=4){if(!output[i+3])continue;const hex='#'+[output[i],output[i+1],output[i+2]].map(v=>v.toString(16).padStart(2,'0')).join('');const replacement=mapping.get(hex);if(replacement){const value=parseInt(replacement.slice(1),16);output[i]=(value>>16)&255;output[i+1]=(value>>8)&255;output[i+2]=value&255;}}
+  return output;
+}
 // Shared deterministic quantization: opaque pixels use at most four RGB colors.
 // Transparent/antialiased edges do not create extra printing colors.
 export function reduceLogoColors(pixels: Uint8Array, maxColors = 4): { pixels: Uint8Array; palette: string[]; reduced: boolean } {

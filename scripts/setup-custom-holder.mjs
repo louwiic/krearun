@@ -6,7 +6,11 @@ const auth=await authResponse.json();if(!authResponse.ok||!auth.token)throw new 
 async function pb(path,method='GET',body){const response=await fetch(`${base}/api${path}`,{method,headers:{Authorization:auth.token,'Content-Type':'application/json'},body:body===undefined?undefined:JSON.stringify(body)});const data=response.status===204?null:await response.json();if(!response.ok)throw new Error(`PocketBase ${response.status}: ${JSON.stringify(data)}`);return data;}
 async function ensureCollection(name,fields,indexes){
   const list=await pb(`/collections?filter=${encodeURIComponent(`name='${name}'`)}`);
-  if(list.items[0]) {console.log(`Collection ${name} already exists`);return list.items[0];}
+  if(list.items[0]) {
+    const existing=list.items[0];const missing=fields.filter(field=>!existing.fields.some(saved=>saved.name===field.name));
+    if(missing.length){const updated=await pb(`/collections/${existing.id}`,'PATCH',{fields:[...existing.fields,...missing]});console.log(`Added ${missing.map(field=>field.name).join(', ')} to ${name}`);return updated;}
+    console.log(`Collection ${name} already exists`);return existing;
+  }
   const created=await pb('/collections','POST',{name,type:'base',listRule:null,viewRule:null,createRule:null,updateRule:null,deleteRule:null,fields,indexes});console.log(`Created ${name}`);return created;
 }
 const customers=await pb('/collections/customers');const orders=await pb('/collections/orders');
@@ -19,7 +23,8 @@ const requests=await ensureCollection('holder_requests',[
   {name:'quantity',type:'number',required:true,onlyInt:true,min:1,max:20},
   {name:'configuration',type:'json',required:true,maxSize:4096},{name:'palette',type:'json',required:true,maxSize:1024},
   {name:'logo',type:'file',required:true,maxSelect:1,maxSize:2097152,mimeTypes:['image/png'],protected:true},
-  {name:'originalLogo',type:'file',required:true,maxSelect:1,maxSize:20971520,mimeTypes:['image/png'],protected:true},...dates,
+  {name:'originalLogo',type:'file',required:true,maxSelect:1,maxSize:20971520,mimeTypes:['image/png'],protected:true},
+  {name:'sourceSvg',type:'file',maxSelect:1,maxSize:5242880,mimeTypes:['image/svg+xml'],protected:true},...dates,
 ],['CREATE UNIQUE INDEX idx_holder_submission ON holder_requests (submissionKey)']);
 await ensureCollection('holder_decisions',[
   {name:'requestId',type:'relation',collectionId:requests.id,maxSelect:1,required:true,cascadeDelete:false},

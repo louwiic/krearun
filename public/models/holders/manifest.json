@@ -1,0 +1,165 @@
+{
+  "sourcePrintProject": "OM_500ML/FINAL/01_IMPRESSION/PORTE CANETTE OM 500ML - FINAL.3mf",
+  "assemblySources": [
+    "OM_500ML/FINAL/03_VISUEL/PORTE CANETTE OM 500ML - ASSEMBLE.3mf",
+    "Arsenal/FINAL/03_VISUEL/PORTE CANETTE ARSENAL 500ML - ASSEMBLE.3mf"
+  ],
+  "models": [
+    {
+      "variant": "custom",
+      "heightMm": 178.0,
+      "triangles": 50432,
+      "bytes": 905464,
+      "parts": [
+        {
+          "part": "Cylindre",
+          "role": "body",
+          "sourceTriangles": 43628,
+          "previewTriangles": 39430
+        },
+        {
+          "part": "Haut",
+          "role": "top",
+          "sourceTriangles": 4828,
+          "previewTriangles": 4828
+        },
+        {
+          "part": "Bas",
+          "role": "bottom",
+          "sourceTriangles": 4336,
+          "previewTriangles": 4336
+        },
+        {
+          "part": "Anse",
+          "role": "handle",
+          "sourceTriangles": 1838,
+          "previewTriangles": 1838
+        }
+      ]
+    },
+    {
+      "variant": "om",
+      "heightMm": 178.0,
+      "triangles": 123604,
+      "bytes": 2229416,
+      "parts": [
+        {
+          "part": "Cylindre",
+          "role": "body",
+          "sourceTriangles": 189378,
+          "previewTriangles": 50030
+        },
+        {
+          "part": "Haut",
+          "role": "top",
+          "sourceTriangles": 4828,
+          "previewTriangles": 4828
+        },
+        {
+          "part": "Bas",
+          "role": "bottom",
+          "sourceTriangles": 4336,
+          "previewTriangles": 4336
+        },
+        {
+          "part": "Anse",
+          "role": "handle",
+          "sourceTriangles": 1838,
+          "previewTriangles": 1838
+        },
+        {
+          "part": "OM bleu colle",
+          "role": "logo",
+          "sourceTriangles": 289272,
+          "previewTriangles": 58980
+        },
+        {
+          "part": "Etoile doree collee",
+          "role": "logo",
+          "sourceTriangles": 3592,
+          "previewTriangles": 3592
+        }
+      ]
+    },
+    {
+      "variant": "arsenal",
+      "heightMm": 178.0,
+      "triangles": 248304,
+      "bytes": 4333716,
+      "parts": [
+        {
+          "part": "Haut",
+          "role": "top",
+          "sourceTriangles": 4828,
+          "previewTriangles": 4828
+        },
+        {
+          "part": "Bas",
+          "role": "bottom",
+          "sourceTriangles": 4336,
+          "previewTriangles": 4336
+        },
+        {
+          "part": "Anse",
+          "role": "handle",
+          "sourceTriangles": 1838,
+          "previewTriangles": 1838
+        },
+        {
+          "part": "Corps",
+          "role": "body",
+          "sourceTriangles": 166770,
+          "previewTriangles": 35000
+        },
+        {
+          "part": "Arsenal Rouge",
+          "role": "logo",
+          "sourceTriangles": 431054,
+          "previewTriangles": 57650
+        },
+        {
+          "part": "Arsenal Blanc",
+          "role": "logo",
+          "sourceTriangles": 27042,
+          "previewTriangles": 16000
+        },
+        {
+          "part": "Arsenal Bleu",
+          "role": "logo",
+          "sourceTriangles": 11500,
+          "previewTriangles": 11500
+        },
+        {
+          "part": "Arsenal Dore",
+          "role": "logo",
+          "sourceTriangles": 44708,
+          "previewTriangles": 16000
+        },
+        {
+          "part": "Arsenal Rouge",
+          "role": "logo",
+          "sourceTriangles": 431054,
+          "previewTriangles": 57652
+        },
+        {
+          "part": "Arsenal Blanc",
+          "role": "logo",
+          "sourceTriangles": 27042,
+          "previewTriangles": 16000
+        },
+        {
+          "part": "Arsenal Bleu",
+          "role": "logo",
+          "sourceTriangles": 11500,
+          "previewTriangles": 11500
+        },
+        {
+          "part": "Arsenal Dore",
+          "role": "logo",
+          "sourceTriangles": 44708,
+          "previewTriangles": 16000
+        }
+      ]
+    }
+  ]
+}

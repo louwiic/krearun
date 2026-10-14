@@ -3,7 +3,7 @@
 // ne doit jamais faire échouer un paiement ou une mise à jour de commande.
 import nodemailer from "nodemailer";
 import type { Order } from "./types";
-import { holderTotal, type HolderRequest } from "./custom-holder";
+import { holderModelLabel, holderTotal, type HolderRequest } from "./custom-holder";
 import { holderSiteUrl } from "./custom-holder-http";
 import { publicColorName } from "./colors";
 import { formatPrice } from "./format";
@@ -247,7 +247,7 @@ export async function sendHolderRequestNotification(request: HolderRequest) {
   const site=holderSiteUrl();
   return sendEmail(ADMIN_EMAIL,"Nouvelle demande de porte-boisson personnalisé",layout(`
     <h1>Un logo à vérifier</h1><p>${escapeHtml(request.customerName)} demande ${request.quantity} porte-boisson(s) 500 ml.</p>
-    <p>Couleur : ${escapeHtml(request.configuration.bodyColorName)} · ${request.palette.length} couleur(s) dans le logo.</p>
+    <p>Modèle : ${escapeHtml(holderModelLabel(request.configuration))} · Couleur : ${escapeHtml(request.configuration.bodyColorName)} · ${request.palette.length} couleur(s) dans le logo.</p>
     <p><a href="${site}/admin/personnalisations#${request.id}">Examiner la demande dans l’administration</a></p>`));
 }
 export async function sendHolderDecisionNotification(request: HolderRequest) {

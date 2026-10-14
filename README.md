@@ -99,13 +99,13 @@ public/uploads/    → photos ajoutées depuis l'admin
 
 ## Porte-boisson 500 ml personnalisé
 
-La fiche `/boutique/porte-boisson-500ml-personnalise` propose un dépôt PNG/JPG/WebP
-(5 Mo et 4096 pixels maximum), une préparation du logo en quatre couleurs maximum
-et un aperçu Three.js orientable avec réglage de la couleur, de la largeur et du
+La fiche `/boutique/porte-boisson-500ml-personnalise` propose les modèles OM / Arsenal et un dépôt SVG/PNG/JPG/WebP
+(5 Mo maximum ; images raster de 4096 pixels maximum, SVG rasterisé sous limite de 2048 pixels), une préparation du logo en quatre couleurs maximum
+et un aperçu Three.js orientable avec corps noir ou blanc, choix des couleurs du logo parmi l’inventaire (quatre maximum), réglage de la largeur et du
 placement. Le client vérifie l’aperçu avant l’envoi. Un compte est nécessaire pour
 envoyer la demande ; `/compte/inscription` envoie un lien d’activation aux nouveaux clients.
 
-Les logos original et préparé sont des fichiers **protégés** dans PocketBase,
+Les logos original et préparé, ainsi que la source SVG assainie lorsqu’elle existe, sont des fichiers **protégés** dans PocketBase,
 consultables uniquement par le propriétaire de la demande et l’administrateur.
 Dans `/admin/personnalisations`, l’atelier vérifie la faisabilité, saisit le prix
 unitaire et la livraison, puis accepte ou refuse avec un message. Le devis accepté
@@ -119,8 +119,16 @@ Provisionner avant déploiement :
 node --env-file=.env scripts/setup-custom-holder.mjs
 ```
 
-Ce script crée `holder_requests`, `holder_decisions`, l’index des commandes et la
+Ce script crée `holder_requests`, `holder_decisions`, ajoute les champs manquants (dont le SVG protégé), l’index des commandes et la
 fiche produit inactive. Activer la fiche dans l’admin une fois le code déployé.
+Les GLB de `public/models/holders` proviennent des projets 3MF assemblés OM et Arsenal
+stockés dans `/Users/loic/3D/porte_boisson`. Le neutre conserve le corps et la poignée,
+rebouche les décors OM et reçoit le marquage KREARUN en relief dans Three.js.
+`scripts/export-holder-preview.py` régénère ces fichiers (dépendances Python indiquées
+en tête du script). Les projets d’impression originaux ne sont pas modifiés.
+Les logos OM / Arsenal restent à leur placement d’origine et leurs couleurs sont modifiables ; le logo importé est
+projeté en texture sur le corps courbe, avec largeur et position réglables.
+
 L’aperçu reste indicatif ; aucun fichier de fabrication STL/3MF n’est généré par
 ce configurateur, la faisabilité du logo est vérifiée par l’atelier.
 

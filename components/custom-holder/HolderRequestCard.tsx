@@ -4,7 +4,7 @@
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useState } from "react";
-import { canPayHolder, holderStatus, holderTotal, HOLDER_STATUS_LABELS, type HolderRequest } from "@/lib/custom-holder";
+import { canPayHolder, holderModelLabel, holderStatus, holderTotal, HOLDER_STATUS_LABELS, type HolderRequest } from "@/lib/custom-holder";
 import { formatPrice, formatDate } from "@/lib/format";
 const Preview=dynamic(()=>import('./HolderPreview3D'),{ssr:false});
 
@@ -18,7 +18,7 @@ export default function HolderRequestCard({request}:{request:HolderRequest}) {
   }
   return <article id={`demande-${request.id}`} className="rounded-2xl border border-sand bg-cream p-5">
     <div className="flex items-start gap-4"><img src={logo} alt="Logo de votre demande" className="h-20 w-20 rounded-xl border border-sand bg-white object-contain"/>
-      <div className="min-w-0"><h3 className="font-display text-xl">Porte-boisson 500 ml personnalisé</h3><p className="mt-2 text-xs text-ink-soft">{formatDate(request.created)} · {request.quantity} exemplaire(s) · {request.configuration.bodyColorName}</p><p className="mt-2 text-sm font-bold text-terra-deep">{HOLDER_STATUS_LABELS[holderStatus(request)]}</p></div>
+      <div className="min-w-0"><h3 className="font-display text-xl">Porte-boisson 500 ml personnalisé</h3><p className="mt-2 text-xs text-ink-soft">{formatDate(request.created)} · {request.quantity} exemplaire(s) · {request.configuration.bodyColorName} · {holderModelLabel(request.configuration)}</p><p className="mt-2 text-sm font-bold text-terra-deep">{HOLDER_STATUS_LABELS[holderStatus(request)]}</p></div>
     </div>
     {request.note&&<p className="mt-4 whitespace-pre-wrap text-sm text-ink-soft">Votre message : {request.note}</p>}
     {request.decision?.message&&<div className="mt-4 rounded-xl bg-linen p-4 text-sm"><p className="font-bold">Réponse de l’atelier</p><p className="mt-2 whitespace-pre-wrap">{request.decision.message}</p></div>}

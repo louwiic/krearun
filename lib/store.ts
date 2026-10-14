@@ -106,7 +106,7 @@ export async function getHolderRequests(customerId?: string): Promise<HolderRequ
   }
   return requests;
 }
-export async function createHolderRequest(input: Pick<HolderRequest, "customerId" | "customerEmail" | "customerName" | "quantity" | "note" | "configuration" | "palette" | "submissionKey">, logo: Buffer, original: Buffer): Promise<HolderRequest> {
+export async function createHolderRequest(input: Pick<HolderRequest, "customerId" | "customerEmail" | "customerName" | "quantity" | "note" | "configuration" | "palette" | "submissionKey">, logo: Buffer, original: Buffer, sourceSvg?: Buffer): Promise<HolderRequest> {
   const filter=encodeURIComponent(`submissionKey='${escapeFilter(input.submissionKey)}'`);
   const existing=await pb<ListResult<PbHolderRequest>>(`/collections/holder_requests/records?perPage=1&${HOLDER_EXPAND}&filter=${filter}`);
   if (existing.items[0]) return mapHolderRequest(existing.items[0]);
@@ -114,6 +114,7 @@ export async function createHolderRequest(input: Pick<HolderRequest, "customerId
   for (const [key,value] of Object.entries(input)) form.set(key,typeof value==='object'?JSON.stringify(value):String(value));
   form.set("logo",new Blob([new Uint8Array(logo)],{type:"image/png"}),"logo-4-couleurs.png");
   form.set("originalLogo",new Blob([new Uint8Array(original)],{type:"image/png"}),"logo-original.png");
+  if(sourceSvg)form.set("sourceSvg",new Blob([new Uint8Array(sourceSvg)],{type:"image/svg+xml"}),"logo-vectoriel.svg");
   const send=async()=>fetch(`${PB_URL}/api/collections/holder_requests/records`,{method:"POST",headers:{Authorization:await getToken()},body:form,cache:"no-store"});
   let response=await send();
   if(response.status===401){cachedToken=null;response=await send();}
@@ -137,9 +138,10 @@ export async function markHolderPaid(id: string, orderId: string) {
   if(!/^[a-z0-9]{15}$/.test(id) || !/^[a-z0-9]{15}$/.test(orderId))throw new Error("Demande invalide.");
   await pb(`/collections/holder_requests/records/${id}`,{method:"PATCH",body:{orderId}});
 }
-export async function getHolderLogo(request: HolderRequest, original=false): Promise<Buffer> {
+export async function getHolderLogo(request: HolderRequest, original=false, sourceSvg=false): Promise<Buffer> {
   const {token}=await pb<{token:string}>("/files/token",{method:"POST"});
-  const filename=original?request.originalLogo:request.logo;
+  const filename=sourceSvg?request.sourceSvg:original?request.originalLogo:request.logo;
+  if(!filename)throw new Error("Logo indisponible.");
   const response=await fetch(`${PB_URL}/api/files/holder_requests/${request.id}/${encodeURIComponent(filename)}?token=${encodeURIComponent(token)}`,{cache:"no-store"});
   if(!response.ok)throw new Error("Logo indisponible.");
   return Buffer.from(await response.arrayBuffer());

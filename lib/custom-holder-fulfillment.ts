@@ -1,7 +1,7 @@
 import type Stripe from "stripe";
 import { getHolderRequest, createOrder, getOrderBySourceId, getOrderByStripeSession, markHolderPaid } from "./store";
 import { validHolderPayment } from "./custom-holder-payment";
-import { HOLDER_NAME, HOLDER_WEIGHT_GRAMS } from "./custom-holder";
+import { HOLDER_NAME, HOLDER_WEIGHT_GRAMS, holderModelLabel } from "./custom-holder";
 import { sendAdminNewOrder, sendOrderConfirmation } from "./email";
 
 export async function fulfillHolderPayment(session:Stripe.Checkout.Session) {
@@ -20,7 +20,7 @@ export async function fulfillHolderPayment(session:Stripe.Checkout.Session) {
       order=await createOrder({email:request.customerEmail,name:shipping?.name||request.customerName,phone:session.customer_details?.phone||'',addressLine1:address.line1,addressLine2:address.line2||'',city:address.city,postalCode:address.postal_code,country:address.country||'RE',
         subtotalCents:session.amount_subtotal!,shippingCents:request.decision!.shippingCents,totalCents:session.amount_total!,status:'paid',stripeSessionId:session.id,trackingNumber:'',source:'web',sourceId,
         note:request.note,internalNote:`Personnalisation validée : /admin/personnalisations#${request.id}\n${request.decision!.message}`,
-        items:[{productId:'custom-holder',name:HOLDER_NAME,quantity:request.quantity,priceCents:request.decision!.unitPriceCents,color:request.configuration.bodyColorName,image:'/products/porte-boisson-personnalise.svg',weightGrams:HOLDER_WEIGHT_GRAMS,holderRequestId:request.id}],
+        items:[{productId:'custom-holder',name:`${HOLDER_NAME} — ${holderModelLabel(request.configuration)}`,quantity:request.quantity,priceCents:request.decision!.unitPriceCents,color:request.configuration.bodyColorName,image:'/products/porte-boisson-personnalise.svg',weightGrams:HOLDER_WEIGHT_GRAMS,holderRequestId:request.id}],
       });created=true;
     }catch(error){order=await getOrderBySourceId('web',sourceId);if(!order)throw error;}
   }

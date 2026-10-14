@@ -14,7 +14,8 @@ function load(path,mocks={}) {
   const compiledModule={exports:{}};new Function('require','module','exports',outputText)(name=>mocks[name]??require(name),compiledModule,compiledModule.exports);return compiledModule.exports;
 }
 const payment=load('../lib/custom-holder-payment.ts',{'./custom-holder':holder});
-const image=load('../lib/custom-holder-logo.ts',{'./custom-holder':holder,'./logo-palette':palette});
+const svg=load('../lib/holder-svg.ts');
+const image=load('../lib/custom-holder-logo.ts',{'./custom-holder':holder,'./logo-palette':palette,'./holder-svg':svg});
 const http=load('../lib/custom-holder-http.ts',{'./custom-holder':holder});
 const base={id:'aaaaaaaaaaaaaaa',customerId:'bbbbbbbbbbbbbbb',customerEmail:'owner@example.invalid',customerName:'Owner',quantity:2,note:'',configuration:{bodyColor:'#112233',bodyColorName:'Bleu',logoWidth:45,logoOffset:0},palette:['#ff0000'],logo:'logo.png',originalLogo:'original.png',submissionKey:'key',stripeSessionId:'cs_holder',orderId:'',created:'2026-10-13'};
 const approved={...base,decision:{id:'ccccccccccccccc',requestId:base.id,status:'approved',unitPriceCents:2190,shippingCents:490,message:'Validé',created:'2026-10-13'}};
@@ -115,4 +116,53 @@ test('paid approved requests create a normal order with the approved configurati
   });
   await fulfillment.fulfillHolderPayment({id:'cs_holder',metadata:{customHolderRequest:base.id,holderCustomerId:base.customerId},payment_status:'paid',currency:'eur',amount_total:4870,amount_subtotal:4380,collected_information:{shipping_details:{name:'Owner',address:{line1:'1 rue du test',city:'Saint-Denis',postal_code:'97400',country:'RE'}}},customer_details:{phone:'0692000000'}});
   assert.equal(input.items[0].holderRequestId,base.id);assert.equal(input.items[0].quantity,2);assert.equal(input.items[0].weightGrams,180);assert.equal(input.sourceId,`holder:${base.id}`);assert.equal(input.status,'paid');assert.equal(linked.orderId,'ddddddddddddddd');assert.equal(notices,2);
+});
+
+test('SVG uploads preserve a safe vector source and rasterize large viewBoxes within four colors',async()=>{
+  const file=new File(['<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 8000 9000"><path fill="#ff0000" d="M0 0H4000V9000H0Z"/><path fill="#0000ff" d="M4000 0H8000V9000H4000Z"/></svg>'],'logo.svg',{type:'image/svg+xml'});
+  const prepared=await image.prepareHolderLogo(file);
+  assert.ok(prepared.sourceSvg.toString().includes('viewBox="0 0 8000 9000"'));
+  assert.ok(prepared.palette.length<=4);assert.equal((await sharp(prepared.logo).metadata()).format,'png');
+  for(const model of ['om','arsenal']){const preset=await image.prepareHolderPreset(model);assert.ok(preset.sourceSvg.length>100);assert.ok(preset.palette.length<=4);}
+});
+test('SVG scripts, external resources and XML entities are rejected before rendering',()=>{
+  for(const content of ['<script>alert(1)</script>','<rect onload="alert(1)"/>','<use href="https://example.invalid/a.svg#x"/>','<style>path{fill:url(https://example.invalid/a)}</style>','<foreignObject/>'])assert.throws(()=>svg.sanitizeHolderSvg(Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10">${content}</svg>`)));
+  assert.throws(()=>svg.sanitizeHolderSvg(Buffer.from('<!DOCTYPE svg [<!ENTITY x SYSTEM "file:///etc/passwd">]><svg xmlns="http://www.w3.org/2000/svg"/>')));
+});
+test('model selection is explicit and older custom requests stay compatible',()=>{
+  assert.equal(holder.holderModel(base.configuration),'custom');
+  for(const model of ['custom','om','arsenal'])assert.equal(holder.parseHolderConfiguration({...base.configuration,model}).model,model);
+  assert.throws(()=>holder.parseHolderConfiguration({...base.configuration,model:'../../secret'}));
+});
+
+test('the body accepts only plain black/white inventory names and logo palettes stay bounded',()=>{
+  for(const name of ['noir','Blanc','PLA Blanc'])assert.equal(holder.isHolderBodyColor({name}),true);
+  for(const name of ['bleu','blanc translucide','noir pailleté'])assert.equal(holder.isHolderBodyColor({name}),false);
+  for(const logoColors of [[],['#000000','#000000','#000000','#000000','#000000'],['red'],['#12345g']])assert.throws(()=>holder.parseHolderConfiguration({...base.configuration,logoColors}));
+});
+test('logo recoloring changes only its selected color slots and preserves transparency',async()=>{
+  const pixels=new Uint8Array([255,0,0,255,0,255,0,255,0,0,0,0]);
+  const result=palette.recolorLogoPixels(pixels,['#ff0000','#00ff00'],['#0000ff','#ffffff']);
+  assert.deepEqual([...result],[0,0,255,255,255,255,255,255,0,0,0,0]);assert.equal(pixels[0],255);
+  assert.throws(()=>palette.recolorLogoPixels(pixels,['#ff0000'],[]));
+  for(const model of ['om','arsenal']){
+    const prepared=await image.prepareHolderPreset(model);assert.deepEqual(prepared.palette,holder.HOLDER_PRESET_PALETTES[model]);
+    const recolored=await image.recolorHolderLogo(prepared,prepared.palette.map(()=>'#ff0000'));assert.deepEqual(recolored.palette,['#ff0000']);assert.equal(recolored.original.compare(prepared.original),0);assert.equal(recolored.sourceSvg.compare(prepared.sourceSvg),0);
+  }
+});
+
+test('submission enforces black/white bodies and stores the chosen model and logo colors server-side',async()=>{
+  let saved;let storedLogo;
+  const route=load('../app/api/porte-boisson/demandes/route.ts',{
+    '@/lib/customer-auth':{getCustomerSession:async()=>({id:base.customerId})},
+    '@/lib/store':{getProductBySlug:async()=>({active:true}),getCustomerById:async()=>({email:base.customerEmail,name:base.customerName}),getInventoryColors:async()=>[{name:'noir',hex:'#171717'},{name:'Blanc',hex:'#ffffff'},{name:'bleu',hex:'#0000ff'}],getHolderRequests:async()=>[],createHolderRequest:async(input,logo)=>{saved=input;storedLogo=logo;return {...base,...input};}},
+    '@/lib/custom-holder':holder,'@/lib/custom-holder-logo':image,'@/lib/custom-holder-http':http,
+    '@/lib/email':{sendHolderRequestNotification:async()=>{}},
+  });
+  async function submit(patch){const form=new FormData();form.set('quantity','1');form.set('confirmed','true');form.set('submissionKey',crypto.randomUUID());form.set('configuration',JSON.stringify({...base.configuration,model:'om',bodyColor:'#171717',bodyColorName:'noir',...patch}));return route.POST(new Request('https://krearun.re/api/porte-boisson/demandes',{method:'POST',body:form}));}
+  assert.equal((await submit({bodyColor:'#0000ff',bodyColorName:'bleu'})).status,400);assert.equal(saved,undefined);
+  assert.equal((await submit({logoColors:['#123456','#0097d7']})).status,400);assert.equal(saved,undefined);
+  assert.equal((await submit({logoColors:['#0000ff','#0000ff']})).status,200);
+  assert.equal(saved.configuration.model,'om');assert.deepEqual(saved.palette,['#0000ff']);
+  const {data}=await sharp(storedLogo).ensureAlpha().raw().toBuffer({resolveWithObject:true});for(let i=0;i<data.length;i+=4)if(data[i+3])assert.deepEqual([...data.subarray(i,i+3)],[0,0,255]);
 });

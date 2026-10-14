@@ -1,5 +1,5 @@
 import type Stripe from "stripe";
-import { canPayHolder, holderTotal, HOLDER_NAME, type HolderRequest } from "./custom-holder";
+import { canPayHolder, holderModelLabel, holderTotal, HOLDER_NAME, type HolderRequest } from "./custom-holder";
 
 export function holderCheckoutParams(request:HolderRequest,customerId:string,siteUrl:string):Stripe.Checkout.SessionCreateParams {
   if(!canPayHolder(request,customerId))throw new Error("Cette demande n'est pas disponible au paiement.");
@@ -8,7 +8,7 @@ export function holderCheckoutParams(request:HolderRequest,customerId:string,sit
     mode:'payment',payment_method_types:['card'],customer_email:request.customerEmail,
     client_reference_id:request.id,
     metadata:{customHolderRequest:request.id,holderCustomerId:customerId},
-    line_items:[{price_data:{currency:'eur',unit_amount:quote.unitPriceCents,product_data:{name:HOLDER_NAME,description:`Logo validé · coloris ${request.configuration.bodyColorName}`}},quantity:request.quantity}],
+    line_items:[{price_data:{currency:'eur',unit_amount:quote.unitPriceCents,product_data:{name:HOLDER_NAME,description:`${holderModelLabel(request.configuration)} · Logo validé · coloris ${request.configuration.bodyColorName}`}},quantity:request.quantity}],
     shipping_address_collection:{allowed_countries:['FR','RE']},
     phone_number_collection:{enabled:true},
     shipping_options:[{shipping_rate_data:{type:'fixed_amount',fixed_amount:{amount:quote.shippingCents,currency:'eur'},display_name:'Livraison du devis validé'}}],
