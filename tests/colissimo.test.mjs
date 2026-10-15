@@ -7,6 +7,11 @@ import * as colissimo from "../lib/colissimo.ts";
 import * as responses from "../lib/colissimo-response.ts";
 import * as dates from "../lib/order-list.ts";
 
+const addressModule = { exports: {} };
+const addressCompiled = ts.transpileModule(readFileSync(new URL("../lib/colissimo-address.ts", import.meta.url), "utf8"), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
+vm.runInNewContext(`(function(require,module,exports){${addressCompiled}\n})`, { Error })((name) => { if (name === "./colissimo") return colissimo; throw new Error(name); }, addressModule, addressModule.exports);
+const addresses = addressModule.exports;
+
 const order = { id: "test00000000001", number: 1001, status: "ready", trackingNumber: "", name: "Client Test", addressLine1: "1 rue du Test", addressLine2: "", country: "FR", city: "Saint-Denis", postalCode: "97400", email: "client@example.com", phone: "", updatedAt: "version1" };
 const sender = { companyName: "Krearun", line2: "2 rue du Test", city: "Saint-Pierre", zipCode: "97410", countryCode: "RE" };
 const input = { productCode: "COM", weight: 0.5, depositDate: "2099-01-01", format: "PDF_A4_300dpi", customs: false, articles: [], postage: 0, invoiceNumber: "" };
@@ -75,11 +80,11 @@ function fixture({ live = true, authorized = true, timeout = false, reject = fal
     },
     saveColissimoShipment: async (_id, patch) => { if (saveFails) throw new Error("DB down"); record = { ...record, ...patch }; return record; },
     releaseRejectedColissimoShipment: async () => { record = null; },
-    updateManagedOrder: async (_id, patch) => { if (trackingFails) throw new Error("DB down"); Object.assign(currentOrder, patch); mutations++; },
+    updateManagedOrder: async (_id, patch) => { if (trackingFails) throw new Error("DB down"); Object.assign(currentOrder, patch); mutations++; return currentOrder; },
   };
   const mocks = {
     "@/lib/auth": { isAdmin: async () => authorized }, "@/lib/store": store,
-    "@/lib/colissimo": colissimo, "@/lib/colissimo-response": responses, "@/lib/order-list": dates,
+    "@/lib/colissimo-address": addresses, "@/lib/colissimo": colissimo, "@/lib/colissimo-response": responses, "@/lib/order-list": dates,
     "next/cache": { revalidatePath() {} },
     "@/lib/colissimo-server": {
       colissimoConfig: () => ({ sender, missing: [], live }),
@@ -97,7 +102,7 @@ function fixture({ live = true, authorized = true, timeout = false, reject = fal
   vm.runInNewContext(`(function(require,module,exports){${compiled}\n})`, { FormData, Buffer, Error, console })((name) => { if (!mocks[name]) throw new Error(name); return mocks[name]; }, compiledModule, compiledModule.exports);
   const data = new FormData();
   for (const [key, value] of Object.entries({ ...input, id: order.id, updatedAt: order.updatedAt, confirm: "on", articles: "[]" })) data.set(key, String(value));
-  return { action: () => compiledModule.exports.createColissimoLabelAction({}, data), data, get record() { return record; }, get purchases() { return purchases; }, get mutations() { return mutations; }, get validations() { return validations; } };
+  return { action: () => compiledModule.exports.createColissimoLabelAction({}, data), saveAddress: () => compiledModule.exports.saveColissimoRecipientAction({}, data), get currentOrder() { return currentOrder; }, data, get record() { return record; }, get purchases() { return purchases; }, get mutations() { return mutations; }, get validations() { return validations; } };
 }
 test("server action requires authentication and test mode never purchases or changes an order", async () => {
   const denied = fixture({ authorized: false });
@@ -161,4 +166,47 @@ test("label downloads require admin, reject arbitrary document keys and disable 
   assert.equal(response.status, 200);
   assert.equal(response.headers.get("cache-control"), "private, no-store");
   assert.deepEqual(Buffer.from(await response.arrayBuffer()), pdf);
+});
+
+
+test("recipient formatting wraps long addresses without losing words and normalizes Reunion", () => {
+  const raw = { ...order, name: "  Élise   Œillet  ", addressLine1: "10, Rue Du Canal Lotissement Neptune", addressLine2: " Saint-Gilles-Les-Hauts ", email: " client@example.com " };
+  const formatted = addresses.validateColissimoRecipient(raw);
+  assert.equal(formatted.name, "ELISE OEILLET");
+  assert.equal(formatted.country, "RE");
+  assert.equal(formatted.email, "client@example.com");
+  assert.ok(formatted.addressLine1.length <= 35);
+  assert.ok(formatted.addressLine2.length <= 35);
+  assert.equal(`${formatted.addressLine1} ${formatted.addressLine2}`, "10 RUE DU CANAL LOTISSEMENT NEPTUNE SAINT-GILLES-LES-HAUTS");
+  assert.deepEqual(addresses.formatColissimoRecipient(formatted), formatted);
+  assert.throws(() => addresses.validateColissimoRecipient({ ...raw, addressLine1: "RUE ".repeat(30) }), /35 caractères/);
+  assert.throws(() => addresses.validateColissimoRecipient({ ...raw, postalCode: "974" }), /5 chiffres/);
+});
+
+test("recipient saving rejects unauthorized, stale and dispatched orders and only updates contact details", async () => {
+  const denied = fixture({ authorized: false });
+  assert.match((await denied.saveAddress()).error, /Connectez/);
+  assert.equal(denied.mutations, 0);
+  const app = fixture();
+  for (const key of addresses.recipientFields) app.data.set(key, String(order[key] || ""));
+  app.data.set("updatedAt", "stale");
+  assert.match((await app.saveAddress()).error, /changé/);
+  app.data.set("updatedAt", order.updatedAt);
+  app.data.set("addressLine1", "RUE ".repeat(30));
+  assert.match((await app.saveAddress()).error, /35 caractères/);
+  assert.equal(app.mutations, 0);
+  app.data.set("addressLine1", "  1, rue du Test  ");
+  app.data.set("status", "shipped");
+  app.data.set("totalCents", "0");
+  const saved = await app.saveAddress();
+  assert.equal(saved.saved.addressLine1, "1 RUE DU TEST");
+  assert.equal(saved.saved.country, "RE");
+  assert.equal(app.currentOrder.status, "ready");
+  assert.equal(app.currentOrder.totalCents, undefined);
+  assert.equal(app.purchases, 0);
+  assert.equal(app.validations, 0);
+  assert.equal(app.currentOrder.trackingNumber, "");
+  app.currentOrder.trackingNumber = "EXISTING";
+  assert.match((await app.saveAddress()).error, /expédition/);
+  assert.equal(app.mutations, 1);
 });

@@ -5,6 +5,7 @@ import { isAdmin } from "@/lib/auth";
 import { buildColissimoRequest, ColissimoValidationError, type ColissimoInput } from "@/lib/colissimo";
 import { colissimoConfig, callColissimo } from "@/lib/colissimo-server";
 import { parseColissimoResponse, ColissimoRejectedError } from "@/lib/colissimo-response";
+import { recipientFields, validateColissimoRecipient, type ColissimoRecipient } from "@/lib/colissimo-address";
 import { orderDateKey } from "@/lib/order-list";
 import { getOrderById, getColissimoShipment, reserveColissimoShipment, saveColissimoShipment, releaseRejectedColissimoShipment, updateManagedOrder } from "@/lib/store";
 
@@ -107,5 +108,26 @@ export async function recoverColissimoLabelAction(_previous: ColissimoActionStat
   } catch {
     revalidatePath(`/admin/commandes/${id}`);
     return { error: "La récupération n’a pas abouti. Vérifiez la référence de commande dans Colissimo ; la relance reste bloquée." };
+  }
+}
+
+export type ColissimoRecipientState = { error?: string; saved?: ColissimoRecipient & { updatedAt: string } };
+export async function saveColissimoRecipientAction(_previous: ColissimoRecipientState, data: FormData): Promise<ColissimoRecipientState> {
+  if (!(await isAdmin())) return { error: "Connectez-vous à l’administration." };
+  const id = String(data.get("id") || "");
+  try {
+    const order = await getOrderById(id);
+    if (!order) return { error: "Commande introuvable." };
+    if (String(data.get("updatedAt")) !== order.updatedAt) return { error: "La commande a changé. Rechargez la page avant de corriger les coordonnées." };
+    if (order.trackingNumber || ["cancelled", "shipped", "delivered"].includes(order.status) || await getColissimoShipment(id))
+      return { error: "Une expédition existe ou la commande est clôturée. Les coordonnées de cette expédition ne peuvent plus être modifiées ici." };
+    const input = Object.fromEntries(recipientFields.map((key) => [key, String(data.get(key) || "")])) as ColissimoRecipient;
+    const formatted = validateColissimoRecipient(input);
+    const saved = await updateManagedOrder(id, formatted);
+    revalidatePath(`/admin/commandes/${id}`);
+    revalidatePath("/admin/commandes");
+    return { saved: { ...formatted, updatedAt: saved.updatedAt } };
+  } catch (error) {
+    return { error: error instanceof ColissimoValidationError ? error.message : "Les coordonnées n’ont pas pu être enregistrées. Réessayez." };
   }
 }

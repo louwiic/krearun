@@ -1,6 +1,7 @@
 "use client";
 
-import Link from "next/link";
+import ColissimoRecipientDialog from "./ColissimoRecipientDialog";
+import type { ColissimoRecipient } from "@/lib/colissimo-address";
 import { useActionState, useState } from "react";
 import type { Order } from "@/lib/types";
 import { COLISSIMO_PRODUCTS, colissimoCountry, type ColissimoAddress, type CustomsArticle, type ShipmentSummary } from "@/lib/colissimo";
@@ -16,10 +17,12 @@ function AttachTracking({ id }: { id: string }) {
   const [state, action, pending] = useActionState(attachColissimoTrackingAction, {});
   return <form action={action} className="mt-3"><input type="hidden" name="id" value={id} /><button disabled={pending} className={button}>Rattacher le suivi</button><p role="status" className="mt-2 text-sm">{state.error || state.message}</p></form>;
 }
-export default function ColissimoPanel({ order, config, shipment, storageError, today }: {
+export default function ColissimoPanel({ order: sourceOrder, config, shipment, storageError, today }: {
   order: Order; config: { sender: ColissimoAddress; missing: string[]; live: boolean };
   shipment: ShipmentSummary | null; storageError: boolean; today: string;
 }) {
+  const [recipient, setRecipient] = useState<{ baseUpdatedAt: string; fields: ColissimoRecipient & { updatedAt: string } } | null>(null);
+  const order = recipient?.baseUpdatedAt === sourceOrder.updatedAt ? { ...sourceOrder, ...recipient.fields } : sourceOrder;
   const [state, action, pending] = useActionState(createColissimoLabelAction, {});
   const crossBorder = colissimoCountry(order.country, order.postalCode) !== config.sender.countryCode;
   const [customs, setCustoms] = useState(crossBorder);
@@ -45,7 +48,7 @@ export default function ColissimoPanel({ order, config, shipment, storageError, 
       {storageError && <p className="mt-3 text-sm text-terra-deep">Le stockage des étiquettes n’est pas disponible. La configuration du service doit être terminée.</p>}
       <div className="my-5 grid gap-4 text-sm sm:grid-cols-2">
         <div><p className="font-bold">Expéditeur</p><p>{config.sender.companyName}<br />{config.sender.line2}<br />{config.sender.zipCode} {config.sender.city} · {config.sender.countryCode}</p></div>
-        <div><p className="font-bold">Destinataire</p><p>{order.name}<br />{order.addressLine1}<br />{order.addressLine2}{order.addressLine2 && <br />}{order.postalCode} {order.city} · {colissimoCountry(order.country, order.postalCode)}</p><Link href={`/admin/commandes/${order.id}/modifier`} className="text-terra-deep underline">Corriger les coordonnées</Link></div>
+        <div><p className="font-bold">Destinataire</p><p>{order.name}<br />{order.addressLine1}<br />{order.addressLine2}{order.addressLine2 && <br />}{order.postalCode} {order.city} · {colissimoCountry(order.country, order.postalCode)}</p><ColissimoRecipientDialog order={order} disabled={pending || !!order.trackingNumber || ["cancelled", "shipped", "delivered"].includes(order.status)} onSaved={(fields) => setRecipient({ baseUpdatedAt: sourceOrder.updatedAt, fields })} /></div>
       </div>
       <form action={action}>
         <input type="hidden" name="id" value={order.id} /><input type="hidden" name="updatedAt" value={order.updatedAt} /><input type="hidden" name="articles" value={JSON.stringify(articles)} />
