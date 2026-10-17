@@ -181,13 +181,17 @@ export default async function ProductPage({
             {[
               [
                 "⏳",
-                product.preorder
+                product.category === "lunette"
+                  ? "Votre paire est préparée avec soin avant l’envoi"
+                  : product.preorder
                   ? "Pré-commande — fabrication au lancement du prochain lot"
                   : "Fabriqué à la commande — 2 à 4 jours de préparation",
               ],
               ["🚚", hasFreeShipping(product.slug) ? "Livraison offerte sur ce produit" : "Préparé avec soin, suivi inclus"],
-              ["⚖️", `Poids colis estimé : ${formatWeight(product.weightGrams)}`],
-              ["💚", "Matière légère, emballage recyclé et recyclable"],
+              ...(product.category === "lunette" ? [] : [
+                ["⚖️", `Poids colis estimé : ${formatWeight(product.weightGrams)}`],
+                ["💚", "Matière légère, emballage recyclé et recyclable"],
+              ]),
             ].map(([icon, text]) => (
               <p key={text as string} className="flex items-center gap-3 text-ink-soft">
                 <span>{icon}</span> {text}

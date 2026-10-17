@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "La boutique",
   description:
-    "Tous nos objets : veilleuses, vases, accessoires de bureau et petites douceurs pour la maison.",
+    "Découvrez nos objets, accessoires et lunettes : veilleuses, vases, décoration et lunettes à 15,90 € avec livraison offerte.",
 };
 
 export default async function BoutiquePage({
@@ -41,8 +41,9 @@ export default async function BoutiquePage({
           {currentLabel ?? "Tous nos petits objets"}
         </h1>
         <p className="mt-3 max-w-xl text-sm leading-relaxed text-ink-soft sm:text-base">
-          Chaque pièce est préparée à la commande dans notre atelier — comptez
-          2 à 4 jours de fabrication, le temps de faire les choses avec soin.
+          {categorie === "lunette"
+            ? "Six modèles pour trouver votre style, à 15,90 € la paire. Livraison offerte sur les lunettes."
+            : "Découvrez nos créations et accessoires. Les pièces de l’atelier demandent 2 à 4 jours de fabrication avant leur envoi."}
         </p>
       </div>
 

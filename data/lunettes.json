@@ -1,0 +1,56 @@
+[
+  {
+    "slug": "lunettes-ecaille-bourbon",
+    "name": "Lunettes Écaille Bourbon",
+    "tagline": "Des lignes rectangulaires et une écaille aux tons chauds.",
+    "description": "Une monture rectangulaire au motif écaille brun et ambré, associée à des verres teintés bruns. Écaille Bourbon apporte une touche chaleureuse à vos tenues du quotidien.",
+    "color": "Écaille brune",
+    "hex": "#784321",
+    "image": "ecaille-bourbon.webp"
+  },
+  {
+    "slug": "lunettes-retro-moka",
+    "name": "Lunettes Rétro Moka",
+    "tagline": "Une silhouette ovale, un esprit rétro et des verres bruns.",
+    "description": "Une monture noire épaisse aux lignes ovales et des verres teintés bruns : Rétro Moka joue la carte du vintage avec une forme tout en courbes.",
+    "color": "Noir",
+    "hex": "#171717",
+    "image": "retro-moka.webp"
+  },
+  {
+    "slug": "lunettes-ecaille-sunset",
+    "name": "Lunettes Écaille Sunset",
+    "tagline": "L’écaille ambrée rencontre les courbes d’une monture rétro.",
+    "description": "Avec sa monture ovale au motif écaille et ses verres teintés bruns, Écaille Sunset donne du relief à un look simple. Un mélange de teintes ambrées et foncées pour une allure rétro.",
+    "color": "Écaille ambrée",
+    "hex": "#a65322",
+    "image": "ecaille-sunset.webp"
+  },
+  {
+    "slug": "lunettes-ovale-minuit",
+    "name": "Lunettes Ovale Minuit",
+    "tagline": "Une monture noire élancée pour un style tout en finesse.",
+    "description": "Ovale Minuit associe une monture noire aux courbes légèrement étirées et des verres teintés gris. Une silhouette sobre qui accompagne aussi bien les tenues décontractées que les looks plus habillés.",
+    "color": "Noir",
+    "hex": "#171717",
+    "image": "ovale-minuit.webp"
+  },
+  {
+    "slug": "lunettes-carree-eclipse",
+    "name": "Lunettes Carrée Éclipse",
+    "tagline": "Une monture noire affirmée aux angles adoucis.",
+    "description": "Une forme carrée, une monture noire épaisse et des verres foncés : Carrée Éclipse mise sur des lignes franches pour donner du caractère à votre tenue.",
+    "color": "Noir",
+    "hex": "#171717",
+    "image": "carree-eclipse.webp"
+  },
+  {
+    "slug": "lunettes-cristal-lagon",
+    "name": "Lunettes Cristal Lagon",
+    "tagline": "La transparence d’une monture et une touche de bleu.",
+    "description": "Cristal Lagon combine une monture transparente aux lignes rectangulaires et des verres teintés bleu-gris. Une paire au style lumineux, facile à associer à vos couleurs préférées.",
+    "color": "Transparent",
+    "hex": "#e0e5e7",
+    "image": "cristal-lagon.webp"
+  }
+]

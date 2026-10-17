@@ -3,6 +3,12 @@ import type { CartItem, Product } from "./types";
 const FREE_SHIPPING_SLUGS = new Set([
   "porte-cle-coupe-du-monde-fifa",
   "decapsuleur-a-levier",
+  "lunettes-ecaille-bourbon",
+  "lunettes-retro-moka",
+  "lunettes-ecaille-sunset",
+  "lunettes-ovale-minuit",
+  "lunettes-carree-eclipse",
+  "lunettes-cristal-lagon",
 ]);
 
 export function hasFreeShipping(slug: string): boolean {
