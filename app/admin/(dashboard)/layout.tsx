@@ -5,20 +5,21 @@ import { logoutAction } from "../actions";
 import AdminShell from "@/components/admin/AdminShell";
 
 const nav = [
-  { href: "/admin", label: "Tableau de bord", icon: "🏠" },
-  { href: "/admin/produits", label: "Produits", icon: "🧸" },
-  { href: "/admin/categories", label: "Catégories", icon: "🗂️" },
-  { href: "/admin/inventaire", label: "Inventaire", icon: "🎨" },
-  { href: "/admin/calculateur", label: "Calculateur", icon: "🧮" },
-  { href: "/admin/generateur-3d", label: "Prénoms 3D", icon: "✍️" },
-  { href: "/admin/commandes", label: "Commandes", icon: "📦" },
-  { href: "/admin/personnalisations", label: "Personnalisations", icon: "🖌️" },
-  { href: "/admin/messages", label: "Messages", icon: "✉️" },
-  { href: "/admin/codes-promo", label: "Codes promo", icon: "🏷️" },
-  { href: "/admin/clients", label: "Clients", icon: "👥" },
-  { href: "/admin/avis", label: "Avis", icon: "⭐" },
-  { href: "/admin/newsletter", label: "Newsletter", icon: "💌" },
-  { href: "/admin/parametres", label: "Réglages", icon: "⚙️" },
+  { href: "/admin", label: "Tableau de bord" },
+  { href: "/admin/produits", label: "Produits" },
+  { href: "/admin/categories", label: "Catégories" },
+  { href: "/admin/inventaire", label: "Inventaire" },
+  { href: "/admin/calculateur", label: "Calculateur" },
+  { href: "/admin/generateur-3d", label: "Prénoms 3D" },
+  { href: "/admin/commandes", label: "Commandes" },
+  { href: "/admin/personnalisations", label: "Personnalisations" },
+  { href: "/admin/messages", label: "Messages" },
+  { href: "/admin/codes-promo", label: "Codes promo" },
+  { href: "/admin/clients", label: "Clients" },
+  { href: "/admin/avis", label: "Avis" },
+  { href: "/admin/newsletter", label: "Newsletter" },
+  { href: "/admin/doc", label: "Doc" },
+  { href: "/admin/parametres", label: "Réglages" },
 ];
 
 export default async function AdminLayout({
@@ -43,7 +44,7 @@ export default async function AdminLayout({
                 href={item.href}
                 className="flex items-center gap-3 rounded-2xl px-4 py-2.5 text-sm font-semibold text-ink-soft transition-colors hover:bg-linen hover:text-ink"
               >
-                <span>{item.icon}</span> {item.label}
+                {item.label}
               </Link>
             ))}
           </nav>
@@ -52,11 +53,11 @@ export default async function AdminLayout({
             href="/"
             className="mb-3 flex items-center gap-3 rounded-2xl px-4 py-2.5 text-sm font-semibold text-ink-soft hover:bg-linen hover:text-ink"
           >
-            🌿 Voir la boutique
+            Voir la boutique
           </Link>
           <form action={logoutAction}>
             <button className="flex w-full items-center gap-3 rounded-2xl px-4 py-2.5 text-sm font-semibold text-ink-soft hover:bg-blush/30 hover:text-terra-deep">
-              👋 Se déconnecter
+              Se déconnecter
             </button>
           </form>
         </>
@@ -67,9 +68,8 @@ export default async function AdminLayout({
             <Link
               key={item.href}
               href={item.href}
-              className="flex flex-col items-center gap-0.5 px-2 py-1 text-[10px] font-semibold text-ink-soft"
+              className="shrink-0 whitespace-nowrap px-3 py-2 text-xs font-semibold text-ink-soft"
             >
-              <span className="text-lg">{item.icon}</span>
               {item.label}
             </Link>
           ))}
