@@ -90,9 +90,9 @@ export default function HolderPreview3D({configuration,logo,thumbnail=false}:{co
           for(const geometry of geometries){const vertices=geometry.getAttribute('position');for(let i=0;i<vertices.count;i++){const x=(vertices.getX(i)-center.x)*scale,y=-(vertices.getY(i)-center.y)*scale+5,radius=38.5+vertices.getZ(i);const theta=x/38.5;vertices.setXYZ(i,Math.sin(theta)*radius,y,Math.cos(theta)*radius);}geometry.computeVertexNormals();for(let face=0;face<logoFaces;face++){const mesh=new THREE.Mesh(face?geometry.clone():geometry,material);mesh.rotation.y=face*Math.PI;model.add(mesh);}}
         }
       }
-      if(configuration.verticalName||configuration.engravingText){
+      if(configuration.verticalName||configuration.engravingText||configuration.topEngravingText||configuration.bottomEngravingText){
         const font=await loadTextFont();if(disposed)return;
-        for(const text of holderTextContours(font,{model:selectedModel,logoFaces:configuration.logoFaces,logoOffset:configuration.logoOffset,verticalName:configuration.verticalName,engravingText:configuration.engravingText},logoHeight)){
+        for(const text of holderTextContours(font,{model:selectedModel,logoFaces:configuration.logoFaces,logoOffset:configuration.logoOffset,verticalName:configuration.verticalName,engravingText:configuration.engravingText,topEngravingText:configuration.topEngravingText,bottomEngravingText:configuration.bottomEngravingText},logoHeight)){
           const paths=new THREE.ShapePath();for(const polygon of text.polygons){if(!polygon.length)continue;paths.moveTo(polygon[0][0],polygon[0][1]);for(const [x,y] of polygon.slice(1))paths.lineTo(x,y);paths.currentPath?.closePath();}
           for(const shape of paths.toShapes()){
             const geometry=new THREE.ShapeGeometry(shape);const vertices=geometry.getAttribute('position');for(let i=0;i<vertices.count;i++){const angle=vertices.getX(i)/38.38+text.angle;vertices.setXYZ(i,Math.sin(angle)*38.65,vertices.getY(i)+5,Math.cos(angle)*38.65);}geometry.computeVertexNormals();
@@ -105,7 +105,7 @@ export default function HolderPreview3D({configuration,logo,thumbnail=false}:{co
     }
     void decorate().catch(()=>{if(!disposed){setLoading(false);setError("Le modèle 3D n’a pas pu être chargé. Actualisez la page pour réessayer.");}});
     return()=>{disposed=true;observer.disconnect();controls.dispose();const materials=new Set<THREE.Material>();model.traverse(object=>{if(object instanceof THREE.Mesh){object.geometry.dispose();(Array.isArray(object.material)?object.material:[object.material]).forEach(material=>materials.add(material));}});materials.forEach(material=>material.dispose());textures.forEach(texture=>texture.dispose());renderer.dispose();renderer.forceContextLoss();renderer.domElement.remove();};
-  },[configuration.bodyColor,configuration.logoWidth,configuration.logoOffset,selectedModel,logo,thumbnail,logoColorKey,logoFaces,configuration.topColor,configuration.bottomColor,configuration.verticalName,configuration.engravingText]);
+  },[configuration.bodyColor,configuration.logoWidth,configuration.logoOffset,selectedModel,logo,thumbnail,logoColorKey,logoFaces,configuration.logoFaces,configuration.topColor,configuration.bottomColor,configuration.verticalName,configuration.engravingText,configuration.topEngravingText,configuration.bottomEngravingText]);
   return <div className={`relative overflow-hidden bg-cream ${thumbnail?'pointer-events-none rounded-lg':'rounded-2xl border-2 border-ink'}`}>
     <div ref={host} className={thumbnail?'h-[130px] w-full':'h-[360px] w-full touch-none sm:h-[440px]'}/>
     {!thumbnail&&<><span className="pointer-events-none absolute left-4 top-3 text-xs font-bold uppercase tracking-wide">Aperçu 3D • 500 ml</span><button type="button" onClick={()=>reset.current()} aria-label="Réinitialiser la vue 3D" className="absolute right-3 top-2 rounded-full bg-white/90 px-3 py-2 text-lg">↺</button></>}

@@ -9,6 +9,8 @@ import {DOMParser} from '@xmldom/xmldom';
 import {unzipSync,strFromU8} from 'fflate';
 import ts from 'typescript';
 import {buildHolderManufacturing,maskContours,manufacturingOptions} from '../lib/holder-manufacturing.mjs';
+import {holderTextContours} from '../lib/holder-text.mjs';
+import opentype from 'opentype.js';
 const require=createRequire(import.meta.url);
 function load(path,mocks={}){const source=readFileSync(new URL(path,import.meta.url),'utf8');const {outputText}=ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS,esModuleInterop:true}});const compiled={exports:{}};new Function('require','module','exports',outputText)(name=>mocks[name]??require(name),compiled,compiled.exports);return compiled.exports;}
 const configuration={model:'custom',bodyColor:'#171717',bodyColorName:'noir',logoWidth:40,logoOffset:0};
@@ -77,5 +79,42 @@ test('names and captions are actual recesses and screw rings have independent fi
   for(const [i,color]of [[0,'#FFA500FF'],[1,'#FFFFFFFF']]){const childId=parent[i].getElementsByTagName('component')[0].getAttribute('objectid');const mesh=parsed.meshes.find(m=>m.getAttribute('id')===childId);assert.equal(materials[Number(mesh.getAttribute('pindex'))],color);}
   const bodyData=meshData(parsed.meshes.find(m=>m.getAttribute('name').startsWith('Cylindre')));const wasm=await Module();wasm.setup();const body=new wasm.Manifold(new wasm.Mesh({numProp:3,vertProperties:bodyData.vertices,triVerts:bodyData.triangles}));assert.equal(body.status(),'NoError');assert.ok(body.volume()>0);
   const settings=JSON.parse(strFromU8(parsed.archive['Metadata/project_settings.config']));assert.equal(settings.filament_colour.length,materials.length);assert.equal(settings.filament_type.length,materials.length);
+ }
+});
+
+test('top-only, bottom-only and combined captions stay clear of logos and threads on both faces',()=>{
+ const font=opentype.loadSync(new URL('../public/fonts/DejaVuSansCondensed-Bold.ttf',import.meta.url).pathname);
+ for(const model of ['custom','om','arsenal'])for(const height of [8,56,88]){
+  const config={...configuration,model,logoFaces:2};
+  for(const patch of [{topEngravingText:'Dr. Chris VW'},{bottomEngravingText:'BOSS'},{topEngravingText:'Dr. Chris VW',bottomEngravingText:'BOSS'}]){
+   const contours=holderTextContours(font,{...config,...patch},height);
+   assert.equal(contours.length,Object.keys(patch).length*2);
+   for(const placement of contours){
+    const ys=placement.polygons.flat().map(p=>p[1]);assert.ok(Math.max(...ys)<=58);assert.ok(Math.min(...ys)>=-58);
+    if(placement.kind==='top-caption')assert.ok(Math.min(...ys)>(model==='custom'?height/2:45));
+    else assert.ok(Math.max(...ys)<-(model==='custom'?height/2:45));
+   }
+  }
+ }
+ const legacy=holderTextContours(font,{...configuration,engravingText:'Ancien texte'},8);
+ assert.equal(legacy.length,1);assert.equal(legacy[0].y,-13);
+ assert.equal(holderTextContours(font,{...configuration,engravingText:'Ancien texte',bottomEngravingText:''},8).length,0);
+});
+
+test('the exported 3MF contains real top and bottom cuts with their separate texts',async()=>{
+ const logo=await sharp({create:{width:40,height:20,channels:4,background:{r:255,g:0,b:0,alpha:1}}}).png().toBuffer();
+ const config={...configuration,logoFaces:2,topEngravingText:'Dr. Chris VW',bottomEngravingText:'BOSS'};
+ const without=parse((await buildHolderManufacturing({requestId:'plain',configuration:{...configuration,logoFaces:2},palette:['#ff0000'],logo})).file);
+ const withText=parse((await buildHolderManufacturing({requestId:'top-bottom',configuration:config,palette:['#ff0000'],logo})).file);
+ assert.equal(withText.report.engraving.topText,'Dr. Chris VW');assert.equal(withText.report.engraving.bottomText,'BOSS');assert.equal(withText.report.engraving.placements,4);
+ const wasm=await Module();wasm.setup();
+ const body=parsed=>{const data=meshData(parsed.meshes.find(m=>m.getAttribute('name').startsWith('Cylindre')));return new wasm.Manifold(new wasm.Mesh({numProp:3,vertProperties:data.vertices,triVerts:data.triangles}));};
+ const engraved=body(withText);assert.equal(engraved.status(),'NoError');
+ const removed=body(without).subtract(engraved);assert.ok(removed.volume()>1);
+ for(const z of [46,-38]){
+  const band=removed.intersect(wasm.Manifold.cube([100,100,12],true).translate([0,0,z]));
+  const front=band.intersect(wasm.Manifold.cube([100,50,180],true).translate([0,-25,0])).volume();
+  const back=band.intersect(wasm.Manifold.cube([100,50,180],true).translate([0,25,0])).volume();
+  assert.ok(front>1,`engraving present at z=${z}`);assert.ok(Math.abs(front-back)<.1,'same text engraved on both sides');
  }
 });

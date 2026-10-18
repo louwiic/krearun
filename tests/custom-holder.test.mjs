@@ -164,12 +164,22 @@ test('submission enforces black/white bodies and stores the chosen model and log
   async function submit(patch){const form=new FormData();form.set('quantity','1');form.set('confirmed','true');form.set('submissionKey',crypto.randomUUID());form.set('configuration',JSON.stringify({...base.configuration,model:'om',bodyColor:'#171717',bodyColorName:'noir',...patch}));return route.POST(new Request('https://krearun.re/api/porte-boisson/demandes',{method:'POST',body:form}));}
   assert.equal((await submit({bodyColor:'#0000ff',bodyColorName:'bleu'})).status,400);assert.equal(saved,undefined);
   assert.equal((await submit({logoColors:['#123456','#0097d7']})).status,400);assert.equal(saved,undefined);
-  assert.equal((await submit({logoColors:['#0000ff','#0000ff']})).status,200);
-  assert.equal(saved.configuration.model,'om');assert.deepEqual(saved.palette,['#0000ff']);
+  assert.equal((await submit({logoColors:['#0000ff','#0000ff'],topEngravingText:'Dr. Chris VW',bottomEngravingText:'BOSS'})).status,200);
+  assert.equal(saved.configuration.model,'om');assert.deepEqual(saved.palette,['#0000ff']);assert.equal(saved.configuration.topEngravingText,'Dr. Chris VW');assert.equal(saved.configuration.bottomEngravingText,'BOSS');
   const {data}=await sharp(storedLogo).ensureAlpha().raw().toBuffer({resolveWithObject:true});for(let i=0;i<data.length;i+=4)if(data[i+3])assert.deepEqual([...data.subarray(i,i+3)],[0,0,255]);
 });
 
 test('engraving text and ring colors are normalized and validated without altering older configurations',()=>{
  const parsed=holder.parseHolderConfiguration({...base.configuration,verticalName:' LOÏC ',engravingText:' Mon équipe ',topColor:'#FFAA00',bottomColor:'#FFFFFF'});assert.equal(parsed.verticalName,'LOÏC');assert.equal(parsed.engravingText,'Mon équipe');assert.equal(parsed.topColor,'#ffaa00');
  for(const patch of [{verticalName:'x'.repeat(13)},{engravingText:'x'.repeat(33)},{verticalName:'<script>'},{engravingText:'😊'},{topColor:'red'},{bottomColor:'url(x)'}])assert.throws(()=>holder.parseHolderConfiguration({...base.configuration,...patch}));
+});
+
+test('top and bottom engravings are optional, independent and validated on submission',()=>{
+ const original=holder.parseHolderConfiguration(base.configuration);assert.equal(original.topEngravingText,undefined);assert.equal(original.bottomEngravingText,undefined);
+ for(const patch of [{topEngravingText:' Dr. Chris VW '},{bottomEngravingText:' BOSS '},{topEngravingText:' Dr. Chris VW ',bottomEngravingText:' BOSS '}]){
+  const result=holder.parseHolderConfiguration({...base.configuration,...patch});
+  for(const key of Object.keys(patch))assert.equal(result[key],patch[key].trim());
+ }
+ for(const key of ['topEngravingText','bottomEngravingText'])for(const value of ['x'.repeat(33),'<script>','😊',45,null])assert.throws(()=>holder.parseHolderConfiguration({...base.configuration,[key]:value}));
+ assert.equal(holder.parseHolderConfiguration({...base.configuration,engravingText:'Ancien texte'}).engravingText,'Ancien texte');
 });
