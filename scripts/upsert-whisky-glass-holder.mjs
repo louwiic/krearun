@@ -70,7 +70,7 @@ const payload = {
   priceCents: 0, compareAtCents: 0, stock: 0, weightGrams: 0,
   colors: [{ name: "Noir", hex: "#171717" }],
   active: false, featured: false, isNew: true, preorder: false,
-  partnerShared: false, namePersonalizationEnabled: false, namePersonalizationPriceCents: 0,
+  partnerShared: false, namePersonalizationEnabled: true, namePersonalizationPriceCents: 300,
   variants: [], quantityDiscounts: [],
 };
 const created = await pb("/collections/products/records", "POST", payload);
