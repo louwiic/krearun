@@ -38,7 +38,7 @@ function SalesChart({ data, granularity }: { data: ReturnType<typeof salesAnalyt
       <div className="flex rounded-full border border-sand bg-white p-1">{([["money", "Montants"], ["orders", "Commandes"]] as const).map(([key, label]) => <button key={key} type="button" aria-pressed={metric === key} onClick={() => setMetric(key)} className={`rounded-full px-3 py-1.5 text-xs font-bold ${metric === key ? "bg-ink text-cream" : "text-ink-soft"}`}>{label}</button>)}</div>
     </div>
     <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-xs">{metric === "money" ? <><span className="flex items-center gap-2"><i className="h-2 w-5 rounded bg-ink"/>Montant commandé</span><span className="flex items-center gap-2"><i className="h-2 w-5 rounded bg-terra"/>Encaissé produits</span></> : <span>Commandes hors annulations et remboursements</span>}</div>
-    <svg viewBox={`0 0 ${width} ${height}`} className="mt-4 w-full overflow-visible" role="img" aria-label={metric === "money" ? "Évolution du montant commandé et encaissé, hors livraison" : "Évolution du nombre de commandes"}>
+    <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Graphique des ventes, défilement horizontal"><svg viewBox={`0 0 ${width} ${height}`} className="mt-4 w-full min-w-[600px]" role="img" aria-label={metric === "money" ? "Évolution du montant commandé et encaissé, hors livraison" : "Évolution du nombre de commandes"}>
       <defs><linearGradient id={gradient} x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#f25c2a" stopOpacity=".18"/><stop offset="100%" stopColor="#f25c2a" stopOpacity="0"/></linearGradient></defs>
       {[0, .25, .5, .75, 1].map((ratio) => <g key={ratio}><line x1={left} x2={width - right} y1={y(max * ratio)} y2={y(max * ratio)} stroke="#ded8ce" strokeDasharray="3 5"/><text x={left - 10} y={y(max * ratio) + 4} textAnchor="end" fontSize="11" fill="#706b62">{metric === "money" ? `${number(max * ratio / 100)} €` : number(max * ratio)}</text></g>)}
       {data.length > 0 && <>
@@ -47,11 +47,12 @@ function SalesChart({ data, granularity }: { data: ReturnType<typeof salesAnalyt
         <polyline points={path(metric === "orders" ? "orders" : "cash")} fill="none" stroke="#ee5b2b" strokeWidth="3" strokeLinejoin="round"/>
         {data.map((point, i) => <g key={point.day}>
           {(data.length <= 8 || i % Math.max(1, Math.ceil((data.length - 1) / 6)) === 0 || i === data.length - 1) && <text x={x(i)} y={height - 13} textAnchor="middle" fontSize="11" fill="#706b62">{shortDate(point.day, granularity === "month")}</text>}
-          <rect x={x(i) - Math.max(4, plotWidth / Math.max(data.length, 1) / 2)} y={top} width={Math.max(8, plotWidth / Math.max(data.length, 1))} height={plotHeight} fill="transparent" tabIndex={0} role="button" aria-label={`${shortDate(point.day)} : ${point.orders} commandes, ${formatPrice(point.revenue)} commandés, ${formatPrice(point.cash)} encaissés`} onFocus={() => setActive(i)} onMouseEnter={() => setActive(i)} onClick={() => setActive(i)} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setActive(i); } }}><title>{shortDate(point.day)} · {formatPrice(point.cash)} encaissés · {point.orders} commandes</title></rect>
+          <rect x={x(i) - Math.max(4, plotWidth / Math.max(data.length, 1) / 2)} y={top} width={Math.max(8, plotWidth / Math.max(data.length, 1))} height={plotHeight} fill="transparent" tabIndex={0} role="button" aria-label={`${shortDate(point.day)} : ${point.orders} commandes, ${formatPrice(point.revenue)} commandés, ${formatPrice(point.cash)} encaissés`} onFocus={() => setActive(i)} onMouseEnter={() => setActive(i)} onClick={() => setActive(i)} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setActive(i); } }}><title>{`${shortDate(point.day)} · ${formatPrice(point.cash)} encaissés · ${point.orders} commandes`}</title></rect>
         </g>)}
         {active !== null && data[active] && <><line x1={x(active)} x2={x(active)} y1={top} y2={y(0)} stroke="#a99c8c" strokeDasharray="4 4"/><circle cx={x(active)} cy={y(metric === "orders" ? data[active].orders : data[active].cash)} r="5" fill="#ee5b2b" stroke="white" strokeWidth="2"/></>}
       </>}
-    </svg>
+    </svg></div>
+    <p className="mt-2 text-[11px] text-ink-faint sm:hidden">Glissez horizontalement pour parcourir le graphique.</p>
     <p className="min-h-5 text-xs text-ink-soft" aria-live="polite">{selected ? <>{shortDate(selected.day, granularity === "month")} : <strong>{formatPrice(selected.revenue)}</strong> commandés · <strong>{formatPrice(selected.cash)}</strong> encaissés · {selected.orders} commande{selected.orders > 1 ? "s" : ""}</> : "Aucune donnée sur cette période."}</p>
   </div>;
 }
