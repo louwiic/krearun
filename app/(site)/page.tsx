@@ -3,7 +3,6 @@ import Link from "next/link";
 import BrandLogo from "@/components/site/BrandLogo";
 import SingleProductHome from "@/components/home/SingleProductHome";
 import ProductCard from "@/components/product/ProductCard";
-import { formatPrice } from "@/lib/format";
 import { getApprovedReviews, getProducts, getSettings } from "@/lib/store";
 import { getVisibleCategories } from "@/lib/categories";
 import { HOLDER_SLUG } from "@/lib/custom-holder";
@@ -17,32 +16,24 @@ export default async function HomePage() {
   const featured = visible.filter(product => product.featured);
   const main = visible.find(product => product.slug === settings.homepage_featured_product_slug) ?? featured[0] ?? visible[0];
   const second = visible.find(product => product.slug === "porte-canette-red-bull" && product.id !== main?.id) ?? featured.find(product => product.id !== main?.id);
-  const heroImage = settings.hero_image_url || main?.images[0] || "/home/hero-monster-product.webp";
-  const heroHref = settings.hero_link_url || (main ? `/boutique/${main.slug}` : "/boutique");
   const selection = [...featured, ...visible.filter(product => !product.featured)].slice(0, 6);
   const spotlight = settings.homepage_mode === "single_product" && main;
 
   return <>
     <section className="border-b-2 border-ink bg-linen">
-      <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 py-10 sm:px-6 sm:py-16 lg:grid-cols-[1.05fr_0.95fr] lg:gap-14 lg:py-20">
-        <div>
-          <BrandLogo signature className="mb-8 w-64 max-w-full sm:w-80" />
+      <div className="mx-auto max-w-6xl px-5 py-12 sm:px-6 sm:py-20 lg:py-24">
+        <div className="max-w-4xl">
+          <BrandLogo signature className="mb-8 w-64 max-w-full sm:mb-10 sm:w-96" />
           <p className="mb-4 text-xs font-bold uppercase tracking-[0.14em] text-ink-soft">Votre atelier de personnalisation à La Réunion</p>
           <h1 className="font-display text-4xl text-ink sm:text-6xl">Découvrez nos produits <span className="relative inline-block">personnalisés<svg aria-hidden="true" viewBox="0 0 440 18" className="absolute -bottom-3 left-0 h-3 w-full text-[#FF6B35]" fill="none"><path d="M5 10C100 0 300 2 435 9" stroke="currentColor" strokeWidth="7" strokeLinecap="round"/></svg></span></h1>
-          <p className="mt-8 max-w-lg text-base leading-relaxed text-ink-soft sm:text-lg">Vos idées, vos couleurs, votre prénom. Choisissez un modèle et donnez-lui votre touche, pour offrir ou vous faire plaisir.</p>
+          <p className="mt-8 max-w-2xl text-base leading-relaxed text-ink-soft sm:text-lg">Vos idées, vos couleurs, votre prénom. Choisissez un modèle et donnez-lui votre touche, pour offrir ou vous faire plaisir.</p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link href="/boutique" className="inline-flex min-h-12 items-center justify-center rounded-[10px] border-2 border-ink bg-terra px-6 py-3 text-sm font-bold text-ink transition-colors hover:bg-ink hover:text-cream">Découvrir la boutique <span aria-hidden="true" className="ml-3">↗</span></Link>
             <Link href="#personnaliser" className="inline-flex min-h-12 items-center justify-center rounded-[10px] border-2 border-ink px-6 py-3 text-sm font-bold transition-colors hover:bg-sage">Je personnalise</Link>
           </div>
           <p className="mt-6 text-xs text-ink-soft">Paiement sécurisé · Livraison à La Réunion · Un atelier à votre écoute</p>
         </div>
-        <div className="relative min-w-0 pb-5 lg:pb-0">
-          <Link href={heroHref} className="block overflow-hidden rounded-2xl border-2 border-ink bg-sage p-4 shadow-soft sm:p-6">
-            <div className="mb-4 flex items-center justify-between gap-3 text-xs font-bold"><span>Une création, votre style.</span><span aria-hidden="true">↗</span></div>
-            <img src={heroImage} alt={settings.hero_image_alt || main?.name || "Une création Kréarun personnalisée"} width={800} height={800} fetchPriority="high" className="aspect-square w-full rounded-xl object-cover" />
-            {main && <div className="mt-4 flex items-center justify-between gap-4"><span className="text-sm font-bold">{main.name}</span><span className="shrink-0 rounded-lg bg-linen px-3 py-2 text-xs font-bold">{main.slug === HOLDER_SLUG || main.priceCents === 0 ? "À personnaliser" : `Dès ${formatPrice(main.priceCents)}`}</span></div>}
-          </Link>
-        </div>
+
       </div>
     </section>
 
