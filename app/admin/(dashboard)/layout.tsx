@@ -1,4 +1,5 @@
 import Link from "next/link";
+import BrandLogo from "@/components/site/BrandLogo";
 import { redirect } from "next/navigation";
 import { isAdmin } from "@/lib/auth";
 import { logoutAction } from "../actions";
@@ -33,9 +34,7 @@ export default async function AdminLayout({
     <AdminShell
       sidebar={
         <>
-          <Link href="/admin" className="font-display text-xl font-semibold">
-            Krearun<span className="text-terra">·</span>Admin
-          </Link>
+          <Link href="/admin" className="inline-flex flex-col items-start gap-2" aria-label="Kréarun Admin"><span className="rounded-xl bg-linen p-2"><BrandLogo className="w-36" /></span><span className="text-xs font-bold uppercase tracking-[0.14em] text-ink-soft">Administration</span></Link>
 
           <nav className="mt-10 flex flex-1 flex-col gap-1.5">
             {nav.map((item) => (

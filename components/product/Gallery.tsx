@@ -36,7 +36,7 @@ export default function Gallery({
 
   return (
     <div className="space-y-3 sm:space-y-4">
-      <div className="overflow-hidden rounded-blob bg-cream shadow-soft">
+      <div className="overflow-hidden rounded-2xl border-2 border-ink bg-cream shadow-soft">
         {activeMedia.type === "video" ? (
           <video
             src={activeMedia.src}

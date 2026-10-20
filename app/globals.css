@@ -30,31 +30,28 @@ html:has(.crm-modal[open]) {
 }
 
 @theme inline {
-  /* Palette Badass Péi — papier os, noir volcanique, orange lave & accents punchy */
-  --color-linen: #efeae0;      /* fond papier os */
-  --color-linen-deep: #e3ddd0; /* papier profond */
-  --color-cream: #ffffff;      /* cartes blanc pur */
-  --color-sand: #d6cfbf;       /* filets / bordures */
-  --color-ink: #16130f;        /* noir presque total */
-  --color-ink-soft: #4c463d;   /* texte secondaire */
-  --color-ink-faint: #8a8173;  /* texte discret */
-  --color-sage: #b8f13a;       /* lime acide */
-  --color-sage-deep: #7ba800;  /* lime profond */
-  --color-blush: #ff5a86;      /* rose flash */
-  --color-blush-deep: #e23e6a; /* rose profond */
-  --color-terra: #ff4b17;      /* orange volcanique (accent principal) */
-  --color-terra-deep: #db3400; /* lave profonde */
-  --color-lavande: #7b6bff;    /* violet électrique */
-
-  --font-display: var(--font-anton), "Arial Narrow", sans-serif;
-  --font-body: var(--font-inter), system-ui, sans-serif;
-
-  --radius-blob: 0.375rem;
-
-  --shadow-soft: 0 1px 2px rgb(22 19 15 / 0.06), 0 10px 26px -14px rgb(22 19 15 / 0.22);
-  --shadow-lifted: 0 16px 44px -18px rgb(22 19 15 / 0.34);
-  --shadow-hard: 5px 5px 0 0 rgb(22 19 15);
-  --shadow-hard-terra: 5px 5px 0 0 var(--color-terra);
+  /* Charte Kréarun · Atelier pop · octobre 2026 */
+  --color-linen: #f6f3ee;
+  --color-linen-deep: #eae4db;
+  --color-cream: #ffffff;
+  --color-sand: #d9d2c8;
+  --color-ink: #171717;
+  --color-ink-soft: #4c4945;
+  --color-ink-faint: #706b64;
+  --color-sage: #b9dff2;
+  --color-sage-deep: #28556b;
+  --color-blush: #ffe1d5;
+  --color-blush-deep: #a03923;
+  --color-terra: #ff6b35;
+  --color-terra-deep: #a63713;
+  --color-lavande: #b9dff2;
+  --font-display: var(--font-bricolage), sans-serif;
+  --font-body: var(--font-manrope), sans-serif;
+  --radius-blob: 1rem;
+  --shadow-soft: 0 3px 14px rgb(23 23 23 / 0.04);
+  --shadow-lifted: 0 6px 22px rgb(23 23 23 / 0.08);
+  --shadow-hard: 0 4px 16px rgb(23 23 23 / 0.06);
+  --shadow-hard-terra: 0 4px 16px rgb(23 23 23 / 0.06);
 
   --animate-fade-up: fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
   --animate-float: float 7s ease-in-out infinite;
@@ -115,7 +112,10 @@ body {
 .font-display,
 h1.font-display,
 h2.font-display {
-  letter-spacing: -0.01em;
+  letter-spacing: -0.035em;
+  font-weight: 800;
+  line-height: 1.12;
+  text-transform: none;
 }
 
 ::selection {
@@ -188,4 +188,21 @@ h2.font-display {
 .soft-scroll::-webkit-scrollbar-thumb {
   background: var(--color-ink);
   border-radius: 3px;
+}
+
+/* Atelier pop: rounded cards, readable controls and restrained decoration. */
+.storefront h1.font-display { font-size: clamp(2rem, 4.5vw, 4rem); line-height: 1.08; }
+.storefront :is(p, li) { line-height: 1.5; }
+.storefront :is(a, button)[class*="rounded-full"]:not([style]) { border-radius: 10px; }
+.storefront :is(button, a, span)[class~="bg-terra"] { color: var(--color-ink); }
+.storefront :is(button, a)[class~="hover:bg-terra"]:hover { color: var(--color-ink); background-color: var(--color-terra); }
+.storefront :is(button, a)[class~="bg-terra"][class~="hover:bg-terra-deep"]:hover { color: var(--color-ink); background-color: #ff875b; }
+.storefront :is(button, a)[class~="bg-terra"][class~="hover:bg-ink"]:hover { color: var(--color-cream); background-color: var(--color-ink); }
+.storefront :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]), select, textarea) { border-radius: 10px; }
+.storefront .text-terra { color: var(--color-ink); }
+.storefront .animate-float, .storefront .animate-drift { animation: none; }
+.grain::before { opacity: 0.012; }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .reveal, .marquee-track { animation: none; }
 }

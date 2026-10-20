@@ -3,10 +3,9 @@ export function publicProductCopy(value: string): string {
     .replace(/\bPLA\s+/gi, "")
     .replace(/\bPLA\b/gi, "matière")
     .replace(/impression\s+3D/gi, "fabrication")
-    .replace(/imprim[ée]s?\s+en\s+3D/gi, "fabriqués")
-    .replace(/imprim[ée]e?\s+en\s+3D/gi, "fabriquée")
-    .replace(/imprim[ée]s?/gi, "fabriqués")
-    .replace(/imprimante(s)?/gi, "atelier")
+    .replace(/\bimprimantes?\b/gi, "atelier")
+    .replace(/\bimprim([ée])(e?)(s?)(?:\s+en\s+3D)?(?![a-zà-ÿ])/gi, (_, accent, feminine, plural) =>
+      `fabriqu${accent}${feminine}${plural}`)
     .replace(/filaments?/gi, "matières")
     .replace(/couche par couche/gi, "avec soin")
     .replace(/lignes d'impression/gi, "fines lignes")

@@ -31,7 +31,7 @@ export default function ProductCard({
       href={`/boutique/${product.slug}`}
       className={`group block ${className}`}
     >
-      <div className="relative overflow-hidden border-2 border-ink bg-cream transition-all duration-200 group-hover:-translate-y-1 group-hover:shadow-hard">
+      <div className="relative overflow-hidden rounded-2xl border-2 border-ink bg-cream transition-all duration-200 group-hover:-translate-y-1 group-hover:shadow-hard">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={product.images[0] ?? "/products/hero.svg"}
@@ -59,7 +59,7 @@ export default function ProductCard({
             </span>
           )}
           {product.isNew && !soldOut && !product.preorder && (
-            <span className="border-2 border-ink bg-sage px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-ink sm:px-3 sm:text-[11px]">
+            <span className="border-2 border-ink bg-terra px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-ink sm:px-3 sm:text-[11px]">
               Nouveau
             </span>
           )}
@@ -102,7 +102,7 @@ export default function ProductCard({
           </p>
         </div>
         <div className="shrink-0 sm:text-right">
-          <p className="font-display text-lg leading-none text-terra sm:text-xl">
+          <p className="inline-block rounded-lg bg-terra px-2 py-1 font-display text-lg leading-none text-ink sm:text-xl">
             {personalized ? "Sur validation" : <>{variantPrices.length > 1 && "Dès "}{formatPrice(displayPrice)}</>}
           </p>
           {product.compareAtCents && (
@@ -113,7 +113,7 @@ export default function ProductCard({
         </div>
       </div>
       {showCta && (
-        <span className="mt-3 flex w-full items-center justify-center border-2 border-ink bg-ink px-4 py-3 text-xs font-bold uppercase tracking-[0.06em] text-cream transition-all group-hover:bg-terra group-hover:border-terra sm:text-sm">
+        <span className="mt-3 flex w-full rounded-[10px] items-center justify-center border-2 border-ink bg-ink px-4 py-3 text-xs font-bold uppercase tracking-[0.06em] text-cream transition-all group-hover:bg-terra group-hover:border-terra group-hover:text-ink sm:text-sm">
           {personalized ? "Personnaliser" : soldOut ? "Voir le produit" : "Choisir ce produit"}
           <span aria-hidden className="ml-2 transition-transform group-hover:translate-x-1">
             →

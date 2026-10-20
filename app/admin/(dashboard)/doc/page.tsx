@@ -7,7 +7,7 @@ export default function AdminDocumentsPage() {
   return (
     <div className="mx-auto max-w-5xl">
       <h1 className="font-display text-3xl font-semibold">Doc</h1>
-      <p className="mt-2 text-sm text-ink-soft">Vos documents de référence pour les envois de colis.</p>
+      <p className="mt-2 text-sm text-ink-soft">Votre charte graphique et vos documents de référence.</p>
       <div className="mt-8 grid gap-6 lg:grid-cols-2">
         {ADMIN_DOCUMENTS.map((document) => {
           const href = `/api/admin/doc/${document.id}`;
@@ -15,7 +15,7 @@ export default function AdminDocumentsPage() {
             <article key={document.id} className="overflow-hidden rounded-2xl border border-sand bg-cream">
               <a href={href} target="_blank" rel="noopener noreferrer" className="block border-b border-sand bg-white p-4" aria-label={`Ouvrir ${document.title}`}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={href} alt={document.title} className="h-96 w-full object-contain" />
+                <img src={document.previewFilename ? `${href}?preview=1` : href} alt={document.title} className="h-96 w-full object-contain" />
               </a>
               <div className="p-5">
                 <h2 className="text-lg font-semibold">{document.title}</h2>

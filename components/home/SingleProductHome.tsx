@@ -37,19 +37,19 @@ export default function SingleProductHome({
 
   return (
     <>
-      <section className="relative overflow-hidden border-b-2 border-ink bg-linen">
-        <div aria-hidden className="absolute -right-40 -top-40 h-96 w-96 rounded-full bg-[#00c8b8]/15 blur-3xl" />
+      <section className="relative overflow-hidden border-b border-sand bg-linen">
+        <div aria-hidden className="absolute -right-40 -top-40 h-96 w-96 rounded-full bg-sage/15 blur-3xl" />
         <div aria-hidden className="absolute -bottom-48 -left-28 h-96 w-96 rounded-full bg-terra/10 blur-3xl" />
 
         <div className="relative mx-auto grid max-w-6xl items-center gap-8 px-4 py-8 sm:px-6 sm:py-12 lg:grid-cols-[1.08fr_0.92fr] lg:gap-12 lg:py-14">
           <div className="order-2 lg:order-1">
-            <p className="mb-4 inline-flex items-center gap-2 border-2 border-ink bg-[#00c8b8] px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-ink">
+            <p className="mb-4 inline-flex items-center gap-2 border-2 border-ink bg-sage px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-ink">
               <span className="h-2 w-2 animate-pulse rounded-full bg-ink" />
               Le produit vedette
             </p>
-            <h1 className="font-display text-5xl uppercase leading-[0.86] text-ink sm:text-6xl lg:text-[4rem]">
+            <h2 className="font-display text-3xl leading-tight text-ink sm:text-4xl lg:text-5xl">
               {product.name}
-            </h1>
+            </h2>
             <p className="mt-5 max-w-xl text-base leading-relaxed text-ink-soft sm:text-lg">
               {publicProductCopy(product.tagline)}
             </p>
@@ -102,11 +102,11 @@ export default function SingleProductHome({
             </div>
 
             <div>
-              <p className="mb-4 inline-flex items-center gap-2 border-2 border-ink bg-[#0756d8] px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-cream">
-                <span className="h-2 w-2 animate-pulse rounded-full bg-cream" />
+              <p className="mb-4 inline-flex items-center gap-2 border-2 border-ink bg-sage px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-ink">
+                <span className="h-2 w-2 rounded-full bg-ink" />
                 Deuxième produit vedette
               </p>
-              <h2 className="font-display text-5xl uppercase leading-[0.86] text-ink sm:text-6xl lg:text-[4rem]">
+              <h2 className="font-display text-3xl leading-tight text-ink sm:text-4xl lg:text-5xl">
                 {secondaryProduct.name}
               </h2>
               <p className="mt-5 max-w-xl text-base leading-relaxed text-ink-soft sm:text-lg">
@@ -139,7 +139,7 @@ export default function SingleProductHome({
               </div>
               <Link
                 href={`/boutique/${secondaryProduct.slug}`}
-                className="mt-7 inline-flex border-2 border-ink bg-ink px-6 py-3 text-sm font-bold uppercase tracking-[0.06em] text-cream transition-colors hover:bg-[#0756d8] hover:border-[#0756d8]"
+                className="mt-7 inline-flex border-2 border-ink bg-ink px-6 py-3 text-sm font-bold uppercase tracking-[0.06em] text-cream transition-colors hover:bg-sage hover:border-sage"
               >
                 Voir la fiche complète →
               </Link>
@@ -150,7 +150,7 @@ export default function SingleProductHome({
 
       <section className="border-b-2 border-ink bg-ink text-cream">
         <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 sm:px-6 sm:py-16 lg:grid-cols-[0.85fr_1.15fr] lg:items-center lg:gap-12">
-          <div className="mx-auto w-full max-w-md overflow-hidden border-2 border-cream/20 bg-black shadow-hard-terra lg:mx-0">
+          <div className="mx-auto w-full max-w-md overflow-hidden rounded-2xl border-2 border-cream/20 bg-black shadow-hard-terra lg:mx-0">
             {videoUrl ? (
               videoIsVideo ? (
                 <video
@@ -179,8 +179,8 @@ export default function SingleProductHome({
           </div>
 
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#00c8b8]">
-              Pensé pour t’accompagner
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-cream">
+              Pensé pour vous accompagner
             </p>
             <h2 className="mt-3 font-display text-4xl uppercase leading-[0.9] sm:text-5xl">
               Le produit en action
@@ -194,7 +194,7 @@ export default function SingleProductHome({
             </div>
             <Link
               href={productHref}
-              className="mt-8 inline-flex border-2 border-cream bg-[#00c8b8] px-7 py-3.5 text-sm font-bold uppercase tracking-[0.06em] text-ink transition-colors hover:bg-cream"
+              className="mt-8 inline-flex border-2 border-cream bg-sage px-7 py-3.5 text-sm font-bold uppercase tracking-[0.06em] text-ink transition-colors hover:bg-cream"
             >
               Voir la fiche complète →
             </Link>
@@ -202,12 +202,12 @@ export default function SingleProductHome({
         </div>
       </section>
 
-      <section className="border-b-2 border-ink bg-[#00c8b8] text-ink">
+      <section className="border-b-2 border-ink bg-sage text-ink">
         <div className="mx-auto grid max-w-6xl divide-y-2 divide-ink px-4 sm:px-6 md:grid-cols-3 md:divide-x-2 md:divide-y-0">
           {[
-            ["01", "Choisis", "Sélectionne ton coloris et ta quantité."],
+            ["01", "Choisissez", "Sélectionnez votre coloris et votre quantité."],
             ["02", "On fabrique", "Chaque pièce est préparée avec soin dans notre atelier."],
-            ["03", "Tu profites", "Ta commande est emballée puis expédiée avec suivi."],
+            ["03", "Profitez", "Votre commande est emballée puis expédiée avec suivi."],
           ].map(([number, title, text]) => (
             <div key={number} className="flex gap-4 py-6 md:px-6 md:py-7">
               <span className="font-display text-3xl leading-none">{number}</span>
@@ -228,7 +228,7 @@ export default function SingleProductHome({
           </h2>
           <div className="mt-8 grid gap-5 md:grid-cols-3">
             {reviews.slice(0, 3).map((review) => (
-              <figure key={review.id} className="border-2 border-ink bg-cream p-7 shadow-hard">
+              <figure key={review.id} className="rounded-2xl border-2 border-ink bg-cream p-7 shadow-hard">
                 <div className="mb-4 text-terra" aria-label={`${review.rating} sur 5`}>
                   {"★ ".repeat(review.rating).trim()}
                 </div>

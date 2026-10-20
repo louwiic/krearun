@@ -82,18 +82,18 @@ export default function NewsletterPopup({
           </svg>
         </button>
 
-        <div className="bg-gradient-to-br from-terra to-terra-deep px-7 py-8 text-cream">
-          <svg className="mb-4 h-9 w-9 text-blush" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}>
+        <div className="bg-sage px-7 py-8 text-ink">
+          <svg className="mb-4 h-9 w-9 text-ink" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M20 12v9H4v-9M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z" />
           </svg>
-          <p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-blush">
+          <p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-ink">
             Bienvenue chez {storeName}
           </p>
           <h2 id="newsletter-popup-title" className="max-w-xs text-3xl font-extrabold leading-tight">
             {discountPct} % offerts
           </h2>
-          <p className="mt-2 text-lg font-semibold text-cream">{title}</p>
-          <p className="mt-3 text-sm leading-relaxed text-linen-deep">{text}</p>
+          <p className="mt-2 text-lg font-semibold text-ink">{title}</p>
+          <p className="mt-3 text-sm leading-relaxed text-ink-soft">{text}</p>
         </div>
 
         <div className="p-7">

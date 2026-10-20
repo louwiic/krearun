@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import BrandLogo from "./BrandLogo";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useCart } from "@/components/cart/CartContext";
@@ -13,15 +14,8 @@ export default function Navbar({ categories }: { categories: StoreCategory[] }) 
   const [mobileOpen, setMobileOpen] = useState(false);
   const links = [
     { href: "/boutique", label: "Boutique" },
-    { href: "/lettre-personnalisee", label: "Lettre personnalisée" },
-    { href: "/clicker-studio", label: "Clicker Studio" },
-    ...categories
-      .filter((category) => category.value === "veilleuses")
-      .map((category) => ({
-        href: `/boutique?categorie=${category.value}`,
-        label: category.label.replace(/\s*&.*$/, ""),
-      })),
-    { href: "/faq", label: "FAQ" },
+    { href: "/#personnaliser", label: "Personnaliser" },
+    { href: "/#atelier", label: "L’atelier" },
     { href: "/contact", label: "Contact" },
   ];
 
@@ -30,9 +24,9 @@ export default function Navbar({ categories }: { categories: StoreCategory[] }) 
       <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
         <Link
           href="/"
-          className="font-display text-2xl uppercase leading-none tracking-tight text-ink sm:text-[1.7rem]"
+          className="block shrink-0 rounded-xl bg-linen px-2 py-2" aria-label="Kréarun — accueil"
         >
-          Krearun<span className="text-terra">.</span>
+          <BrandLogo className="w-36 sm:w-44" />
         </Link>
 
         <ul className="hidden items-center gap-7 lg:flex">
@@ -41,7 +35,7 @@ export default function Navbar({ categories }: { categories: StoreCategory[] }) 
               <Link
                 href={l.href}
                 onClick={() => { if (l.href === "/lettre-personnalisee") trackLetterEvent("click"); }}
-                data-active={pathname === l.href.split("?")[0] && !l.href.includes("?")}
+                data-active={!l.href.includes("#") && pathname === l.href.split("?")[0]}
                 className="nav-link text-[13px] font-bold uppercase tracking-[0.08em] text-ink-soft transition-colors hover:text-ink"
               >
                 {l.label}
@@ -102,7 +96,7 @@ export default function Navbar({ categories }: { categories: StoreCategory[] }) 
       </nav>
 
       {mobileOpen && (
-        <div className="border-t-2 border-ink bg-linen px-6 py-4 lg:hidden">
+        <div className="max-h-[80vh] overflow-y-auto border-t-2 border-ink bg-linen px-6 py-4 lg:hidden">
           <ul className="flex flex-col divide-y divide-sand">
             {links.map((l) => (
               <li key={l.href}>
@@ -116,6 +110,8 @@ export default function Navbar({ categories }: { categories: StoreCategory[] }) 
               </li>
             ))}
           </ul>
+          <p className="mt-4 text-xs font-bold text-ink-soft">Nos collections</p>
+          <div className="mt-2 grid grid-cols-2 gap-2">{categories.map(category => <Link key={category.value} href={`/boutique?categorie=${category.value}`} onClick={()=>setMobileOpen(false)} className="py-2 text-sm">{category.label}</Link>)}</div>
         </div>
       )}
     </header>
