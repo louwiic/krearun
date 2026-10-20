@@ -15,6 +15,7 @@ const nav = [
   { href: "/admin/generateur-3d", label: "Prénoms 3D", icon: "nozzle" },
   { href: "/admin/commandes", label: "Commandes", icon: "orders" },
   { href: "/admin/personnalisations", label: "Personnalisations", icon: "customize" },
+  { href: "/admin/retractations", label: "Rétractations", icon: "orders" },
   { href: "/admin/messages", label: "Messages", icon: "messages" },
   { href: "/admin/codes-promo", label: "Codes promo", icon: "promo" },
   { href: "/admin/clients", label: "Clients", icon: "clients" },

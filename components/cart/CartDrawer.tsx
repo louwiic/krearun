@@ -1,5 +1,7 @@
 "use client";
 
+import { monsterGiftLabel } from "@/lib/monster-gift";
+
 import Link from "next/link";
 import { useCart } from "./CartContext";
 import { publicColorName } from "@/lib/colors";
@@ -130,7 +132,7 @@ export default function CartDrawer({
                         )}
                         {item.keychainChoice && (
                           <p className="text-xs font-semibold text-terra-deep">
-                            Porte-clés offert : choix {item.keychainChoice}
+                            Porte-clés offert : {monsterGiftLabel(item.keychainChoice, item.color)}
                           </p>
                         )}
                         {item.slug === "porte-canette-monster" && (
@@ -142,7 +144,7 @@ export default function CartDrawer({
                               className="h-8 w-8 shrink-0 rounded object-cover"
                             />
                             <p className="text-[10px] font-bold leading-tight text-terra-deep">
-                              Offerts : couvercle, décapsuleur griffes et mini porte-canette porte-clés
+                              Offerts : couvercle, décapsuleur griffes et porte-clés griffes
                             </p>
                           </div>
                         )}

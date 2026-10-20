@@ -1,5 +1,6 @@
 "use client";
 
+import { MONSTER_GIFT } from "@/lib/monster-gift";
 import { useState } from "react";
 import Link from "next/link";
 import { HOLDER_SLUG } from "@/lib/custom-holder";
@@ -9,6 +10,7 @@ import { formatPrice } from "@/lib/format";
 import type { Product } from "@/lib/types";
 import LampPersonalization from "./LampPersonalization";
 import { buildLampPersonalization, isPersonalizedLamp } from "@/lib/lamp-personalization";
+import MonsterGiftPreview from "./MonsterGiftPreview";
 import MonsterClawPreview from "./MonsterClawPreview";
 import { discountedUnitPriceCents, quantityDiscountPercent } from "@/lib/quantity-discounts";
 
@@ -19,7 +21,6 @@ export default function AddToCart({ product }: { product: Product }) {
   const [color, setColor] = useState(product.colors[0]?.name ?? "");
   const [addPersonalization, setAddPersonalization] = useState(false);
   const [customName, setCustomName] = useState("");
-  const [keychainChoice, setKeychainChoice] = useState<"1" | "2" | "">("");
   const personalizedLamp = isPersonalizedLamp(product.slug);
   const [lamp, setLamp] = useState({ initial: "", text: "", secondName: "", motif: "Étoiles", otherMotif: "", hearts: "2", inscription: "" });
   const lampDetails = buildLampPersonalization(product.slug, lamp);
@@ -36,7 +37,6 @@ export default function AddToCart({ product }: { product: Product }) {
   const missingCustomName =
     personalizedLamp ? !lampDetails : product.namePersonalizationEnabled && addPersonalization && !normalizedCustomName;
   const showMonsterPreview = product.slug === "porte-canette-monster" && Boolean(selectedColor);
-  const missingKeychainChoice = product.slug === "porte-canette-monster" && !keychainChoice;
   const personalizationPriceCents = !personalizedLamp && product.namePersonalizationEnabled && addPersonalization
     ? product.namePersonalizationPriceCents
     : 0;
@@ -129,35 +129,9 @@ export default function AddToCart({ product }: { product: Product }) {
                 Couvercle + décapsuleur griffes
               </span>
             </div>
-            <div className="min-w-0 rounded-lg bg-white/75 p-1.5">
-              <p className="mb-1 text-[10px] font-bold leading-tight sm:text-[11px]">
-                Porte-clés offert — choisissez votre modèle
-              </p>
-              <div className="grid grid-cols-2 gap-2">
-                {(["1", "2"] as const).map((choice) => (
-                  <button
-                    key={choice}
-                    type="button"
-                    onClick={() => setKeychainChoice(choice)}
-                    aria-pressed={keychainChoice === choice}
-                    className={`relative aspect-square overflow-hidden rounded-md border-2 bg-no-repeat transition-all ${
-                      keychainChoice === choice
-                        ? "border-terra ring-1 ring-terra"
-                        : "border-sand hover:border-ink-faint"
-                    }`}
-                    style={{
-                      backgroundImage:
-                        "url('/api/r2/products/monster/choix-porte-cles-monster.png')",
-                      backgroundPosition: choice === "1" ? "left center" : "right center",
-                      backgroundSize: "200% auto",
-                    }}
-                  >
-                    <span className="absolute bottom-0.5 left-0.5 bg-ink px-1 py-0.5 text-[8px] font-bold uppercase leading-none text-cream">
-                      Choix {choice}
-                    </span>
-                  </button>
-                ))}
-              </div>
+            <div className="flex min-w-0 items-center gap-2 rounded-lg bg-white/75 p-2">
+              <MonsterGiftPreview color={selectedColor.hex} colorName={publicColorName(color)} />
+              <div><p className="text-xs font-bold">Porte-clés griffes offert</p><p className="mt-1 text-[10px] text-ink-soft">Modèle unique · {publicColorName(color)}</p></div>
             </div>
           </div>
         </div>
@@ -309,7 +283,7 @@ export default function AddToCart({ product }: { product: Product }) {
                   : undefined,
                 variantId: selectedVariant?.id,
                 variantName: selectedVariant?.name,
-                keychainChoice: keychainChoice || undefined,
+                keychainChoice: product.slug === "porte-canette-monster" ? MONSTER_GIFT : undefined,
                 image: selectedImage,
                 stock: selectedStock,
                 weightGrams: selectedWeight,
@@ -320,15 +294,13 @@ export default function AddToCart({ product }: { product: Product }) {
               quantity
             )
           }
-          disabled={soldOut || missingCustomName || missingKeychainChoice}
+          disabled={soldOut || missingCustomName}
           className="w-full rounded-full bg-terra px-8 py-3.5 text-sm font-bold text-cream transition-all hover:bg-terra-deep hover:shadow-lifted disabled:cursor-not-allowed disabled:bg-ink-faint sm:flex-1"
         >
           {soldOut
             ? "Bientôt de retour"
             : missingCustomName
               ? "Indiquer le prénom"
-            : missingKeychainChoice
-              ? "Choisir le porte-clés offert"
             : product.preorder
               ? "Pré-commander"
               : `Ajouter au panier — ${formatPrice(discountedConfiguredPriceCents * quantity)}${

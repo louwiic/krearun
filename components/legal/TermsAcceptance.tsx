@@ -1,0 +1,5 @@
+"use client";
+import Link from "next/link";
+export default function TermsAcceptance({ checked, onChange, personalized = false }: { checked: boolean; onChange: (value: boolean) => void; personalized?: boolean }) {
+  return <div className="space-y-2 text-xs leading-5"><label className="flex items-start gap-3"><input type="checkbox" required checked={checked} onChange={event=>onChange(event.target.checked)} className="mt-1 h-4 w-4 shrink-0 accent-ink"/><span>J’ai lu et j’accepte les <Link href="/cgv" target="_blank" rel="noopener noreferrer" className="font-bold underline">conditions générales de vente</Link>. Les informations sur mes données sont disponibles dans la <Link href="/confidentialite" target="_blank" rel="noopener noreferrer" className="underline">politique de confidentialité</Link>.</span></label>{personalized&&<p className="text-ink-soft">Les articles confectionnés selon vos spécifications ou nettement personnalisés ne bénéficient pas du droit de rétractation. Leurs garanties légales restent applicables.</p>}</div>;
+}

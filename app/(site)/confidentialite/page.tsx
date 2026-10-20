@@ -1,10 +1,11 @@
+import { BUSINESS, BUSINESS_ADDRESS, LEGAL_DATE } from "@/lib/legal";
 import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = { title: "Politique de confidentialité" };
 
-const contactEmail = "stdcreativ974@gmail.com";
-const updatedAt = "19 septembre 2026";
+const contactEmail = BUSINESS.email;
+const updatedAt = LEGAL_DATE;
 
 type Section = {
   title: string;
@@ -16,7 +17,7 @@ const sections: Section[] = [
   {
     title: "Responsable du traitement",
     paragraphs: [
-      `Krearun Studio, SIRET 85221187900022, est responsable du traitement des données personnelles collectées sur krearun.re. Pour toute question relative à vos données, vous pouvez écrire à ${contactEmail}.`,
+      `${BUSINESS.name}, entrepreneur individuel sous le nom commercial Kréarun, SIRET ${BUSINESS.siret}, ${BUSINESS_ADDRESS}, est responsable du traitement des données personnelles collectées sur krearun.re. Pour toute question relative à vos données, vous pouvez écrire à ${contactEmail}.`,
     ],
   },
   {
@@ -27,8 +28,8 @@ const sections: Section[] = [
     items: [
       "identité et coordonnées : prénom, nom, e-mail, téléphone, adresse de livraison ou point de retrait ;",
       "données de commande : articles, options de personnalisation, coloris, montant, remise, mode de livraison, suivi et historique de commande ;",
-      "données de compte : adresse e-mail, mot de passe chiffré et historique de commandes ;",
-      "contenu volontairement transmis : message de contact, avis client, photo facultative jointe à un avis et inscription à la newsletter.",
+      "données de compte : adresse e-mail, mot de passe protégé par hachage et historique de commandes ;",
+      "contenu volontairement transmis : message de contact, avis client, photo facultative jointe à un avis et inscription à la newsletter ; fichiers et logos adressés pour une demande de personnalisation ; déclarations de rétractation et coordonnées de réception de leur accusé.",
     ],
   },
   {
@@ -38,6 +39,8 @@ const sections: Section[] = [
       "Respecter les obligations comptables, fiscales et de lutte contre la fraude : obligation légale et intérêt légitime.",
       "Créer et sécuriser votre espace client, gérer les demandes et le service après-vente : exécution du contrat et intérêt légitime.",
       "Envoyer la newsletter, les offres et actualités : votre consentement. Vous pouvez le retirer à tout moment.",
+      "Recevoir et conserver une déclaration de rétractation, en accuser réception et traiter un retour : exécution du contrat et obligations légales.",
+      "Mesurer la fréquentation du site avec le script disponible sur analytics.peibox.fr : votre consentement préalable, retirable depuis les préférences de confidentialité.",
       "Publier un avis client : votre démarche volontaire ; votre e-mail n’est jamais affiché publiquement.",
     ],
   },
@@ -55,14 +58,16 @@ const sections: Section[] = [
     items: [
       "Stripe, pour le paiement sécurisé. Krearun Studio ne reçoit ni ne conserve les numéros de carte bancaire ;",
       "La Poste / Colissimo, lorsqu’une expédition est demandée, pour créer l’étiquette, transporter le colis et permettre son suivi ;",
-      "PocketBase, utilisé pour la gestion sécurisée des produits, comptes, commandes et abonnements ;",
+      "l’hébergeur de l’application et de sa base PocketBase, pour la gestion des comptes, commandes, demandes et abonnements ;",
+      "Cloudflare, notamment son stockage R2, pour la distribution des médias et la protection du site ; les logos privés de personnalisation sont conservés avec des accès restreints ;",
+      "le service de mesure d’audience auto-hébergé sur analytics.peibox.fr, seulement après votre accord ;",
       "nos prestataires d’envoi d’e-mails, uniquement pour les confirmations de commande, le suivi et les communications auxquelles vous êtes inscrit(e).",
     ],
   },
   {
     title: "Transferts hors de l’Union européenne",
     paragraphs: [
-      "Certains prestataires techniques, notamment Stripe ou un prestataire d’e-mail, peuvent traiter des données depuis des pays situés hors de l’Espace économique européen. Dans ce cas, les garanties prévues par la réglementation applicable sont mises en œuvre par le prestataire concerné, par exemple les clauses contractuelles types de la Commission européenne.",
+      "Certains prestataires techniques, notamment Stripe ou un prestataire d’e-mail, peuvent traiter des données depuis des pays situés hors de l’Espace économique européen. Dans ce cas, les garanties prévues par la réglementation applicable doivent être documentées pour le traitement concerné, notamment au moyen des garanties adaptées telles que les clauses contractuelles types de la Commission européenne.",
     ],
   },
   {
@@ -70,7 +75,8 @@ const sections: Section[] = [
     items: [
       "Commandes et pièces comptables : pendant la durée nécessaire à la relation commerciale, puis archivées lorsque la loi l’impose, notamment jusqu’à 10 ans pour les documents comptables.",
       "Compte client : tant qu’il est utile à la gestion de vos commandes et de votre espace client, puis supprimé ou anonymisé à votre demande sous réserve des obligations légales de conservation.",
-      "Newsletter : jusqu’au retrait de votre consentement ou à votre demande de désinscription.",
+      "Newsletter : jusqu’au retrait du consentement, ou au plus tard 3 ans après le dernier contact actif du prospect ; les données nécessaires à la preuve et à la gestion d’une opposition peuvent être conservées séparément.",
+      "Déclarations de rétractation : conservation pour traiter la demande, puis archivage comme preuve pendant la durée de prescription applicable au litige, généralement 5 ans, sans préjudice des obligations comptables.",
       "Messages de contact et avis : pendant le temps nécessaire au traitement de votre demande ou à la modération de l’avis, puis supprimés ou anonymisés lorsqu’ils ne sont plus utiles.",
     ],
   },
@@ -83,7 +89,7 @@ const sections: Section[] = [
   {
     title: "Cookies et stockage local",
     paragraphs: [
-      "Le site utilise des cookies strictement nécessaires au bon fonctionnement, notamment pour la session de votre compte. Le panier, les favoris et la fermeture temporaire de la fenêtre newsletter peuvent aussi être enregistrés dans le stockage local de votre navigateur. Aucun outil de mesure d’audience, cookie publicitaire ou pixel marketing n’est activé par défaut sur ce site.",
+      "Le site utilise des cookies strictement nécessaires, notamment pour la session de votre compte. Le panier, les favoris, la fermeture temporaire de la fenêtre newsletter et votre choix de confidentialité peuvent être enregistrés dans le stockage local du navigateur. Le script de mesure d’audience sur analytics.peibox.fr est chargé uniquement après votre acceptation. Avec ce même accord, les interactions avec le configurateur de lettre peuvent être comptées avec un identifiant de navigateur aléatoire, le type d’action et le format téléchargé ; aucun prénom saisi n’est joint à ces statistiques. Votre choix est mémorisé pendant environ six mois. Vous pouvez accepter ou refuser avec les boutons proposés, puis revenir sur votre choix via « Préférences de confidentialité » dans le pied de page. Le refus n’empêche pas les achats.",
       "La page de paiement Stripe peut utiliser ses propres cookies techniques pour sécuriser la transaction.",
     ],
   },

@@ -1,5 +1,7 @@
 "use client";
 
+import TermsAcceptance from "@/components/legal/TermsAcceptance";
+import { LEGAL_VERSION } from "@/lib/legal";
 import { useEffect, useId, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import opentype, { type Font } from "opentype.js";
@@ -28,6 +30,7 @@ export default function LetterConfigurator({ isAdmin = false }: { isAdmin?: bool
   const [layout, setLayout] = useState<Layout | null>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [pending, setPending] = useState(true);
   const [baseColor, setBaseColor] = useState(colors[0]);
   const [nameColor, setNameColor] = useState(colors[1]);
@@ -89,12 +92,12 @@ export default function LetterConfigurator({ isAdmin = false }: { isAdmin?: bool
   }
 
   async function pay() {
-    if (!layout || pending || busy) return;
+    if (!layout || pending || busy || !termsAccepted) return;
     setBusy(true); setError(""); trackLetterEvent("interact");
     const configuration = { ...options, baseColor, nameColor };
     try {
       try { sessionStorage.setItem("krearun-letter-draft", JSON.stringify(configuration)); } catch { /* Optional draft. */ }
-      const response = await fetch("/api/custom-letter/checkout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ configuration }) });
+      const response = await fetch("/api/custom-letter/checkout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ configuration, termsAccepted, termsVersion: LEGAL_VERSION }) });
       const result = await response.json();
       if (!response.ok || !result.url) throw new Error(result.error || "Paiement indisponible.");
       window.location.assign(result.url);
@@ -165,7 +168,8 @@ export default function LetterConfigurator({ isAdmin = false }: { isAdmin?: bool
               <button type="button" disabled={!layout || pending || !fonts || busy} onClick={() => exportPieces("3mf")} className="w-full rounded-lg bg-ink px-4 py-4 text-sm font-bold text-white disabled:opacity-50">{busy ? "Préparation…" : "Télécharger en couleurs (3MF)"}</button>
               <button type="button" disabled={!layout || pending || !fonts || busy} onClick={() => exportPieces("stl")} className="w-full rounded-lg border border-ink px-4 py-3 text-sm font-bold disabled:opacity-50">Télécharger les deux pièces (STL)</button>
             </> : <>
-              <button type="button" disabled={!layout || pending || !fonts || busy} onClick={pay} className="w-full rounded-lg bg-ink px-4 py-4 text-sm font-bold text-white disabled:opacity-50">{busy ? "Préparation…" : `Payer ${formatPrice(CUSTOM_LETTER_PRICE_CENTS)}`}</button>
+              <TermsAcceptance checked={termsAccepted} onChange={setTermsAccepted} personalized />
+              <button type="button" disabled={!layout || pending || !fonts || busy || !termsAccepted} onClick={pay} className="w-full rounded-lg bg-ink px-4 py-4 text-sm font-bold text-white disabled:opacity-50">{busy ? "Préparation…" : `Payer ${formatPrice(CUSTOM_LETTER_PRICE_CENTS)}`}</button>
               <p className="text-xs text-ink-soft">Hors frais de livraison, calculés au paiement.</p>
             </>}
             <button type="button" disabled={!layout || pending || !fonts} onClick={expandPreview} className="w-full rounded-lg border border-ink px-4 py-3 text-sm font-bold disabled:opacity-50">Agrandir la vue 3D</button>

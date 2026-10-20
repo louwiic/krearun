@@ -172,6 +172,7 @@ export async function POST(req: Request) {
       status: "paid",
       stripeSessionId: session.id,
       trackingNumber: "",
+      internalNote: session.metadata?.termsVersion ? `CGV ${session.metadata.termsVersion} acceptées le ${session.metadata.termsAcceptedAt || "date non transmise"}.` : "",
       note: orderNote,
       items,
     });

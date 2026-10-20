@@ -11,13 +11,14 @@ import {
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import * as management from "../lib/order-management.ts";
-import * as details from "../lib/order-details.ts";
+import * as monsterGift from "../lib/monster-gift.ts";
 import * as orderColors from "../lib/order-colors.ts";
 import * as format from "../lib/format.ts";
 import * as style from "../lib/order-status-style.ts";
 import { paginateRows, togglePageSelection } from "../lib/order-list.ts";
 
 const require = createRequire(import.meta.url);
+const details = load("../lib/order-details.ts", { "./monster-gift": monsterGift });
 function load(path, mocks = {}) {
   const source = readFileSync(new URL(path, import.meta.url), "utf8");
   const { outputText } = ts.transpileModule(source, {

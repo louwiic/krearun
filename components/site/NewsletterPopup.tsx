@@ -49,7 +49,7 @@ export default function NewsletterPopup({
       const response = await fetch("/api/newsletter", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, consent }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error ?? "Inscription impossible");

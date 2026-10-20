@@ -1,6 +1,10 @@
 "use client";
 
+import { monsterGiftLabel } from "@/lib/monster-gift";
+
 import Link from "next/link";
+import TermsAcceptance from "@/components/legal/TermsAcceptance";
+import { LEGAL_VERSION } from "@/lib/legal";
 import { useMemo, useState } from "react";
 import { useCart } from "@/components/cart/CartContext";
 import { publicColorName } from "@/lib/colors";
@@ -60,6 +64,7 @@ export default function CheckoutForm({
 }) {
   const { items, subtotalCents, setQuantity, removeItem } = useCart();
   const [loading, setLoading] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [error, setError] = useState("");
   const [promoCode, setPromoCode] = useState("");
   const [orderNote, setOrderNote] = useState("");
@@ -107,6 +112,7 @@ export default function CheckoutForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           customer,
+          termsAccepted, termsVersion: LEGAL_VERSION,
           promoCode,
           note: orderNote,
           fulfillmentMethod,
@@ -383,12 +389,12 @@ export default function CheckoutForm({
                     )}
                     {item.keychainChoice && (
                       <p className="text-xs font-semibold text-terra-deep">
-                        Porte-clés offert : choix {item.keychainChoice}
+                        Porte-clés offert : {monsterGiftLabel(item.keychainChoice, item.color)}
                       </p>
                     )}
                     {item.slug === "porte-canette-monster" && (
                       <p className="mt-1 text-[11px] font-bold leading-snug text-terra-deep">
-                        Accessoires offerts : couvercle, décapsuleur griffes et mini porte-canette porte-clés
+                        Accessoires offerts : couvercle, décapsuleur griffes et porte-clés griffes
                       </p>
                     )}
                     {item.customName && (
@@ -491,15 +497,16 @@ export default function CheckoutForm({
           </p>
         )}
 
+        <div className="mt-5"><TermsAcceptance checked={termsAccepted} onChange={setTermsAccepted} personalized={items.some(item => Boolean(item.customName || item.clickerConfiguration))} /></div>
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || !termsAccepted}
           className="mt-5 w-full rounded-full bg-terra px-8 py-4 text-sm font-bold text-cream transition-colors hover:bg-terra-deep disabled:opacity-60"
         >
-          {loading ? "Préparation de la commande..." : "Valider la commande"}
+          {loading ? "Préparation de la commande..." : "Continuer vers le paiement"}
         </button>
         <p className="mt-3 text-center text-[11px] text-ink-faint">
-          La commande est confirmée après validation.
+          Le paiement sera confirmé sur la page sécurisée Stripe. La commande implique le paiement du total présenté.
         </p>
       </aside>
     </form>

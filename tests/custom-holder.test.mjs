@@ -13,7 +13,7 @@ function load(path,mocks={}) {
   const {outputText}=ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS,esModuleInterop:true}});
   const compiledModule={exports:{}};new Function('require','module','exports',outputText)(name=>mocks[name]??require(name),compiledModule,compiledModule.exports);return compiledModule.exports;
 }
-const payment=load('../lib/custom-holder-payment.ts',{'./custom-holder':holder});
+const payment=load('../lib/custom-holder-payment.ts',{'./custom-holder':holder,'./legal':load('../lib/legal.ts')});
 const svg=load('../lib/holder-svg.ts');
 const image=load('../lib/custom-holder-logo.ts',{'./custom-holder':holder,'./logo-palette':palette,'./holder-svg':svg});
 const http=load('../lib/custom-holder-http.ts',{'./custom-holder':holder});
@@ -72,6 +72,7 @@ test('multipart size and origin are checked before image decoding',async()=>{
 test('payment route rejects strangers and unapproved requests before calling Stripe',async()=>{
   let currentCustomer={id:'stranger'};let request=approved;let stripeCalls=0;
   const route=load('../app/api/porte-boisson/demandes/[id]/paiement/route.ts',{
+    '@/lib/legal':load('../lib/legal.ts'),
     '@/lib/customer-auth':{getCustomerSession:async()=>currentCustomer},
     '@/lib/store':{getHolderRequest:async()=>request,saveHolderCheckout:async()=>{}},
     '@/lib/custom-holder':holder,'@/lib/custom-holder-payment':payment,'@/lib/custom-holder-http':http,

@@ -19,7 +19,7 @@ export async function fulfillHolderPayment(session:Stripe.Checkout.Session) {
     try {
       order=await createOrder({email:request.customerEmail,name:shipping?.name||request.customerName,phone:session.customer_details?.phone||'',addressLine1:address.line1,addressLine2:address.line2||'',city:address.city,postalCode:address.postal_code,country:address.country||'RE',
         subtotalCents:session.amount_subtotal!,shippingCents:request.decision!.shippingCents,totalCents:session.amount_total!,status:'paid',stripeSessionId:session.id,trackingNumber:'',source:'web',sourceId,
-        note:request.note,internalNote:`Personnalisation validée : /admin/personnalisations#${request.id}\n${request.decision!.message}`,
+        note:request.note,internalNote:`${session.metadata?.termsVersion ? `CGV ${session.metadata.termsVersion} acceptées le ${session.metadata.termsAcceptedAt || "date non transmise"}.\n` : ""}Personnalisation validée : /admin/personnalisations#${request.id}\n${request.decision!.message}`,
         items:[{productId:'custom-holder',name:`${HOLDER_NAME} — ${holderModelLabel(request.configuration)}`,quantity:request.quantity,priceCents:request.decision!.unitPriceCents,color:request.configuration.bodyColorName,image:'/products/porte-boisson-personnalise.svg',weightGrams:HOLDER_WEIGHT_GRAMS,holderRequestId:request.id}],
       });created=true;
     }catch(error){order=await getOrderBySourceId('web',sourceId);if(!order)throw error;}

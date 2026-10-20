@@ -1,3 +1,4 @@
+import { monsterGiftLabel } from "@/lib/monster-gift";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { isAdmin } from "@/lib/auth";
@@ -69,7 +70,7 @@ export default async function CommandeDetailPage({
                     {item.variantName && <p className="text-xs text-ink-soft">Modèle : {item.variantName}</p>}
                     {item.keychainChoice && (
                       <p className="text-xs font-semibold text-terra-deep">
-                        Porte-clés offert : choix {item.keychainChoice}
+                        Porte-clés offert : {monsterGiftLabel(item.keychainChoice, item.color)}
                       </p>
                     )}
                     {item.color && <p className="text-xs text-ink-soft">Coloris : <OrderColorName name={item.color} item={item} catalog={colorCatalog} /></p>}

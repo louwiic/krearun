@@ -1,3 +1,5 @@
+import { monsterGiftLabel } from "@/lib/monster-gift";
+import { BUSINESS, BUSINESS_ADDRESS, LEGAL_VERSION, LEGAL_SECTIONS, GUARANTEE_PARAGRAPHS, WITHDRAWAL_TEMPLATE } from "./legal";
 // E-mails transactionnels via Resend, avec SMTP en solution de repli.
 // Tous les envois sont non-bloquants côté appelant : une erreur d'e-mail
 // ne doit jamais faire échouer un paiement ou une mise à jour de commande.
@@ -148,7 +150,7 @@ function itemsTable(order: Order): string {
     .map((i) => {
       const customName = i.customName ? escapeHtml(i.customName) : "";
       return `<tr>
-<td style="padding:10px 0;border-bottom:1px solid #f2ebde;">${i.name}${i.variantName ? ` <span style="color:#b3a695;">— ${escapeHtml(i.variantName)}</span>` : ""}${i.color ? ` <span style="color:#b3a695;">— ${publicColorName(i.color)}</span>` : ""}${customName ? `<br/><span style="color:#a4623c;font-size:12px;">Personnalisation : ${customName}</span>` : ""}${i.keychainChoice ? `<br/><span style="color:#a4623c;font-size:12px;">Porte-clés offert : choix ${escapeHtml(i.keychainChoice)}</span>` : ""}</td>
+<td style="padding:10px 0;border-bottom:1px solid #f2ebde;">${i.name}${i.variantName ? ` <span style="color:#b3a695;">— ${escapeHtml(i.variantName)}</span>` : ""}${i.color ? ` <span style="color:#b3a695;">— ${publicColorName(i.color)}</span>` : ""}${customName ? `<br/><span style="color:#a4623c;font-size:12px;">Personnalisation : ${customName}</span>` : ""}${i.keychainChoice ? `<br/><span style="color:#a4623c;font-size:12px;">Porte-clés offert : ${escapeHtml(monsterGiftLabel(i.keychainChoice, publicColorName(i.color || "")))}</span>` : ""}</td>
 <td style="padding:10px 0;border-bottom:1px solid #f2ebde;text-align:center;color:#877867;">× ${i.quantity}</td>
 <td style="padding:10px 0;border-bottom:1px solid #f2ebde;text-align:right;">${formatPrice(i.priceCents * i.quantity)}</td>
 </tr>`;
@@ -218,6 +220,7 @@ ${itemsTable(order)}
 ${orderNoteBlock(order)}
 <p style="color:#877867;font-size:13px;">Récupération : ${order.addressLine1}${order.addressLine2 ? ", " + order.addressLine2 : ""}, ${order.postalCode} ${order.city}</p>
 ${suiviButton(order)}
+${legalEmailHtml()}
 <p>On vous écrit dès que votre colis prend la route. D'ici là, prenez soin de vous ✿</p>`),
   );
 }
@@ -356,4 +359,15 @@ ${order.trackingNumber ? `<p>Numéro de suivi : <strong>${order.trackingNumber}<
 <a href="${process.env.NEXT_PUBLIC_SITE_URL || ""}/admin/commandes/${order.id}" style="background:#453a2f;color:#fdfaf4;text-decoration:none;padding:14px 32px;border-radius:999px;font-size:14px;font-weight:bold;">Voir la commande</a>
 </p>`),
   );
+}
+
+export async function sendWithdrawalMail(record: import("./withdrawal").WithdrawalRecord, receipt: string, recipient: "customer" | "admin") {
+  const to = recipient === "customer" ? record.email : ADMIN_EMAIL;
+  return sendEmail(to, `${recipient === "customer" ? "Accusé de réception" : "Nouvelle déclaration"} de rétractation — Kréarun — ${record.id}`,
+    layout(`<h1 style="font-size:22px">Déclaration de rétractation</h1><div style="white-space:pre-wrap;font-size:14px">${escapeHtml(receipt)}</div>`));
+}
+
+function legalEmailHtml() {
+  const p = (text: string) => `<p style="white-space:pre-line;line-height:1.6">${escapeHtml(text)}</p>`;
+  return `<section style="margin-top:32px;border-top:2px solid #171717;padding-top:20px;font-size:12px"><h2>Vos conditions générales de vente — version ${LEGAL_VERSION}</h2><p>${escapeHtml(BUSINESS.name)} — ${escapeHtml(BUSINESS_ADDRESS)} — ${escapeHtml(BUSINESS.email)}</p>${LEGAL_SECTIONS.map(s=>`<h3>${escapeHtml(s.title)}</h3>${s.paragraphs.map(p).join("")}`).join("")}<div style="border:2px solid #171717;padding:12px"><h3>Garanties légales — annexe à l’article D. 211-2 du Code de la consommation</h3>${GUARANTEE_PARAGRAPHS.map(p).join("")}</div><h3>Formulaire type de rétractation</h3>${p(WITHDRAWAL_TEMPLATE)}<p>Déclaration en ligne : <a href="https://krearun.re/retractation">https://krearun.re/retractation</a></p></section>`;
 }

@@ -1,3 +1,4 @@
+import { BUSINESS, BUSINESS_ADDRESS } from "@/lib/legal";
 import type { Metadata } from "next";
 import { getSettings } from "@/lib/store";
 
@@ -18,11 +19,12 @@ export default async function ContactPage() {
         Écrivez-nous un petit mot
       </h1>
       <p className="mt-4 max-w-xl text-ink-soft">
-        Question sur une commande, envie d'une couleur spéciale, idée d'objet à
+        Question sur une commande, envie d’une couleur spéciale, idée d’objet à
         inventer ensemble… notre boîte mail est toujours ouverte. On répond
         sous 48 h, souvent moins.
       </p>
 
+      <p className="mt-5 text-sm leading-6 text-ink-soft">{BUSINESS.name} — entrepreneur individuel · {BUSINESS_ADDRESS}<br />Téléphone : <a className="font-bold underline" href={`tel:${BUSINESS.phoneHref}`}>{BUSINESS.phone}</a></p>
       <div className="mt-12 grid gap-6 sm:grid-cols-2">
         <a
           href={`mailto:${settings.contact_email}`}
@@ -50,7 +52,7 @@ export default async function ContactPage() {
               Sur Instagram
             </p>
             <p className="mt-1 text-sm text-ink-soft">
-              Les coulisses de l'atelier, en direct de nos préparations.
+              Les coulisses de l’atelier, en direct de nos préparations.
             </p>
             <p className="mt-4 text-xs font-bold text-terra">Nous suivre →</p>
           </a>
@@ -58,7 +60,7 @@ export default async function ContactPage() {
           <div className="rounded-blob bg-cream p-8 shadow-soft">
             <span className="text-3xl">🖨️</span>
             <p className="mt-4 font-display text-xl font-semibold">
-              L'atelier
+              L’atelier
             </p>
             <p className="mt-1 text-sm text-ink-soft">
               Fabrication à la commande, du lundi au vendredi.
@@ -74,7 +76,7 @@ export default async function ContactPage() {
         <p className="mt-2 text-sm leading-relaxed text-ink-soft">
           Indiquez votre numéro de commande (reçu par e-mail, il commence par
           #) dans votre message : on retrouvera votre petit colis en un clin
-          d'œil.
+          d’œil.
         </p>
       </div>
     </div>

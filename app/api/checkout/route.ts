@@ -1,3 +1,5 @@
+import { MONSTER_GIFT, monsterGiftLabel } from "@/lib/monster-gift";
+import { LEGAL_VERSION } from "@/lib/legal";
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { getProductById, getSettings } from "@/lib/store";
@@ -26,6 +28,8 @@ interface CheckoutItem {
 }
 
 interface CheckoutBody {
+  termsAccepted?: boolean;
+  termsVersion?: string;
   items: CheckoutItem[];
   customer?: Partial<CheckoutCustomer>;
   promoCode?: string;
@@ -92,6 +96,7 @@ export async function POST(req: Request) {
   let pickupPointId = "";
   try {
     const body = (await req.json()) as CheckoutBody;
+    if (body.termsAccepted !== true || body.termsVersion !== LEGAL_VERSION) throw new Error("Acceptez les conditions générales de vente à jour avant de continuer.");
     items = body.items;
     if (!Array.isArray(items) || items.length === 0) throw new Error();
     fulfillmentMethod = body.fulfillmentMethod === "pickup" ? "pickup" : "delivery";
@@ -176,13 +181,7 @@ export async function POST(req: Request) {
     if (product.id === CLICKER_PRODUCT_ID && (!clicker?.text || !clicker.baseColor || !clicker.capColor || !clicker.letterColor)) {
       return NextResponse.json({ error: "La configuration du clicker est incomplète." }, { status: 400 });
     }
-    const keychainChoice = text(item.keychainChoice, 1);
-    if (product.slug === "porte-canette-monster" && !["1", "2"].includes(keychainChoice)) {
-      return NextResponse.json(
-        { error: "Choisissez le modèle du porte-clés offert." },
-        { status: 400 }
-      );
-    }
+    const keychainChoice = product.slug === "porte-canette-monster" ? MONSTER_GIFT : "";
     const optionParts = [
       variant?.name || "",
       publicColorName(item.color),
@@ -191,7 +190,7 @@ export async function POST(req: Request) {
       clicker ? `Lettres : ${text(clicker.letterColor, 60)}` : "",
       clicker ? `Symbole : ${text(clicker.symbol || "aucun", 30)}` : "",
       customName ? `Personnalisation : ${customName}` : "",
-      keychainChoice ? `Porte-clés offert : choix ${keychainChoice}` : "",
+      keychainChoice ? `Porte-clés offert : ${monsterGiftLabel(keychainChoice, publicColorName(item.color))}` : "",
     ].filter(Boolean);
     const unitAmount =
       discountedUnitPriceCents(selectedPrice, product.quantityDiscounts, quantity) +
@@ -289,6 +288,7 @@ export async function POST(req: Request) {
       locale: "fr",
       metadata: {
         ...packCheckoutItems(metadataItems),
+        termsVersion: LEGAL_VERSION, termsAcceptedAt: new Date().toISOString(),
         customerEmail: customer.email,
         customerFirstName: customer.firstName,
         customerLastName: customer.lastName,

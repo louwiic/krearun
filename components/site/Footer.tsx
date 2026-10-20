@@ -1,3 +1,4 @@
+import { PrivacyPreferencesButton } from "./PrivacyPreferences";
 import Link from "next/link";
 import BrandLogo from "./BrandLogo";
 import Newsletter from "./Newsletter";
@@ -76,7 +77,10 @@ export default function Footer({
           </p>
           <div className="flex flex-wrap gap-5 font-bold uppercase tracking-[0.08em]">
             <Link className="hover:text-[#FF6B35]" href="/cgv">CGV</Link>
+            <Link className="hover:text-[#FF6B35]" href="/cgu">CGU</Link>
+            <Link className="hover:text-[#FF6B35]" href="/retractation">Renoncer au contrat ici</Link>
             <Link className="hover:text-[#FF6B35]" href="/confidentialite">Confidentialité</Link>
+            <PrivacyPreferencesButton />
             <Link className="hover:text-[#FF6B35]" href="/mentions-legales">Mentions légales</Link>
             <Link className="hover:text-[#FF6B35]" href="/admin">Admin</Link>
           </div>

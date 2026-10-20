@@ -1,5 +1,6 @@
 "use client";
 
+import { hasAudienceConsent } from "./privacy";
 import type { LetterEvent } from "./letter-events";
 
 let fallbackVisitor = "";
@@ -14,7 +15,7 @@ function storedId(storage: Storage, key: string) {
 }
 
 export function trackLetterEvent(kind: LetterEvent["kind"], format: LetterEvent["format"] = "") {
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined" || !hasAudienceConsent()) return;
   let visitorId: string;
   let eventId: string;
   try {
@@ -34,6 +35,7 @@ export function trackLetterEvent(kind: LetterEvent["kind"], format: LetterEvent[
     try {
       // Reuse the same event ID on retry so an acknowledged hit cannot be counted twice.
       for (let attempt = 0; attempt < 2; attempt++) {
+        if (!hasAudienceConsent()) return;
         try {
           const response = await fetch("/api/letter-events", {
             method: "POST", headers: { "Content-Type": "application/json" },

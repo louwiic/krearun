@@ -1,3 +1,4 @@
+import { LEGAL_VERSION } from "@/lib/legal";
 import { getCustomerSession } from "@/lib/customer-auth";
 import { getHolderRequest, saveHolderCheckout } from "@/lib/store";
 import { canPayHolder } from "@/lib/custom-holder";
@@ -13,11 +14,13 @@ export async function POST(request:Request,{params}:{params:Promise<{id:string}>
     const holder=await getHolderRequest((await params).id);
     if(!holder || holder.customerId!==customer.id)return Response.json({error:"Demande introuvable."},{status:404});
     if(!canPayHolder(holder,customer.id))return Response.json({error:"Le paiement n'est disponible qu'après validation de cette demande."},{status:409});
+    const body = await request.json();
+    if (body.termsAccepted !== true || body.termsVersion !== LEGAL_VERSION) return Response.json({error:"Acceptez les conditions générales de vente à jour."},{status:400});
     if(!stripeConfigured())return Response.json({error:"Le paiement est momentanément indisponible."},{status:503});
     const stripe=getStripe();
     if(holder.stripeSessionId) {
       const previous=await stripe.checkout.sessions.retrieve(holder.stripeSessionId);
-      if(previous.status==='open' && previous.url)return Response.json({url:previous.url});
+      if(previous.status==='open' && previous.url){await stripe.checkout.sessions.update(previous.id,{metadata:{termsVersion:LEGAL_VERSION,termsAcceptedAt:new Date().toISOString()}});return Response.json({url:previous.url});}
       if(previous.status==='complete')return Response.json({error:"Paiement reçu, votre commande est en cours de confirmation. Actualisez votre compte dans un instant."},{status:409});
     }
     const siteUrl=holderSiteUrl(request);

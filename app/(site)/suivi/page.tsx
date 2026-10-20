@@ -1,3 +1,4 @@
+import { monsterGiftLabel } from "@/lib/monster-gift";
 import type { Metadata } from "next";
 import { getOrderByNumberAndEmail } from "@/lib/store";
 import { formatDate, formatPrice } from "@/lib/format";
@@ -104,7 +105,7 @@ function Timeline({ order }: { order: Order }) {
             <span>
               {item.name}
               {item.variantName ? ` — Modèle : ${item.variantName}` : ""}
-              {item.keychainChoice ? ` — Porte-clés offert : choix ${item.keychainChoice}` : ""}
+              {item.keychainChoice ? ` — Porte-clés offert : ${monsterGiftLabel(item.keychainChoice, item.color)}` : ""}
               {item.color ? ` — ${item.color}` : ""}
               {item.customName ? ` — Personnalisation : ${item.customName}` : ""} × {item.quantity}
             </span>

@@ -1,3 +1,4 @@
+import { LEGAL_VERSION } from "./legal";
 import type Stripe from "stripe";
 import { canPayHolder, holderModelLabel, holderTotal, HOLDER_NAME, type HolderRequest } from "./custom-holder";
 
@@ -7,7 +8,7 @@ export function holderCheckoutParams(request:HolderRequest,customerId:string,sit
   return {
     mode:'payment',payment_method_types:['card'],customer_email:request.customerEmail,
     client_reference_id:request.id,
-    metadata:{customHolderRequest:request.id,holderCustomerId:customerId},
+    metadata:{termsVersion:LEGAL_VERSION,termsAcceptedAt:new Date().toISOString(),customHolderRequest:request.id,holderCustomerId:customerId},
     line_items:[{price_data:{currency:'eur',unit_amount:quote.unitPriceCents,product_data:{name:HOLDER_NAME,description:`${holderModelLabel(request.configuration)} · Logo validé · coloris ${request.configuration.bodyColorName}`}},quantity:request.quantity}],
     shipping_address_collection:{allowed_countries:['FR','RE']},
     phone_number_collection:{enabled:true},

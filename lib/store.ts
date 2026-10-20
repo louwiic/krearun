@@ -938,26 +938,26 @@ export async function removeNewsletterContact(email: string, hasOrder: boolean):
   }
 }
 
-export async function addSubscriber(email: string): Promise<boolean> {
-  try {
-    const existing = await newsletterRecordByEmail(email);
-    if (existing) {
-      if (existing.source === "customer") {
-        await pb(`/collections/newsletter/records/${existing.id}`, {
-          method: "PATCH", body: { source: "newsletter", ignored: false },
-        });
-        return true;
-      }
-      return false;
-    }
-    await pb(`/collections/newsletter/records`, {
-      method: "POST",
-      body: { email: normalizeEmail(email), source: "newsletter" },
-    });
-    return true;
-  } catch {
-    return false; // doublon (index unique) ou erreur réseau
+let newsletterConsentSchema: Promise<void> | undefined;
+async function ensureNewsletterConsentSchema() {
+  newsletterConsentSchema ??= (async () => {
+    const schema = await pb<{fields: {name: string; [key: string]: unknown}[]}>("/collections/newsletter");
+    const fields = [...schema.fields];
+    for (const name of ["consentVersion", "consentAt"]) if (!fields.some(field=>field.name===name)) fields.push({name,type:"text"});
+    if (fields.length !== schema.fields.length) await pb("/collections/newsletter", {method:"PATCH",body:{fields}});
+  })().catch(error=>{newsletterConsentSchema=undefined;throw error;});
+  return newsletterConsentSchema;
+}
+export async function addSubscriber(email: string, consent?: {version: string; at: string}): Promise<boolean> {
+  if (consent) await ensureNewsletterConsentSchema();
+  const proof = consent ? {consentVersion:consent.version,consentAt:consent.at} : {};
+  const existing = await newsletterRecordByEmail(email);
+  if (existing) {
+    await pb(`/collections/newsletter/records/${existing.id}`, {method:"PATCH",body:{source:"newsletter",ignored:false,...proof}});
+    return existing.source === "customer" || existing.ignored;
   }
+  await pb("/collections/newsletter/records", {method:"POST",body:{email:normalizeEmail(email),source:"newsletter",...proof}});
+  return true;
 }
 
 // ─── Réglages ───────────────────────────────────────────────
@@ -1019,4 +1019,56 @@ export async function saveSettings(patch: Partial<Settings>): Promise<Settings> 
         body: { ...DEFAULT_SETTINGS, ...patch },
       });
   return { ...DEFAULT_SETTINGS, ...saved };
+}
+
+// Private, durable register of withdrawal declarations. No anonymous PocketBase access.
+let withdrawalSchema: Promise<void> | undefined;
+async function ensureWithdrawalSchema(): Promise<void> {
+  withdrawalSchema ??= (async () => {
+    try { await pb("/collections/withdrawal_requests"); }
+    catch (error) {
+      if (!(error instanceof Error) || !error.message.includes("→ 404")) throw error;
+      try {
+        await pb("/collections", { method: "POST", body: {
+          name: "withdrawal_requests", type: "base", listRule: null, viewRule: null, createRule: null, updateRule: null, deleteRule: null,
+          fields: [
+            { name: "submissionKey", type: "text", required: true, max: 36 },
+            { name: "name", type: "text", required: true, max: 120 },
+            { name: "email", type: "email", required: true },
+            { name: "contract", type: "text", required: true, max: 2000 },
+            { name: "address", type: "text", max: 500 },
+            { name: "receivedAt", type: "text", required: true },
+            { name: "receiptSent", type: "bool" }, { name: "notificationSent", type: "bool" },
+          ], indexes: ["CREATE UNIQUE INDEX idx_withdrawal_submission ON withdrawal_requests (submissionKey)"],
+        } });
+      } catch (creationError) {
+        // Another request may have created the same collection in the meantime.
+        try { await pb("/collections/withdrawal_requests"); } catch { throw creationError; }
+      }
+    }
+  })().catch(error => { withdrawalSchema = undefined; throw error; });
+  return withdrawalSchema;
+}
+export async function createWithdrawal(input: import("./withdrawal").WithdrawalDeclaration): Promise<import("./withdrawal").WithdrawalRecord> {
+  await ensureWithdrawalSchema();
+  const find = () => pb<ListResult<import("./withdrawal").WithdrawalRecord>>(`/collections/withdrawal_requests/records?perPage=1&filter=${encodeURIComponent(`submissionKey='${escapeFilter(input.submissionKey)}'`)}`);
+  const existing = (await find()).items[0];
+  if (existing) {
+    if (existing.email !== input.email || existing.name !== input.name || existing.contract !== input.contract || existing.address !== input.address) throw new Error("Submission key conflict");
+    return existing;
+  }
+  try { return await pb("/collections/withdrawal_requests/records", { method: "POST", body: { ...input, receivedAt: new Date().toISOString(), receiptSent: false, notificationSent: false } }); }
+  catch (error) { const saved = (await find()).items[0]; if (saved && saved.email === input.email && saved.name === input.name && saved.contract === input.contract && saved.address === input.address) return saved; throw error; }
+}
+export async function markWithdrawalMail(id: string, field: "receiptSent" | "notificationSent") {
+  if (!/^[a-z0-9]{15}$/.test(id)) throw new Error("Invalid receipt reference");
+  return pb(`/collections/withdrawal_requests/records/${id}`, { method: "PATCH", body: { [field]: true } });
+}
+export async function getWithdrawals(): Promise<import("./withdrawal").WithdrawalRecord[]> {
+  await ensureWithdrawalSchema();
+  const all: import("./withdrawal").WithdrawalRecord[] = [];
+  for (let page = 1; ; page++) {
+    const result = await pb<ListResult<import("./withdrawal").WithdrawalRecord>>(`/collections/withdrawal_requests/records?perPage=100&page=${page}&sort=-receivedAt`);
+    all.push(...result.items); if (page >= result.totalPages) return all;
+  }
 }

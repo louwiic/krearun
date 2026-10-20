@@ -1,3 +1,4 @@
+import { LEGAL_VERSION } from "@/lib/legal";
 import { validatedLetter } from "@/lib/custom-letter-server";
 import { CUSTOM_LETTER_PRICE_CENTS } from "@/lib/custom-letter-settings";
 import { getSettings } from "@/lib/store";
@@ -7,7 +8,7 @@ import { letterCheckoutParams } from "@/lib/custom-letter-checkout";
 export async function POST(request: Request) {
   if (!stripeConfigured()) return Response.json({ error: "Le paiement est momentanément indisponible." }, { status: 503 });
   let letter: Awaited<ReturnType<typeof validatedLetter>>;
-  try { letter = await validatedLetter((await request.json()).configuration); }
+  try { const body = await request.json(); if (body.termsAccepted !== true || body.termsVersion !== LEGAL_VERSION) return Response.json({ error: "Acceptez les conditions générales de vente à jour." }, { status: 400 }); letter = await validatedLetter(body.configuration); }
   catch { return Response.json({ error: "Configuration de lettre invalide." }, { status: 400 }); }
   try {
     const settings = await getSettings();

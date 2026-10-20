@@ -1,3 +1,4 @@
+import { LEGAL_VERSION } from "./legal";
 import type Stripe from "stripe";
 import { CUSTOM_LETTER_PRICE_CENTS, type LetterConfiguration } from "./custom-letter-settings";
 
@@ -10,7 +11,7 @@ export function letterCheckoutParams(configuration: LetterConfiguration, shippin
     shipping_address_collection: { allowed_countries: ["RE"] },
     phone_number_collection: { enabled: true },
     shipping_options: [{ shipping_rate_data: { type: "fixed_amount", fixed_amount: { amount: shippingCents, currency: "eur" }, display_name: shippingCents ? "Livraison à La Réunion" : "Livraison offerte" } }],
-    metadata: { customLetter: JSON.stringify(configuration), items: "[]" },
+    metadata: { termsVersion: LEGAL_VERSION, termsAcceptedAt: new Date().toISOString(), customLetter: JSON.stringify(configuration), items: "[]" },
     success_url: `${siteUrl}/commande/succes?session_id={CHECKOUT_SESSION_ID}&letter=1`,
     cancel_url: `${siteUrl}/lettre-personnalisee`,
   };

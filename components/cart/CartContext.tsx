@@ -9,6 +9,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { MONSTER_GIFT } from "@/lib/monster-gift";
 import type { CartItem } from "@/lib/types";
 import { cartUnitPriceCents } from "@/lib/quantity-discounts";
 
@@ -75,10 +76,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setItems(
           saved.map((item) =>
-            item.slug === "porte-canette-monster" && !item.quantityDiscounts
+            item.slug === "porte-canette-monster"
               ? {
                   ...item,
-                  quantityDiscounts: [
+                  keychainChoice: MONSTER_GIFT,
+                  quantityDiscounts: item.quantityDiscounts ?? [
                     { minQuantity: 2, percent: 5 },
                     { minQuantity: 4, percent: 10 },
                     { minQuantity: 8, percent: 20 },
@@ -86,7 +88,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
                   ],
                 }
               : item
-          )
+          ).reduce<CartItem[]>((restored, item) => {
+            const existing = restored.find((entry) => sameLine(entry, item.productId, item.color, item.customName, item.variantId, item.keychainChoice, item.clickerConfiguration));
+            if (existing) existing.quantity = Math.min(maxQuantity(existing), existing.quantity + item.quantity);
+            else restored.push(item);
+            return restored;
+          }, [])
         );
       }
     } catch {}

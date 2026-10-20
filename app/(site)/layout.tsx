@@ -1,3 +1,4 @@
+import PrivacyPreferences from "@/components/site/PrivacyPreferences";
 import Navbar from "@/components/site/Navbar";
 import Footer from "@/components/site/Footer";
 import CartDrawer from "@/components/cart/CartDrawer";
@@ -55,6 +56,7 @@ export default async function SiteLayout({
         text={settings.newsletter_popup_text}
         storeName={settings.store_name}
       />
-    </div>
+    <PrivacyPreferences />
+      </div>
   );
 }

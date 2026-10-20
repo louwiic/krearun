@@ -1,3 +1,4 @@
+import { monsterGiftLabel } from "./monster-gift";
 import type { Order, OrderItem } from "./types";
 
 export function orderItemDetails(item: OrderItem) {
@@ -5,7 +6,7 @@ export function orderItemDetails(item: OrderItem) {
     { label: "Modèle", value: item.variantName },
     { label: "Coloris", value: item.color },
     { label: "Prénom / personnalisation", value: item.customName },
-    { label: "Porte-clés offert", value: item.keychainChoice },
+    { label: "Porte-clés offert", value: monsterGiftLabel(item.keychainChoice, item.color) },
     ...(item.clickerConfiguration ? [
       { label: "Texte du clicker", value: item.clickerConfiguration.text },
       { label: "Symbole", value: item.clickerConfiguration.symbol || "Aucun" },

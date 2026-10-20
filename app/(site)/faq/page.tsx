@@ -9,31 +9,31 @@ export const metadata: Metadata = {
 const faqs = [
   {
     q: "Quels sont les délais de fabrication et de livraison ?",
-    a: "Chaque objet est fabriqué à la commande : comptez 2 à 4 jours de préparation, puis 2 à 4 jours de livraison suivie selon la destination. Nous vous envoyons un e-mail à chaque étape, de l'atelier à votre boîte aux lettres.",
+    a: "Chaque objet est fabriqué à la commande : comptez 2 à 4 jours ouvrés de préparation, puis 4 à 8 jours ouvrés de livraison suivie, sauf délai différent annoncé avant votre commande. Nous vous envoyons un e-mail à chaque étape, de l’atelier à votre boîte aux lettres.",
   },
   {
     q: "En quoi sont fabriqués vos objets ?",
-    a: "Nous utilisons des matières légères, rigides et agréables au toucher. Les informations détaillées sur les matières sont disponibles dans les mentions légales. Nos veilleuses utilisent des LED basse consommation qui ne chauffent pas.",
+    a: "Nous utilisons des matières légères, rigides et agréables au toucher. Les informations détaillées sur les matières sont disponibles dans les mentions légales. Pour les lampes, respectez l’alimentation et les consignes indiquées sur la fiche et la notice.",
   },
   {
     q: "Les couleurs sont-elles fidèles aux photos ?",
-    a: "Nous faisons de notre mieux ! Les teintes peuvent très légèrement varier selon les lots de matière et votre écran. Chaque pièce étant fabriquée individuellement, de petites variations peuvent exister : c'est ce qui rend chaque objet unique.",
+    a: "Nous faisons de notre mieux ! Les teintes peuvent très légèrement varier selon les lots de matière et votre écran. Chaque pièce étant fabriquée individuellement, de petites variations peuvent exister : c’est ce qui rend chaque objet unique.",
   },
   {
     q: "Puis-je retourner un article ?",
-    a: "Oui, vous disposez de 14 jours après réception pour changer d'avis. L'objet doit être renvoyé dans son emballage d'origine, non utilisé. Écrivez-nous, on vous explique tout en douceur.",
+    a: "Pour les articles non personnalisés, vous disposez de 14 jours après réception pour notifier votre rétractation, puis de 14 jours pour retourner l’article. L’emballage d’origine est recommandé sans être obligatoire ; les manipulations nécessaires pour examiner le produit sont autorisées. Utilisez le lien « Renoncer au contrat ici » du pied de page. Les articles nettement personnalisés peuvent relever d’une exception, sans perdre leurs garanties légales.",
   },
   {
     q: "Comment entretenir mes objets ?",
-    a: "Un chiffon doux et sec suffit. Évitez l'eau chaude et l'exposition prolongée en plein soleil derrière une vitre. Vos objets vous le rendront pendant des années.",
+    a: "Un chiffon doux et sec suffit. Évitez l’eau chaude et l’exposition prolongée en plein soleil derrière une vitre. Vos objets vous le rendront pendant des années.",
   },
   {
     q: "Proposez-vous des personnalisations ?",
-    a: "Avec plaisir quand l'agenda de l'atelier le permet : couleur spéciale, petite gravure, format différent. Écrivez-nous via la page contact avec votre idée, on vous répond sous 48 h.",
+    a: "Avec plaisir quand l’agenda de l’atelier le permet : couleur spéciale, petite gravure, format différent. Écrivez-nous via la page contact avec votre idée, on vous répond sous 48 h.",
   },
   {
     q: "Livrez-vous hors de France ?",
-    a: "Nous livrons la France métropolitaine, la Belgique, le Luxembourg et la Suisse. Les frais sont calculés au moment du paiement. Pour une autre destination, contactez-nous.",
+    a: "Les destinations proposées à la commande sont La Réunion et la France métropolitaine. Les frais et les options de retrait sont précisés avant le paiement. Pour une autre destination, contactez-nous avant de commander.",
   },
 ];
 
@@ -47,7 +47,7 @@ export default function FaqPage() {
         Questions fréquentes
       </h1>
       <p className="mt-4 text-ink-soft">
-        Et si la réponse n'est pas ici, écrivez-nous — on répond vite, et
+        Et si la réponse n’est pas ici, écrivez-nous — on répond vite, et
         gentiment.
       </p>
 
