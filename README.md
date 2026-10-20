@@ -44,7 +44,7 @@ SMTP_PORT="465"
 SMTP_USER="contact@krearun.re"
 SMTP_PASSWORD="mot-de-passe-de-la-boite-mail"
 EMAIL_FROM="Krearun Studio <contact@krearun.re>"
-ADMIN_NOTIFICATION_EMAIL="loicbatonnet.dev@gmail.com"
+ADMIN_NOTIFICATION_EMAIL="stdcreativ974@gmail.com"
 ```
 
 Le port 465 utilise SSL/TLS. Le serveur LWS direct est utilisé afin d'éviter

@@ -16,7 +16,9 @@ const SMTP_PORT = Number(process.env.SMTP_PORT || "465");
 const SMTP_USER = process.env.SMTP_USER || "contact@krearun.re";
 const FROM = process.env.EMAIL_FROM || `Krearun Studio <${SMTP_USER}>`;
 const ADMIN_EMAIL =
-  process.env.ADMIN_NOTIFICATION_EMAIL || "loicbatonnet.dev@gmail.com";
+  process.env.ADMIN_NOTIFICATION_EMAIL && process.env.ADMIN_NOTIFICATION_EMAIL !== "loicbatonnet.dev@gmail.com"
+    ? process.env.ADMIN_NOTIFICATION_EMAIL
+    : BUSINESS.email;
 
 let transporter: ReturnType<typeof nodemailer.createTransport> | null = null;
 
@@ -53,7 +55,7 @@ async function sendEmail(to: string, subject: string, html: string) {
         body: JSON.stringify({
           from: FROM,
           to: [to],
-          reply_to: SMTP_USER,
+          reply_to: BUSINESS.email,
           subject,
           html,
         }),
@@ -78,7 +80,7 @@ async function sendEmail(to: string, subject: string, html: string) {
     await smtp.sendMail({
       from: FROM,
       to,
-      replyTo: SMTP_USER,
+      replyTo: BUSINESS.email,
       subject,
       html,
     });
