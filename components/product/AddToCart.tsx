@@ -113,7 +113,7 @@ export default function AddToCart({ product }: { product: Product }) {
               Assortis au coloris choisi
             </p>
           </div>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             <div className="flex min-w-0 items-center gap-2 rounded-lg bg-white/75 p-1.5">
               <span
                 aria-hidden
