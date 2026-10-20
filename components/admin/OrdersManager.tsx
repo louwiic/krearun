@@ -29,6 +29,7 @@ import {
   remainingCents,
 } from "@/lib/order-management";
 import { formatPrice } from "@/lib/format";
+import type { OrderImageProduct } from "@/lib/order-images";
 import type { Order } from "@/lib/types";
 import type { OrderColorCatalog } from "@/lib/order-colors";
 import {
@@ -417,12 +418,14 @@ function StatusChangeDialog({
 }
 
 export default function OrdersManager({
+  imageProducts = [],
   orders,
   initialMonth,
   colorCatalog,
 }: {
   orders: Order[];
   initialMonth: string;
+  imageProducts?: OrderImageProduct[];
   colorCatalog?: OrderColorCatalog;
 }) {
   const [search, setSearch] = useState("");
@@ -1033,6 +1036,7 @@ export default function OrdersManager({
       )}
       {paginationControls("haut")}
       <OrdersTableView
+        imageProducts={imageProducts}
         colorCatalog={colorCatalog}
         table={table}
         orders={pagination.items}

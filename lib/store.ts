@@ -616,6 +616,7 @@ function mapOrder(r: PbOrder): Order {
     tags: Array.isArray(r.tags) ? r.tags : [],
     customerProfileUrl: publicHttpUrl(r.customerProfileUrl),
     productUrl: publicHttpUrl(r.productUrl),
+    productImage: r.productImage || "",
     orderedAt: r.orderedAt ? toIso(r.orderedAt) : toIso(r.created),
     dueDate: r.dueDate ? toIso(r.dueDate) : "",
     urgent: r.urgent || false,
@@ -691,6 +692,7 @@ export async function ensureOrderManagementSchema(): Promise<void> {
     || !schema.fields.find(field => field.name === "status")?.values?.includes("ready")) {
     throw new Error("La migration du schéma des commandes doit être appliquée avant l'enregistrement.");
   }
+  if (!schema.fields.some(field => field.name === "productImage")) await pb("/collections/orders", { method: "PATCH", body: { fields: [...schema.fields, { name: "productImage", type: "text", max: 2000 }] } });
 }
 
 export async function updateOrderStatus(

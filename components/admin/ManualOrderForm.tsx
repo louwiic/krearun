@@ -1,5 +1,7 @@
 "use client";
 
+import OrderImagePicker from "./OrderImagePicker";
+import type { OrderImageProduct } from "@/lib/order-images";
 import Link from "next/link";
 import { useState, useTransition } from "react";
 import {
@@ -21,7 +23,7 @@ const field =
   "mt-1.5 w-full rounded-xl border border-sand bg-linen px-4 py-3 text-sm outline-none focus:border-terra disabled:opacity-60";
 const statusField =
   "mt-1.5 w-full rounded-xl border px-4 py-3 text-sm font-semibold outline-none focus:border-terra disabled:cursor-not-allowed disabled:opacity-100";
-export default function ManualOrderForm({ order }: { order?: Order }) {
+export default function ManualOrderForm({ order, products = [] }: { order?: Order; products?: OrderImageProduct[] }) {
   const [state, setState] = useState<OrderActionResult>({});
   const [pending, startTransition] = useTransition();
   const [payment, setPayment] = useState(order?.paymentStatus ?? "unpaid");
@@ -126,6 +128,7 @@ export default function ManualOrderForm({ order }: { order?: Order }) {
             <h2 className="mb-4 font-display text-xl font-semibold">
               Fabrication
             </h2>
+            <OrderImagePicker initialImage={order?.productImage} products={products} />
             <label className="block text-sm font-semibold">
               Produits et détails de la commande
               <textarea

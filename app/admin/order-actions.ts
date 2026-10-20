@@ -1,5 +1,6 @@
 "use server";
 
+import { orderImageUrl } from "@/lib/order-images";
 import { createHash } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -109,6 +110,9 @@ export async function saveManualOrderAction(
       : paymentStatus === "paid"
         ? totalCents
         : cents(data.get("amountPaid"), "Montant encaissé");
+    const rawImage = data.has("productImage") ? text(data, "productImage", 2000) : previous?.productImage || "";
+    const productImage = orderImageUrl(rawImage);
+    if (rawImage && !productImage) throw new Error("Adresse de photo invalide : utilisez une URL http(s) ou une image du site.");
     const input: CreateOrderInput = {
       name,
       email,
@@ -131,6 +135,7 @@ export async function saveManualOrderAction(
       note: previous?.note ?? "",
       customerProfileUrl: publicHttpUrl(profile),
       productUrl: publicHttpUrl(product),
+      productImage,
       tags: stringList(text(data, "tags", 2000)),
       urgent: data.get("urgent") === "on",
       orderedAt,

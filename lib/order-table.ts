@@ -35,6 +35,7 @@ export const ORDER_TABLE_COLUMNS: ColumnDef<Order>[] = [
     enableHiding: false,
   },
   { id: "number", header: "N°", accessorKey: "number", sortingFn: "basic" },
+  { id: "photo", header: "Photo", enableSorting: false },
   {
     id: "orderedAt",
     header: "Date",

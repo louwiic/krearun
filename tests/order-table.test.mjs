@@ -11,6 +11,7 @@ import {
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import * as management from "../lib/order-management.ts";
+import * as orderImages from "../lib/order-images.ts";
 import * as monsterGift from "../lib/monster-gift.ts";
 import * as orderColors from "../lib/order-colors.ts";
 import * as format from "../lib/format.ts";
@@ -238,6 +239,7 @@ test("description, search and export text retain product options even with a man
 });
 
 const sharedMocks = {
+  "@/lib/order-images": orderImages,
   "@/lib/order-colors": orderColors,
   "@/lib/order-details": details,
   "@/lib/format": format,
@@ -246,6 +248,7 @@ const sharedMocks = {
   "next/link": ({ children, ...props }) => createElement("a", props, children),
 };
 sharedMocks["./OrderColorName"] = load("../components/admin/OrderColorName.tsx", sharedMocks);
+sharedMocks["./OrderPhoto"] = load("../components/admin/OrderPhoto.tsx", sharedMocks).default;
 const itemsModule = load("../components/admin/OrderItems.tsx", sharedMocks);
 const dialogMocks = {
   ...sharedMocks,
@@ -415,4 +418,12 @@ test("DaisyUI is prefixed and limited to the table and modal, with no global the
   assert.match(css, /include:\s*table,\s*modal/);
   assert.match(css, /prefix:\s*"crm-"/);
   assert.match(css, /root:\s*"\.crm-surface"/);
+});
+
+test("a photo column beside the number displays checkout snapshots and manual selections", () => {
+  const markup = renderOrdersTable([order("photo", { productImage: "/products/manual-lamp.webp" }), order("web", { number: 1002, items: [{ ...item, image: "/products/checkout.webp" }] })]);
+  assert.match(markup, /src="\/products\/manual-lamp.webp"/);
+  assert.match(markup, /src="\/products\/checkout.webp"/);
+  const ids = ORDER_TABLE_COLUMNS.map(column => column.id);
+  assert.equal(ids.indexOf("photo"), ids.indexOf("number") + 1);
 });

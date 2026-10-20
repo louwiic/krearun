@@ -1,5 +1,7 @@
 "use client";
 
+import { orderImages, type OrderImageProduct } from "@/lib/order-images";
+import OrderPhoto from "./OrderPhoto";
 import Link from "next/link";
 import { flexRender, type Table } from "@tanstack/react-table";
 import type { ReactNode } from "react";
@@ -18,6 +20,7 @@ import OrderItems from "./OrderItems";
 import type { OrderColorCatalog } from "@/lib/order-colors";
 
 type Props = {
+  imageProducts?: OrderImageProduct[];
   colorCatalog?: OrderColorCatalog;
   table: Table<Order>;
   orders: Order[];
@@ -34,6 +37,7 @@ const button =
   "rounded-full border border-sand bg-cream px-3 py-2 text-sm font-semibold hover:bg-linen";
 
 export default function OrdersTableView({
+  imageProducts = [],
   colorCatalog,
   table,
   orders,
@@ -72,6 +76,10 @@ export default function OrdersTableView({
             #{order.number}
           </Link>
         );
+      case "photo": {
+        const images = orderImages(order, imageProducts);
+        return <Link href={`/admin/commandes/${order.id}`} aria-label={`Photos de la commande ${order.number}`} className="flex items-center gap-1">{images.length ? images.slice(0, 3).map(image => <OrderPhoto key={image.src} src={image.src} name={image.name} />) : <OrderPhoto name="Photo de commande" />}{images.length > 3 && <span className="text-xs font-bold">+{images.length - 3}</span>}</Link>;
+      }
       case "orderedAt":
         return (
           <span className="whitespace-nowrap">

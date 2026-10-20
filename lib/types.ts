@@ -166,6 +166,7 @@ export interface Order {
   tags: string[];
   customerProfileUrl: string;
   productUrl: string;
+  productImage?: string;
   orderedAt: string;
   dueDate: string;
   urgent: boolean;
@@ -185,6 +186,7 @@ export type OrderManagementFields = Pick<
   | "tags"
   | "customerProfileUrl"
   | "productUrl"
+  | "productImage"
   | "orderedAt"
   | "dueDate"
   | "urgent"

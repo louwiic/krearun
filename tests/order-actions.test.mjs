@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import vm from "node:vm";
 import ts from "typescript";
+import * as orderImages from "../lib/order-images.ts";
 import * as management from "../lib/order-management.ts";
 
 function fixture() {
@@ -38,6 +39,7 @@ function fixture() {
     },
   };
   const mocks = {
+    "@/lib/order-images": orderImages,
     "@/lib/auth": { isAdmin: async () => authorized },
     "@/lib/store": store,
     "@/lib/order-management": management,
@@ -214,4 +216,20 @@ test("bulk update validates IDs before writes and retains amounts", async () => 
   );
   assert.ok([...f.records.values()].every((order) => order.status === "ready"));
   assert.equal([...f.records.values()][0].amountPaidCents, 1000);
+});
+
+test("manual photos are saved without changing items or payments, and unsafe addresses are rejected", async () => {
+  const f = fixture();
+  const data = new FormData();
+  for (const [key, value] of Object.entries({ name: "Test photo", status: "pending", orderedAt: "2026-10-20", total: "45", paymentStatus: "unpaid", productImage: "/products/lampe.webp" })) data.set(key, value);
+  await assert.rejects(() => f.actions.saveManualOrderAction({}, data), /NEXT_REDIRECT/);
+  const saved = [...f.records.values()][0];
+  assert.equal(saved.productImage, "/products/lampe.webp");
+  assert.equal(saved.items.length, 0);
+  assert.equal(saved.totalCents, 4500);
+  assert.equal(saved.amountPaidCents, 0);
+  const before = f.mutations();
+  data.set("productImage", "javascript:alert(1)");
+  assert.match((await f.actions.saveManualOrderAction({}, data)).error, /photo invalide/);
+  assert.equal(f.mutations(), before);
 });
