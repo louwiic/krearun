@@ -14,7 +14,7 @@ export default function Navbar({ categories }: { categories: StoreCategory[] }) 
   const [mobileOpen, setMobileOpen] = useState(false);
   const links = [
     { href: "/boutique", label: "Boutique" },
-    { href: "/#personnaliser", label: "Personnaliser" },
+    { href: "/boutique/porte-boisson-500ml-personnalise", label: "Personnaliser" },
     { href: "/#atelier", label: "L’atelier" },
     { href: "/contact", label: "Contact" },
   ];
