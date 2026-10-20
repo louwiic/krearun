@@ -106,7 +106,7 @@ function Timeline({ order }: { order: Order }) {
               {item.variantName ? ` — Modèle : ${item.variantName}` : ""}
               {item.keychainChoice ? ` — Porte-clés offert : choix ${item.keychainChoice}` : ""}
               {item.color ? ` — ${item.color}` : ""}
-              {item.customName ? ` — Prénom : ${item.customName}` : ""} × {item.quantity}
+              {item.customName ? ` — Personnalisation : ${item.customName}` : ""} × {item.quantity}
             </span>
             <span>{formatPrice(item.priceCents * item.quantity)}</span>
           </li>

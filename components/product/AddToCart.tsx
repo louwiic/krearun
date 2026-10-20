@@ -7,6 +7,8 @@ import { useCart } from "@/components/cart/CartContext";
 import { publicColorName } from "@/lib/colors";
 import { formatPrice } from "@/lib/format";
 import type { Product } from "@/lib/types";
+import LampPersonalization from "./LampPersonalization";
+import { buildLampPersonalization, isPersonalizedLamp } from "@/lib/lamp-personalization";
 import MonsterClawPreview from "./MonsterClawPreview";
 import { discountedUnitPriceCents, quantityDiscountPercent } from "@/lib/quantity-discounts";
 
@@ -18,6 +20,9 @@ export default function AddToCart({ product }: { product: Product }) {
   const [addPersonalization, setAddPersonalization] = useState(false);
   const [customName, setCustomName] = useState("");
   const [keychainChoice, setKeychainChoice] = useState<"1" | "2" | "">("");
+  const personalizedLamp = isPersonalizedLamp(product.slug);
+  const [lamp, setLamp] = useState({ initial: "", text: "", secondName: "", motif: "Étoiles", otherMotif: "", hearts: "2", inscription: "" });
+  const lampDetails = buildLampPersonalization(product.slug, lamp);
   const [quantity, setQuantity] = useState(1);
   const selectedVariant = activeVariants.find((variant) => variant.id === variantId);
   const availableColors = selectedVariant?.colors?.length ? selectedVariant.colors : product.colors;
@@ -29,10 +34,10 @@ export default function AddToCart({ product }: { product: Product }) {
   const soldOut = selectedStock <= 0 && !product.preorder;
   const normalizedCustomName = customName.trim().replace(/\s+/g, " ");
   const missingCustomName =
-    product.namePersonalizationEnabled && addPersonalization && !normalizedCustomName;
+    personalizedLamp ? !lampDetails : product.namePersonalizationEnabled && addPersonalization && !normalizedCustomName;
   const showMonsterPreview = product.slug === "porte-canette-monster" && Boolean(selectedColor);
   const missingKeychainChoice = product.slug === "porte-canette-monster" && !keychainChoice;
-  const personalizationPriceCents = product.namePersonalizationEnabled && addPersonalization
+  const personalizationPriceCents = !personalizedLamp && product.namePersonalizationEnabled && addPersonalization
     ? product.namePersonalizationPriceCents
     : 0;
   const modelPriceCents = selectedVariant?.priceCents || product.priceCents;
@@ -198,7 +203,9 @@ export default function AddToCart({ product }: { product: Product }) {
         </div>
       )}
 
-      {product.namePersonalizationEnabled && (
+      {personalizedLamp && <LampPersonalization slug={product.slug} value={lamp} onChange={setLamp} />}
+
+      {!personalizedLamp && product.namePersonalizationEnabled && (
         <div className="space-y-3">
           <p className="text-sm font-bold">
             Ajouter un prénom ?
@@ -297,7 +304,7 @@ export default function AddToCart({ product }: { product: Product }) {
                 name: product.name,
                 priceCents: configuredPriceCents,
                 color: publicColorName(color),
-                customName: product.namePersonalizationEnabled && addPersonalization
+                customName: personalizedLamp ? lampDetails : product.namePersonalizationEnabled && addPersonalization
                   ? normalizedCustomName
                   : undefined,
                 variantId: selectedVariant?.id,

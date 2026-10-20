@@ -1,3 +1,4 @@
+import { readCheckoutItems } from "@/lib/checkout-item-metadata";
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { getStripe } from "@/lib/stripe";
@@ -82,7 +83,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ received: true });
     }
 
-    const raw = session.metadata?.items;
+    const raw = readCheckoutItems(session.metadata);
     const parsed: { p: string; q: number; c: string; u?: number; n?: string; v?: string; k?: string; d?: string }[] = raw
       ? JSON.parse(raw)
       : [];

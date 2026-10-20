@@ -75,7 +75,7 @@ export default async function CommandeDetailPage({
                     {item.color && <p className="text-xs text-ink-soft">Coloris : <OrderColorName name={item.color} item={item} catalog={colorCatalog} /></p>}
                     {item.customName && (
                       <p className="text-xs font-semibold text-terra-deep">
-                        Prénom : {item.customName}
+                        Personnalisation : {item.customName}
                       </p>
                     )}
                     {(item.clickerConfiguration || item.letterConfiguration) && (

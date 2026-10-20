@@ -148,7 +148,7 @@ export default function CartDrawer({
                         )}
                         {item.customName && (
                           <p className="text-xs font-semibold text-terra-deep">
-                            Prénom : {item.customName}
+                            Personnalisation : {item.customName}
                           </p>
                         )}
                         {item.preorder && (

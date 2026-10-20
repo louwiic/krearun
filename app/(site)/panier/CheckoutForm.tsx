@@ -392,7 +392,7 @@ export default function CheckoutForm({
                       </p>
                     )}
                     {item.customName && (
-                      <p className="text-xs text-terra-deep">Prénom : {item.customName}</p>
+                      <p className="text-xs text-terra-deep">Personnalisation : {item.customName}</p>
                     )}
                   </div>
                   <button

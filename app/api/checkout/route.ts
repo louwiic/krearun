@@ -12,6 +12,9 @@ import { CLICKER_PRODUCT, CLICKER_PRODUCT_ID } from "@/lib/clicker";
 import type { ClickerConfiguration } from "@/lib/types";
 import { HOLDER_SLUG } from "@/lib/custom-holder";
 
+import { packCheckoutItems } from "@/lib/checkout-item-metadata";
+import { isPersonalizedLamp, normalizeLampPersonalization } from "@/lib/lamp-personalization";
+
 interface CheckoutItem {
   productId: string;
   variantId?: string;
@@ -163,9 +166,12 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
-    const customName = product.namePersonalizationEnabled
-      ? normalizeCustomName(item.customName)
-      : "";
+    const personalizedLamp = isPersonalizedLamp(product.slug);
+    const customName = personalizedLamp ? normalizeLampPersonalization(product.slug, item.customName)
+      : product.namePersonalizationEnabled ? normalizeCustomName(item.customName) : "";
+    if (personalizedLamp && !customName) {
+      return NextResponse.json({ error: `Complétez la personnalisation de « ${product.name} ».` }, { status: 400 });
+    }
     const clicker = product.id === CLICKER_PRODUCT_ID ? item.clickerConfiguration : undefined;
     if (product.id === CLICKER_PRODUCT_ID && (!clicker?.text || !clicker.baseColor || !clicker.capColor || !clicker.letterColor)) {
       return NextResponse.json({ error: "La configuration du clicker est incomplète." }, { status: 400 });
@@ -184,12 +190,12 @@ export async function POST(req: Request) {
       clicker ? `Caps : ${text(clicker.capColor, 60)}` : "",
       clicker ? `Lettres : ${text(clicker.letterColor, 60)}` : "",
       clicker ? `Symbole : ${text(clicker.symbol || "aucun", 30)}` : "",
-      customName ? `Prénom : ${customName}` : "",
+      customName ? `Personnalisation : ${customName}` : "",
       keychainChoice ? `Porte-clés offert : choix ${keychainChoice}` : "",
     ].filter(Boolean);
     const unitAmount =
       discountedUnitPriceCents(selectedPrice, product.quantityDiscounts, quantity) +
-      (customName ? product.namePersonalizationPriceCents : 0);
+      (customName && !personalizedLamp ? product.namePersonalizationPriceCents : 0);
     subtotalCents += unitAmount * quantity;
     const pricedProduct = { ...product, weightGrams: selectedWeight };
     totalWeightGrams += billableProductWeight(pricedProduct, quantity);
@@ -282,7 +288,7 @@ export async function POST(req: Request) {
       billing_address_collection: "auto",
       locale: "fr",
       metadata: {
-        items: JSON.stringify(metadataItems),
+        ...packCheckoutItems(metadataItems),
         customerEmail: customer.email,
         customerFirstName: customer.firstName,
         customerLastName: customer.lastName,
