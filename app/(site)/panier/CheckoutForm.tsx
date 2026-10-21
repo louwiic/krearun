@@ -7,7 +7,7 @@ import { monsterGiftLabel } from "@/lib/monster-gift";
 import Link from "next/link";
 import TermsAcceptance from "@/components/legal/TermsAcceptance";
 import { LEGAL_VERSION } from "@/lib/legal";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState, type Ref } from "react";
 import { useCart } from "@/components/cart/CartContext";
 import { publicColorName } from "@/lib/colors";
 import { formatPrice } from "@/lib/format";
@@ -28,6 +28,7 @@ function Field({
   autoComplete,
   value,
   onChange,
+  inputRef,
 }: {
   label: string;
   name: string;
@@ -36,11 +37,13 @@ function Field({
   autoComplete?: string;
   value: string;
   onChange: (value: string) => void;
+  inputRef?: Ref<HTMLInputElement>;
 }) {
   return (
     <label className="block">
       <span className="mb-1.5 block text-xs font-bold text-ink-soft">{label}</span>
       <input
+        ref={inputRef}
         className={inputClass}
         name={name}
         type={type}
@@ -67,6 +70,8 @@ export default function CheckoutForm({
   pickupPointsJson: string;
 }) {
   const { items, subtotalCents, setQuantity, removeItem } = useCart();
+  const postalCodeInput = useRef<HTMLInputElement>(null);
+  const countryNotice = useRef<HTMLDialogElement>(null);
   const [loading, setLoading] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [error, setError] = useState("");
@@ -309,6 +314,7 @@ export default function CheckoutForm({
             <Field
               label="Code postal"
               name="postalCode"
+              inputRef={postalCodeInput}
               autoComplete="postal-code"
               required={fulfillmentMethod === "delivery"}
               value={customer.postalCode}
@@ -327,9 +333,12 @@ export default function CheckoutForm({
               <select
                 className={inputClass}
                 value={customer.country}
-                onChange={(event) =>
-                  setCustomer((c) => ({ ...c, country: event.target.value }))
-                }
+                onChange={(event) => {
+                  const country = event.target.value;
+                  if (country === customer.country) return;
+                  setCustomer((c) => ({ ...c, country }));
+                  countryNotice.current?.showModal();
+                }}
               >
                 <option value="RE">Réunion</option>
                 <option value="FR">France métropolitaine</option>
@@ -520,6 +529,32 @@ export default function CheckoutForm({
           Le paiement sera confirmé sur la page sécurisée Stripe. La commande implique le paiement du total présenté.
         </p>
       </aside>
+      <dialog
+        ref={countryNotice}
+        aria-labelledby="country-postal-title"
+        aria-describedby="country-postal-description"
+        className="m-auto w-[calc(100%_-_2rem)] max-w-md rounded-2xl border-2 border-ink bg-cream p-6 text-ink shadow-lifted backdrop:bg-ink/40 sm:p-7"
+        onClose={() => {
+          postalCodeInput.current?.focus();
+          postalCodeInput.current?.select();
+          postalCodeInput.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+        }}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            countryNotice.current?.close();
+          }
+        }}
+      >
+        <h2 id="country-postal-title" className="font-display text-2xl font-semibold">Vérifiez votre code postal</h2>
+        <p id="country-postal-description" className="mt-4 text-sm leading-6 text-ink-soft">
+          Vous avez changé de pays. Pensez à renseigner le code postal de votre ville de livraison pour calculer les bons frais d’envoi.
+        </p>
+        <p className="mt-3 text-sm font-semibold">{customer.country === "FR" ? "Exemple : 75001 pour Paris." : "Exemple : 97430 pour Le Tampon."}</p>
+        <button type="button" autoFocus onClick={() => countryNotice.current?.close()} className="mt-6 w-full rounded-full bg-terra px-5 py-3 text-sm font-bold text-cream hover:bg-terra-deep">
+          Renseigner mon code postal
+        </button>
+      </dialog>
     </form>
   );
 }
