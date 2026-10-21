@@ -9,7 +9,7 @@ import { buildCustomLetter, type LetterOptions } from "@/lib/custom-letter";
 import { trackLetterEvent } from "@/lib/letter-tracking";
 
 type Model = ReturnType<typeof buildCustomLetter>;
-type Props = { options: LetterOptions; fonts: [Font, Font]; baseColor: string; nameColor: string; view: string; expanded?: boolean };
+type Props = { options: LetterOptions; fonts: [Font, Font]; baseColor: string; nameColor: string; view: string; expanded?: boolean; thumbnail?: boolean };
 type Viewer = {
   renderer: THREE.WebGLRenderer; scene: THREE.Scene; camera: THREE.PerspectiveCamera;
   controls: OrbitControls; group: THREE.Group; base: THREE.MeshStandardMaterial;
@@ -37,7 +37,7 @@ function clearGeometry(group: THREE.Group) {
   group.clear();
 }
 
-export default function LetterPreview3D({ options, fonts, baseColor, nameColor, view, expanded = false }: Props) {
+export default function LetterPreview3D({ options, fonts, baseColor, nameColor, view, expanded = false, thumbnail = false }: Props) {
   const host = useRef<HTMLDivElement>(null);
   const viewer = useRef<Viewer | null>(null);
   const currentView = useRef(view);
@@ -51,7 +51,7 @@ export default function LetterPreview3D({ options, fonts, baseColor, nameColor, 
     catch { queueMicrotask(() => setStatus("3D indisponible")); return; }
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setClearColor(0xf7fafb, 1);
-    renderer.domElement.setAttribute("aria-label", "Aperçu 3D orientable");
+    renderer.domElement.setAttribute("aria-label", thumbnail ? "Exemple de lettre personnalisée en 3D" : "Aperçu 3D orientable");
     renderer.domElement.setAttribute("role", "img");
     element.appendChild(renderer.domElement);
     const scene = new THREE.Scene();
@@ -62,7 +62,7 @@ export default function LetterPreview3D({ options, fonts, baseColor, nameColor, 
     fill.position.set(200, -50, -100); scene.add(fill);
     const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 3000);
     const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enablePan = false; controls.enableZoom = false;
+    controls.enabled = !thumbnail; controls.enablePan = false; controls.enableZoom = false;
     const group = new THREE.Group(); scene.add(group);
     const base = new THREE.MeshStandardMaterial({ roughness: 0.7 });
     const name = new THREE.MeshStandardMaterial({ roughness: 0.7 });
@@ -81,7 +81,7 @@ export default function LetterPreview3D({ options, fonts, baseColor, nameColor, 
       clearGeometry(group); base.dispose(); name.dispose(); renderer.dispose();
       renderer.domElement.remove();
     };
-  }, []);
+  }, [thumbnail]);
 
   useEffect(() => {
     const current = viewer.current;
@@ -124,10 +124,10 @@ export default function LetterPreview3D({ options, fonts, baseColor, nameColor, 
   }, [options, fonts]);
 
   return (
-    <div onPointerDown={() => trackLetterEvent("interact")} className={expanded ? "absolute inset-0 overflow-hidden rounded-lg bg-[#f7fafb]" : "absolute bottom-2 right-2 h-32 w-32 overflow-hidden rounded-lg border border-black/10 bg-[#f7fafb] shadow-sm sm:bottom-3 sm:right-3 sm:h-44 sm:w-44"} aria-label={expanded ? "Vue 3D agrandie" : "Miniature 3D"}>
+    <div onPointerDown={() => { if (!thumbnail) trackLetterEvent("interact"); }} className={thumbnail ? "relative h-[280px] overflow-hidden bg-[#f7fafb]" : expanded ? "absolute inset-0 overflow-hidden rounded-lg bg-[#f7fafb]" : "absolute bottom-2 right-2 h-32 w-32 overflow-hidden rounded-lg border border-black/10 bg-[#f7fafb] shadow-sm sm:bottom-3 sm:right-3 sm:h-44 sm:w-44"} aria-label={expanded ? "Vue 3D agrandie" : "Miniature 3D"}>
       <div ref={host} className="h-full w-full" />
-      <span className="pointer-events-none absolute left-2 top-1 text-[10px] font-bold text-ink-soft">3D</span>
-      <button type="button" aria-label="Réinitialiser la vue 3D" title="Réinitialiser la vue 3D" onClick={() => { viewer.current?.controls.reset(); trackLetterEvent("interact"); }} className="absolute right-0 top-0 flex h-8 w-8 items-center justify-center text-lg text-ink-soft">↺</button>
+      {!thumbnail && <span className="pointer-events-none absolute left-2 top-1 text-[10px] font-bold text-ink-soft">3D</span>}
+      {!thumbnail && <button type="button" aria-label="Réinitialiser la vue 3D" title="Réinitialiser la vue 3D" onClick={() => { viewer.current?.controls.reset(); trackLetterEvent("interact"); }} className="absolute right-0 top-0 flex h-8 w-8 items-center justify-center text-lg text-ink-soft">↺</button>}
       {status && <span role="status" className="pointer-events-none absolute inset-0 flex items-center justify-center bg-[#f7fafb]/90 px-2 text-center text-xs text-ink-soft">{status}</span>}
     </div>
   );

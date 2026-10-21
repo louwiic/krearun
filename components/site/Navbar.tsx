@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useCart } from "@/components/cart/CartContext";
 import type { StoreCategory } from "@/lib/categories";
-import { trackLetterEvent } from "@/lib/letter-tracking";
 
 export default function Navbar({ categories }: { categories: StoreCategory[] }) {
   const { count, openCart } = useCart();
@@ -14,10 +13,14 @@ export default function Navbar({ categories }: { categories: StoreCategory[] }) 
   const [mobileOpen, setMobileOpen] = useState(false);
   const links = [
     { href: "/boutique", label: "Boutique" },
-    { href: "/boutique/porte-boisson-500ml-personnalise", label: "Personnaliser" },
+    { href: "/personnaliser", label: "Personnaliser" },
     { href: "/#atelier", label: "L’atelier" },
     { href: "/contact", label: "Contact" },
   ];
+
+  const isActive = (href: string) => href === "/personnaliser"
+    ? ["/personnaliser", "/boutique/porte-boisson-500ml-personnalise", "/clicker-studio", "/lettre-personnalisee"].includes(pathname)
+    : !href.includes("#") && pathname === href;
 
   return (
     <header className="sticky top-0 z-40 border-b-2 border-ink bg-linen/90 backdrop-blur-md">
@@ -34,8 +37,8 @@ export default function Navbar({ categories }: { categories: StoreCategory[] }) 
             <li key={l.href}>
               <Link
                 href={l.href}
-                onClick={() => { if (l.href === "/lettre-personnalisee") trackLetterEvent("click"); }}
-                data-active={!l.href.includes("#") && pathname === l.href.split("?")[0]}
+                data-active={isActive(l.href)}
+                aria-current={isActive(l.href) ? "page" : undefined}
                 className="nav-link text-[13px] font-bold uppercase tracking-[0.08em] text-ink-soft transition-colors hover:text-ink"
               >
                 {l.label}
@@ -102,7 +105,8 @@ export default function Navbar({ categories }: { categories: StoreCategory[] }) 
               <li key={l.href}>
                 <Link
                   href={l.href}
-                  onClick={() => { setMobileOpen(false); if (l.href === "/lettre-personnalisee") trackLetterEvent("click"); }}
+                  onClick={() => setMobileOpen(false)}
+                  aria-current={isActive(l.href) ? "page" : undefined}
                   className="block py-3 font-display text-lg uppercase tracking-tight text-ink hover:text-terra"
                 >
                   {l.label}
