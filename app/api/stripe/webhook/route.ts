@@ -1,3 +1,4 @@
+import { readShippingQuote } from "@/lib/metropolitan-shipping";
 import { readCheckoutItems } from "@/lib/checkout-item-metadata";
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
@@ -168,6 +169,7 @@ export async function POST(req: Request) {
       country: customer?.country ?? address?.country ?? "RE",
       subtotalCents: session.amount_subtotal ?? 0,
       shippingCents: session.shipping_cost?.amount_total ?? 0,
+      shippingQuote: readShippingQuote(session.metadata),
       totalCents: session.amount_total ?? 0,
       status: "paid",
       stripeSessionId: session.id,

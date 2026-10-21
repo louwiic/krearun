@@ -1,5 +1,7 @@
 "use client";
 
+import { parseMetropolitanShipping, shippingZone, metropolitanQuote } from "@/lib/metropolitan-shipping";
+
 import { monsterGiftLabel } from "@/lib/monster-gift";
 
 import Link from "next/link";
@@ -55,11 +57,13 @@ export default function CheckoutForm({
   freeShippingThresholdCents,
   shippingFlatCents,
   shippingRatesJson,
+  metropolitanShippingRatesJson,
   pickupPointsJson,
 }: {
   freeShippingThresholdCents: number;
   shippingFlatCents: number;
   shippingRatesJson: string;
+  metropolitanShippingRatesJson: string;
   pickupPointsJson: string;
 }) {
   const { items, subtotalCents, setQuantity, removeItem } = useCart();
@@ -92,7 +96,12 @@ export default function CheckoutForm({
   const selectedPickupPoint =
     pickupPoints.find((point) => point.id === pickupPointId) ?? pickupPoints[0] ?? null;
   const isPickup = fulfillmentMethod === "pickup" && selectedPickupPoint;
-  const shippingCents =
+  let metropolitan = null;
+  let shippingError = "";
+  try {
+    if (!isPickup && shippingZone(customer.country, customer.postalCode) === "FR_METROPOLITAN") metropolitan = metropolitanQuote(billableWeightGrams, items.reduce((sum,item)=>sum+(item.weightGrams || 0)*item.quantity,0), missingBillableWeight, freeShipping, parseMetropolitanShipping(metropolitanShippingRatesJson));
+  } catch (cause) { shippingError = cause instanceof Error ? cause.message : "Impossible de calculer la livraison."; }
+  const shippingCents = metropolitan ? metropolitan.priceCents :
     isPickup || freeShipping
       ? 0
       : missingBillableWeight
@@ -104,6 +113,7 @@ export default function CheckoutForm({
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (shippingError) { setError(shippingError); return; }
     setLoading(true);
     setError("");
     try {
@@ -322,7 +332,7 @@ export default function CheckoutForm({
                 }
               >
                 <option value="RE">Réunion</option>
-                <option value="FR">France</option>
+                <option value="FR">France métropolitaine</option>
               </select>
             </label>
           </div>
@@ -477,20 +487,21 @@ export default function CheckoutForm({
             <span className="text-ink-soft">
               {isPickup
                 ? `Retrait · ${selectedPickupPoint.name}`
-                : "Frais de livraison"}
+                : metropolitan ? "Colissimo métropole · sans signature" : "Frais de livraison — La Réunion"}
             </span>
             <span className="font-semibold">
-              {shippingCents === 0 ? "Offerte" : formatPrice(shippingCents)}
+              {shippingError ? "À déterminer" : shippingCents === 0 ? "Offerte" : formatPrice(shippingCents)}
             </span>
           </div>
           <div className="flex items-center justify-between border-t border-sand/70 pt-4">
             <span className="font-bold">Total estimé</span>
             <span className="font-display text-xl font-semibold">
-              {formatPrice(totalCents)}
+              {shippingError ? "À déterminer" : formatPrice(totalCents)}
             </span>
           </div>
         </div>
 
+        {shippingError && <p role="alert" className="mt-4 rounded-xl bg-blush/40 px-4 py-3 text-sm font-semibold text-terra-deep">{shippingError}</p>}
         {error && (
           <p className="mt-4 bg-blush/40 px-4 py-3 text-sm font-semibold text-terra-deep">
             {error}
@@ -500,7 +511,7 @@ export default function CheckoutForm({
         <div className="mt-5"><TermsAcceptance checked={termsAccepted} onChange={setTermsAccepted} personalized={items.some(item => Boolean(item.customName || item.clickerConfiguration))} /></div>
         <button
           type="submit"
-          disabled={loading || !termsAccepted}
+          disabled={loading || !termsAccepted || Boolean(shippingError)}
           className="mt-5 w-full rounded-full bg-terra px-8 py-4 text-sm font-bold text-cream transition-colors hover:bg-terra-deep disabled:opacity-60"
         >
           {loading ? "Préparation de la commande..." : "Continuer vers le paiement"}

@@ -234,11 +234,12 @@ export default function CartDrawer({
                 </span>
               </div>
               <div className="mb-2 flex items-start justify-between gap-3 text-sm">
-                <span className="text-ink-soft">Frais de livraison</span>
+                <span className="text-ink-soft">Livraison estimée — La Réunion</span>
                 <span className="font-semibold">
                   {shippingCents === 0 ? "Offerte" : formatPrice(shippingCents)}
                 </span>
               </div>
+              <p className="mb-3 text-xs text-ink-soft">Vers la métropole : tarif Colissimo calculé selon le poids et votre adresse à l’étape suivante.</p>
               <div className="mb-4 flex items-center justify-between border-t border-sand/60 pt-3">
                 <span className="text-sm font-bold">Total estimé</span>
                 <span className="font-display text-lg font-semibold">

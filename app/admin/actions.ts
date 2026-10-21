@@ -1,5 +1,7 @@
 "use server";
 
+import { parseMetropolitanShipping } from "@/lib/metropolitan-shipping";
+
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
@@ -606,6 +608,7 @@ export async function saveSettingsAction(formData: FormData) {
   const flat = String(formData.get("shipping_flat") ?? "0").replace(",", ".");
   const threshold = String(formData.get("free_shipping_threshold") ?? "0").replace(",", ".");
   const shippingRatesJson = String(formData.get("shipping_rates_json") ?? "").trim();
+  const metropolitanShippingRatesJson = JSON.stringify(parseMetropolitanShipping(String(formData.get("metropolitan_shipping_rates_json") ?? "")));
   const pickupPoints = DEFAULT_PICKUP_POINTS.map((fallback, index) => {
     const name = String(formData.get(`pickup_name_${index}`) ?? fallback.name).trim();
     return {
@@ -652,6 +655,7 @@ export async function saveSettingsAction(formData: FormData) {
     shipping_flat_cents: Math.round(parseFloat(flat || "0") * 100),
     free_shipping_threshold_cents: Math.round(parseFloat(threshold || "0") * 100),
     shipping_rates_json: shippingRatesJson,
+    metropolitan_shipping_rates_json: metropolitanShippingRatesJson,
     pickup_points_json: JSON.stringify(pickupPoints),
     hero_image_url: heroImageUrl,
     hero_image_alt: String(formData.get("hero_image_alt") ?? "").trim(),

@@ -1,3 +1,4 @@
+import { DEFAULT_METROPOLITAN_SHIPPING } from "./metropolitan-shipping";
 // Couche de persistance branchée sur PocketBase (collections : products,
 // orders, newsletter, settings — règles null, accès superuser uniquement).
 // Tout le site passe par ces fonctions, exécutées côté serveur seulement.
@@ -574,6 +575,7 @@ interface PbOrder extends Partial<OrderManagementFields> {
   country: string;
   subtotalCents: number;
   shippingCents: number;
+  shippingQuote?: Order["shippingQuote"];
   totalCents: number;
   status: OrderStatus;
   stripeSessionId: string;
@@ -600,6 +602,7 @@ function mapOrder(r: PbOrder): Order {
     country: r.country ?? "FR",
     subtotalCents: r.subtotalCents ?? 0,
     shippingCents: r.shippingCents ?? 0,
+    shippingQuote: r.shippingQuote,
     totalCents: r.totalCents ?? 0,
     status: r.status ?? "pending",
     stripeSessionId: r.stripeSessionId || null,
@@ -972,6 +975,7 @@ const DEFAULT_SETTINGS: Settings = {
   shipping_flat_cents: 590,
   free_shipping_threshold_cents: 0,
   shipping_rates_json: JSON.stringify(DEFAULT_REUNION_SHIPPING_RATES),
+  metropolitan_shipping_rates_json: JSON.stringify(DEFAULT_METROPOLITAN_SHIPPING),
   pickup_points_json: JSON.stringify(DEFAULT_PICKUP_POINTS, null, 2),
   store_name: "Krearun Studio",
   contact_email: "stdcreativ974@gmail.com",

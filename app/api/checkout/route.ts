@@ -1,3 +1,4 @@
+import { parseMetropolitanShipping, shippingZone, metropolitanQuote, shippingQuoteMetadata } from "@/lib/metropolitan-shipping";
 import { MONSTER_GIFT, monsterGiftLabel } from "@/lib/monster-gift";
 import { LEGAL_VERSION } from "@/lib/legal";
 import { NextResponse } from "next/server";
@@ -141,6 +142,7 @@ export async function POST(req: Request) {
   const metadataItems: { p: string; q: number; c: string; u: number; n?: string; v?: string; k?: string; d?: string }[] = [];
   let subtotalCents = 0;
   let totalWeightGrams = 0;
+  let physicalWeightGrams = 0;
   let missingBillableWeight = false;
 
   for (const item of items) {
@@ -197,6 +199,7 @@ export async function POST(req: Request) {
       (customName && !personalizedLamp ? product.namePersonalizationPriceCents : 0);
     subtotalCents += unitAmount * quantity;
     const pricedProduct = { ...product, weightGrams: selectedWeight };
+    physicalWeightGrams += (selectedWeight || 0) * quantity;
     totalWeightGrams += billableProductWeight(pricedProduct, quantity);
     missingBillableWeight ||= hasMissingProductWeight(pricedProduct);
     lineItems.push({
@@ -232,7 +235,11 @@ export async function POST(req: Request) {
   const freeShipping =
     settings.free_shipping_threshold_cents > 0 &&
     subtotalCents >= settings.free_shipping_threshold_cents;
-  const shippingCents = pickupPoint || freeShipping
+  let metropolitan = null;
+  try {
+    if (!pickupPoint && shippingZone(customer.country, customer.postalCode) === "FR_METROPOLITAN") metropolitan = metropolitanQuote(totalWeightGrams, physicalWeightGrams, missingBillableWeight, freeShipping, parseMetropolitanShipping(settings.metropolitan_shipping_rates_json));
+  } catch (cause) { return NextResponse.json({ error: cause instanceof Error ? cause.message : "Livraison indisponible." }, { status: 400 }); }
+  const shippingCents = metropolitan ? metropolitan.priceCents : pickupPoint || freeShipping
     ? 0
     : missingBillableWeight
       ? Math.max(settings.shipping_flat_cents, shipping.priceCents)
@@ -269,7 +276,7 @@ export async function POST(req: Request) {
           shipping_rate_data: {
             type: "fixed_amount",
             fixed_amount: { amount: shippingCents, currency: "eur" },
-            display_name: pickupPoint
+            display_name: metropolitan ? (metropolitan.priceCents === 0 ? "Livraison offerte · métropole" : metropolitan.label) : pickupPoint
               ? `Retrait · ${pickupPoint.name}`
               : freeShipping
                 ? "Envoi offert"
@@ -289,6 +296,7 @@ export async function POST(req: Request) {
       metadata: {
         ...packCheckoutItems(metadataItems),
         termsVersion: LEGAL_VERSION, termsAcceptedAt: new Date().toISOString(),
+        ...(metropolitan ? shippingQuoteMetadata(metropolitan) : {}),
         customerEmail: customer.email,
         customerFirstName: customer.firstName,
         customerLastName: customer.lastName,

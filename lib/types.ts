@@ -150,6 +150,7 @@ export interface Order {
   country: string;
   subtotalCents: number;
   shippingCents: number;
+  shippingQuote?: import("./metropolitan-shipping").MetropolitanQuote;
   totalCents: number;
   status: OrderStatus;
   stripeSessionId?: string | null;
@@ -206,6 +207,7 @@ export interface Settings {
   shipping_flat_cents: number;
   free_shipping_threshold_cents: number;
   shipping_rates_json: string;
+  metropolitan_shipping_rates_json?: string;
   pickup_points_json: string;
   store_name: string;
   contact_email: string;

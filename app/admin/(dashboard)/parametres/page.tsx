@@ -1,3 +1,4 @@
+import { DEFAULT_METROPOLITAN_SHIPPING } from "@/lib/metropolitan-shipping";
 import { getProducts, getSettings } from "@/lib/store";
 import { saveSettingsAction } from "@/app/admin/actions";
 import { stripeConfigured } from "@/lib/stripe";
@@ -39,7 +40,7 @@ export default async function AdminParametresPage() {
               <input name="contact_email" type="email" defaultValue={settings.contact_email} className={field} />
             </label>
             <label className="sm:col-span-2">
-              <span className={label}>Bandeau d'annonce (vide = masqué)</span>
+              <span className={label}>Bandeau d’annonce (vide = masqué)</span>
               <input name="announcement" defaultValue={settings.announcement} className={field} placeholder="✿ Livraison offerte dès 60 €" />
             </label>
             <label className="sm:col-span-2">
@@ -95,7 +96,7 @@ export default async function AdminParametresPage() {
               </div>
             ) : null}
             <label>
-              <span className={label}>URL de l'image principale</span>
+              <span className={label}>URL de l’image principale</span>
               <input
                 name="hero_image_url"
                 defaultValue={settings.hero_image_url}
@@ -104,7 +105,7 @@ export default async function AdminParametresPage() {
               />
             </label>
             <label>
-              <span className={label}>Remplacer l'image principale</span>
+              <span className={label}>Remplacer l’image principale</span>
               <input
                 name="hero_image_file"
                 type="file"
@@ -229,7 +230,7 @@ export default async function AdminParametresPage() {
               />
             </label>
             <label className="sm:col-span-2">
-              <span className={label}>Grille d'envoi à domicile</span>
+              <span className={label}>Grille d’envoi à domicile — La Réunion</span>
               <textarea
                 name="shipping_rates_json"
                 rows={8}
@@ -243,6 +244,7 @@ export default async function AdminParametresPage() {
                 Lettre Services Plus (suivi inclus). Format JSON. `priceCents` est en centimes. Mettez le seuil de gratuité à 0 pour toujours calculer les frais par poids.
               </span>
             </label>
+            <div className="sm:col-span-2"><label><span className={label}>La Réunion → France métropolitaine — sans signature</span><textarea name="metropolitan_shipping_rates_json" rows={12} defaultValue={settings.metropolitan_shipping_rates_json || JSON.stringify(DEFAULT_METROPOLITAN_SHIPPING, null, 2)} className={`${field} font-mono text-xs`} /></label><p className="mt-2 text-xs text-ink-soft">Prix client en centimes, poids emballés en grammes, jusqu’à 30 kg. Grille reprise sans majoration le 21 octobre 2026 de la base transporteur HT fournie. Aucun taux de TVA, CAE ou supplément non confirmé n’est ajouté automatiquement. Modifiez la version lorsque vous ajustez la grille. Le coût transporteur réel peut différer ; comparez votre première facture.</p></div>
             <div className="sm:col-span-2">
               <span className={label}>Points de retrait</span>
               <div className="space-y-4">
@@ -326,7 +328,7 @@ export default async function AdminParametresPage() {
             <code className="rounded bg-linen px-1.5 py-0.5">STRIPE_WEBHOOK_SECRET</code>.
             En local : <code className="rounded bg-linen px-1.5 py-0.5">stripe listen --forward-to localhost:3000/api/stripe/webhook</code>
           </li>
-          <li>Redémarre le serveur (<code className="rounded bg-linen px-1.5 py-0.5">npm run dev</code>) — et c'est tout ✿</li>
+          <li>Redémarre le serveur (<code className="rounded bg-linen px-1.5 py-0.5">npm run dev</code>) — et c’est tout ✿</li>
         </ol>
       </div>
     </div>

@@ -1,3 +1,7 @@
+import { getSettings } from "@/lib/store";
+import { parseMetropolitanShipping } from "@/lib/metropolitan-shipping";
+import { formatPrice } from "@/lib/format";
+import { formatWeight } from "@/lib/shipping";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -37,7 +41,9 @@ const faqs = [
   },
 ];
 
-export default function FaqPage() {
+export default async function FaqPage() {
+  const settings = await getSettings();
+  const grid = parseMetropolitanShipping(settings.metropolitan_shipping_rates_json);
   return (
     <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
       <p className="mb-3 text-xs font-bold uppercase tracking-[0.18em] text-terra">
@@ -51,6 +57,7 @@ export default function FaqPage() {
         gentiment.
       </p>
 
+      <section className="mt-10 rounded-2xl border-2 border-ink bg-cream p-5 sm:p-7"><h2 className="font-display text-2xl">Livraison vers la France métropolitaine</h2><p className="mt-3 text-sm leading-6 text-ink-soft">Colissimo au départ de La Réunion, à domicile, sans signature. Les frais sont calculés selon le poids emballé des articles. Les offres de livraison gratuite restent appliquées au panier. Au-delà de 30 kg ou si le poids manque, contactez-nous pour organiser votre envoi.</p><table className="mt-5 w-full text-sm"><caption className="sr-only">Frais de livraison vers la France métropolitaine</caption><thead><tr className="border-b border-sand text-left"><th className="py-3">Poids jusqu’à</th><th className="py-3 text-right">Frais de livraison</th></tr></thead><tbody>{grid.rates.map(rate=><tr key={rate.maxGrams} className="border-b border-sand/60"><td className="py-2.5">{formatWeight(rate.maxGrams)}</td><td className="py-2.5 text-right font-semibold">{formatPrice(rate.priceCents)}</td></tr>)}</tbody></table><p className="mt-4 text-xs leading-5 text-ink-soft">Le montant exact de votre commande est présenté avant le paiement. Une commande retirée à La Réunion ne supporte pas de frais d’envoi.</p></section>
       <div className="mt-12 space-y-4">
         {faqs.map((f) => (
           <details

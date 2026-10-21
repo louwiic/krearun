@@ -22,6 +22,7 @@ export default async function CartPage() {
         freeShippingThresholdCents={settings.free_shipping_threshold_cents}
         shippingFlatCents={settings.shipping_flat_cents}
         shippingRatesJson={settings.shipping_rates_json}
+        metropolitanShippingRatesJson={settings.metropolitan_shipping_rates_json ?? ""}
         pickupPointsJson={settings.pickup_points_json}
       />
     </div>
