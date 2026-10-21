@@ -153,6 +153,14 @@ export default function OrdersTableView({
             </button>
           </div>
         );
+      case "note":
+        return order.note?.trim() ? (
+          <p className="min-w-48 max-w-xs whitespace-pre-wrap break-words">
+            {order.note}
+          </p>
+        ) : (
+          <span className="text-ink-faint">—</span>
+        );
       case "production":
         return (
           <div className="space-y-2">

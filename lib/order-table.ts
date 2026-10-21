@@ -57,6 +57,12 @@ export const ORDER_TABLE_COLUMNS: ColumnDef<Order>[] = [
     enableHiding: false,
   },
   {
+    id: "note",
+    header: "Note",
+    accessorKey: "note",
+    sortingFn: frenchSort,
+  },
+  {
     id: "production",
     header: "Production",
     accessorFn: (order) =>
