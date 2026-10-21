@@ -21,6 +21,6 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   }
   const disposition = search.get("download") === "1" ? "attachment" : "inline";
   return new Response(new Uint8Array(bytes), {
-    headers: { ...headers, "Content-Type": preview ? "image/jpeg" : document.contentType, "Content-Disposition": `${disposition}; filename="${filename}"` },
+    headers: { ...headers, "Content-Type": preview ? document.previewContentType || "image/jpeg" : document.contentType, "Content-Disposition": `${disposition}; filename="${filename}"` },
   });
 }

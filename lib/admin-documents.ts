@@ -6,8 +6,27 @@ interface AdminDocument {
   originalFilename: string;
   contentType: string;
   previewFilename?: string;
+  previewContentType?: string;
 }
 export const ADMIN_DOCUMENTS: readonly AdminDocument[] = [
+  {
+    id: "cartes-remerciement-originales",
+    title: "Cartes de remerciement · archive originale",
+    description: "Les deux visuels d’origine. Personnalisez leurs textes et exportez vos planches A4 dans l’éditeur ci-dessus.",
+    filename: "cartes-remerciement-originales.zip",
+    originalFilename: "MERCI !.zip",
+    contentType: "application/zip",
+    previewFilename: "carte-merci-1.png",
+    previewContentType: "image/png",
+  },
+  {
+    id: "carte-merci-1", title: "Carte Merci · original", description: "Modèle de remerciement avec fleur bleue et signature.",
+    filename: "carte-merci-1.png", originalFilename: "MERCI !.zip / 1.png", contentType: "image/png",
+  },
+  {
+    id: "carte-merci-2", title: "Carte Essence · original", description: "Modèle avec texte orange et motif cadeau.",
+    filename: "carte-merci-2.png", originalFilename: "MERCI !.zip / 2.png", contentType: "image/png",
+  },
   {
     id: "charte-krearun",
     title: "Charte graphique Kréarun",

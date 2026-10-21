@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ADMIN_DOCUMENTS } from "@/lib/admin-documents";
+import ThankYouCardsEditor from "@/components/admin/ThankYouCardsEditor";
 
 export const metadata: Metadata = { title: "Doc · Admin", robots: { index: false, follow: false } };
 
@@ -7,7 +8,8 @@ export default function AdminDocumentsPage() {
   return (
     <div className="mx-auto max-w-5xl">
       <h1 className="font-display text-3xl font-semibold">Doc</h1>
-      <p className="mt-2 text-sm text-ink-soft">Votre charte graphique et vos documents de référence.</p>
+      <p className="mt-2 text-sm text-ink-soft">Vos cartes de remerciement, votre charte graphique et vos documents de référence.</p>
+      <ThankYouCardsEditor />
       <div className="mt-8 grid gap-6 lg:grid-cols-2">
         {ADMIN_DOCUMENTS.map((document) => {
           const href = `/api/admin/doc/${document.id}`;
@@ -22,7 +24,7 @@ export default function AdminDocumentsPage() {
                 <p className="mt-2 text-sm leading-relaxed text-ink-soft">{document.description}</p>
                 <p className="mt-3 break-words text-xs text-ink-faint">{document.originalFilename}</p>
                 <div className="mt-5 flex flex-wrap gap-3">
-                  <a href={href} target="_blank" rel="noopener noreferrer" className="rounded-full border border-sand px-4 py-2 text-sm font-semibold hover:bg-linen">Ouvrir</a>
+                  {document.contentType !== "application/zip" && <a href={href} target="_blank" rel="noopener noreferrer" className="rounded-full border border-sand px-4 py-2 text-sm font-semibold hover:bg-linen">Ouvrir</a>}
                   <a href={`${href}?download=1`} download={document.filename} className="rounded-full bg-ink px-4 py-2 text-sm font-semibold text-cream hover:bg-ink-soft">Télécharger</a>
                 </div>
               </div>
