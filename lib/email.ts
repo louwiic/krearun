@@ -288,7 +288,7 @@ ${suiviButton(order)}
 
 export async function sendOrderDelivered(order: Order) {
   const prenom = order.name.split(" ")[0] || "vous";
-  await sendEmail(
+  return sendEmail(
     order.email,
     `✿ Votre commande #${order.number} est arrivée — on espère qu'elle vous plaît`,
     layout(`
