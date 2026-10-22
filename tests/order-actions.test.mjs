@@ -6,11 +6,13 @@ import vm from "node:vm";
 import ts from "typescript";
 import * as orderImages from "../lib/order-images.ts";
 import * as management from "../lib/order-management.ts";
+import * as tracking from "../lib/order-tracking.ts";
 
 function fixture() {
   const records = new Map();
   let authorized = true,
-    mutations = 0;
+    mutations = 0,
+    emailAccepted = true;
   const statusEmails = [];
   const store = {
     ensureOrderManagementSchema: async () => {},
@@ -40,11 +42,12 @@ function fixture() {
   };
   const mocks = {
     "@/lib/order-images": orderImages,
+    "@/lib/order-tracking": tracking,
     "@/lib/auth": { isAdmin: async () => authorized },
     "@/lib/store": store,
     "@/lib/order-management": management,
     "@/lib/order-status-email": {
-      sendOrderStatusChanged: async (order) => statusEmails.push(order),
+      sendOrderStatusChanged: async (order) => { statusEmails.push(order); return emailAccepted; },
     },
     "next/cache": { revalidatePath() {} },
     "next/navigation": {
@@ -96,6 +99,7 @@ function fixture() {
     setAuthorized(value) {
       authorized = value;
     },
+    setEmailAccepted(value) { emailAccepted = value; },
     mutations: () => mutations,
     statusEmails,
   };
@@ -216,6 +220,70 @@ test("bulk update validates IDs before writes and retains amounts", async () => 
   );
   assert.ok([...f.records.values()].every((order) => order.status === "ready"));
   assert.equal([...f.records.values()][0].amountPaidCents, 1000);
+});
+
+test("shipping saves a pasted tracking number before notifying the customer, preserving payment", async () => {
+  const f = fixture();
+  await f.actions.importCrmOrdersAction(upload(csv, true), false);
+  const order = [...f.records.values()][0];
+  f.records.set(order.id, { ...order, email: "client@example.invalid" });
+  const data = new FormData();
+  for (const [key, value] of Object.entries({ id: order.id, updatedAt: order.updatedAt, kind: "production", value: "shipped", trackingNumber: " 9a 0093911006\u00a01 ", notifyCustomer: "on" })) data.set(key, value);
+  assert.match((await f.actions.quickOrderAction(data)).message, /E-mail envoyé/);
+  assert.equal(f.records.get(order.id).trackingNumber, "9A00939110061");
+  assert.equal(f.statusEmails[0].trackingNumber, "9A00939110061");
+  assert.equal(f.records.get(order.id).amountPaidCents, order.amountPaidCents);
+  assert.equal(f.records.get(order.id).paymentStatus, order.paymentStatus);
+});
+
+test("shipping can save a tracking number without email, and other statuses preserve it", async () => {
+  const f = fixture();
+  await f.actions.importCrmOrdersAction(upload(csv, true), false);
+  const order = [...f.records.values()][0];
+  const data = new FormData();
+  for (const [key, value] of Object.entries({ id: order.id, updatedAt: order.updatedAt, kind: "production", value: "shipped", trackingNumber: "9A00939110061" })) data.set(key, value);
+  assert.equal((await f.actions.quickOrderAction(data)).error, undefined);
+  assert.equal(f.statusEmails.length, 0);
+  data.set("value", "delivered"); data.set("trackingNumber", "");
+  assert.equal((await f.actions.quickOrderAction(data)).error, undefined);
+  assert.equal(f.records.get(order.id).trackingNumber, "9A00939110061");
+});
+
+test("invalid tracking is rejected before saving or sending, including a bulk selection", async () => {
+  const f = fixture();
+  await f.actions.importCrmOrdersAction(upload(csv, true), false);
+  const orders = [...f.records.values()], before = f.mutations();
+  const data = new FormData();
+  for (const [key, value] of Object.entries({ id: orders[0].id, updatedAt: orders[0].updatedAt, kind: "production", value: "shipped", trackingNumber: "<script>alert(1)</script>", notifyCustomer: "on" })) data.set(key, value);
+  assert.match((await f.actions.quickOrderAction(data)).error, /numéro de suivi/);
+  const result = await f.actions.bulkProductionAction(orders.map(o => o.id), "shipped", true, { [orders[0].id]: "9A00939110061", [orders[1].id]: "invalid-url://bad" });
+  assert.match(result.error, /numéro de suivi/);
+  assert.equal(f.mutations(), before);
+  assert.equal(f.statusEmails.length, 0);
+});
+
+test("bulk shipments keep each tracking number paired with its own order and email", async () => {
+  const f = fixture();
+  await f.actions.importCrmOrdersAction(upload(csv, true), false);
+  const orders = [...f.records.values()];
+  for (const order of orders) f.records.set(order.id, { ...order, email: `${order.id}@example.invalid` });
+  const result = await f.actions.bulkProductionAction(orders.map(o => o.id), "shipped", true, { [orders[0].id]: "9A 0093911006 1", [orders[1].id]: "9A 0093911005 4" });
+  assert.match(result.message, /2 e-mail\(s\) envoyé/);
+  assert.equal(f.records.get(orders[0].id).trackingNumber, "9A00939110061");
+  assert.equal(f.records.get(orders[1].id).trackingNumber, "9A00939110054");
+  assert.deepEqual(f.statusEmails.map(o => o.trackingNumber), ["9A00939110061", "9A00939110054"]);
+});
+
+test("an email provider rejection is reported while keeping the saved tracking number", async () => {
+  const f = fixture();
+  await f.actions.importCrmOrdersAction(upload(csv, true), false);
+  const order = [...f.records.values()][0];
+  f.records.set(order.id, { ...order, email: "client@example.invalid" });
+  f.setEmailAccepted(false);
+  const data = new FormData();
+  for (const [key, value] of Object.entries({ id: order.id, updatedAt: order.updatedAt, kind: "production", value: "shipped", trackingNumber: "9A00939110061", notifyCustomer: "on" })) data.set(key, value);
+  assert.match((await f.actions.quickOrderAction(data)).message, /n’a pas pu être envoyé/);
+  assert.equal(f.records.get(order.id).trackingNumber, "9A00939110061");
 });
 
 test("manual photos are saved without changing items or payments, and unsafe addresses are rejected", async () => {

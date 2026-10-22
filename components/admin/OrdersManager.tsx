@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import StatusChangeDialog, { type StatusChangeRequest } from "./StatusChangeDialog";
 import { useMemo, useRef, useState, useTransition } from "react";
 import {
   getCoreRowModel,
@@ -320,103 +321,6 @@ function ImportPanel() {
   );
 }
 
-type StatusChangeRequest =
-  | { kind: "single"; order: Order; status: Order["status"] }
-  | { kind: "bulk"; orders: Order[]; status: string };
-
-function StatusChangeDialog({
-  request,
-  pending,
-  onCancel,
-  onConfirm,
-}: {
-  request: StatusChangeRequest | null;
-  pending: boolean;
-  onCancel: () => void;
-  onConfirm: (notifyCustomer: boolean) => void;
-}) {
-  if (!request) return null;
-  const orders = request.kind === "single" ? [request.order] : request.orders;
-  const label =
-    PRODUCTION_STATUSES.find((status) => status.value === request.status)
-      ?.label ?? request.status;
-  const emailCount = orders.filter((order) => order.email.trim()).length;
-  const plural = orders.length > 1;
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-ink/45 p-4 backdrop-blur-sm">
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="status-change-title"
-        className="w-full max-w-lg rounded-2xl bg-cream p-6 shadow-2xl"
-      >
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-wide text-terra">
-              Nouveau statut · {label}
-            </p>
-            <h2
-              id="status-change-title"
-              className="mt-2 font-display text-2xl font-semibold"
-            >
-              Confirmer le changement de statut
-            </h2>
-          </div>
-          <button
-            type="button"
-            onClick={onCancel}
-            disabled={pending}
-            aria-label="Fermer"
-            className="rounded-lg border border-sand px-3 py-2 text-lg disabled:opacity-50"
-          >
-            ×
-          </button>
-        </div>
-        <p className="mt-4 text-sm leading-6 text-ink-soft">
-          {plural
-            ? `${orders.length} commandes vont passer au statut « ${label} ». Souhaites-tu informer les clients par e-mail ?`
-            : `La commande #${orders[0].number} de ${orders[0].name} va passer au statut « ${label} ». Souhaites-tu informer le client par e-mail ?`}
-        </p>
-        {emailCount < orders.length && (
-          <p className="mt-3 rounded-xl bg-linen px-4 py-3 text-sm text-ink-soft">
-            {emailCount
-              ? `${orders.length - emailCount} commande(s) n’ont pas d’adresse e-mail et seront uniquement mises à jour.`
-              : "Aucune adresse e-mail client n’est renseignée pour cette sélection."}
-          </p>
-        )}
-        <div className="mt-6 grid gap-3 sm:grid-cols-2">
-          <button
-            type="button"
-            onClick={() => onConfirm(false)}
-            disabled={pending}
-            className="rounded-full border border-sand bg-cream px-4 py-3 text-sm font-bold hover:bg-linen disabled:opacity-50"
-          >
-            {pending ? "Mise à jour…" : "Changer sans e-mail"}
-          </button>
-          <button
-            type="button"
-            onClick={() => onConfirm(true)}
-            disabled={pending || emailCount === 0}
-            className="rounded-full bg-ink px-4 py-3 text-sm font-bold text-cream hover:bg-terra disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            {pending
-              ? "Envoi…"
-              : `Changer et envoyer l’e-mail${plural ? "s" : ""}`}
-          </button>
-        </div>
-        <button
-          type="button"
-          onClick={onCancel}
-          disabled={pending}
-          className="mt-4 w-full text-sm font-semibold text-ink-soft underline disabled:opacity-50"
-        >
-          Annuler
-        </button>
-      </div>
-    </div>
-  );
-}
-
 export default function OrdersManager({
   imageProducts = [],
   orders,
@@ -567,7 +471,7 @@ export default function OrdersManager({
       }
     });
   }
-  function confirmStatusChange(notifyCustomer: boolean) {
+  function confirmStatusChange(notifyCustomer: boolean, trackingNumbers: Record<string, string>) {
     if (!statusChange) return;
     const request = statusChange;
     startTransition(async () => {
@@ -579,6 +483,7 @@ export default function OrdersManager({
           data.set("updatedAt", request.order.updatedAt);
           data.set("kind", "production");
           data.set("value", request.status);
+          if (request.status === "shipped") data.set("trackingNumber", trackingNumbers[request.order.id] || "");
           if (notifyCustomer) data.set("notifyCustomer", "on");
           result = await quickOrderAction(data);
         } else {
@@ -586,6 +491,7 @@ export default function OrdersManager({
             request.orders.map((order) => order.id),
             request.status,
             notifyCustomer,
+            trackingNumbers,
           );
           if (!result.error) setSelected([]);
         }
@@ -1073,14 +979,14 @@ export default function OrdersManager({
         order={detailsOrder}
         onClose={() => setDetailsId(null)}
       />
-      <StatusChangeDialog
+      {statusChange && <StatusChangeDialog
         request={statusChange}
         pending={pending}
         onCancel={() => {
           if (!pending) setStatusChange(null);
         }}
         onConfirm={confirmStatusChange}
-      />
+      />}
       {paginationControls("bas")}
     </div>
   );

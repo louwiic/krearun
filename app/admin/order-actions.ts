@@ -1,6 +1,7 @@
 "use server";
 
 import { orderImageUrl } from "@/lib/order-images";
+import { normalizeOrderTrackingNumber } from "@/lib/order-tracking";
 import { createHash } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -169,13 +170,14 @@ export async function quickOrderAction(
     const kind = text(data, "kind"),
       value = text(data, "value");
     let input: Partial<CreateOrderInput>;
-    if (kind === "production" && isProductionStatus(value))
+    if (kind === "production" && isProductionStatus(value)) {
       input = {
         status: value,
         paymentStatus: order.paymentStatus,
         amountPaidCents: order.amountPaidCents,
       };
-    else if (kind === "payment" && isPaymentStatus(value)) {
+      if (value === "shipped" && data.has("trackingNumber")) input.trackingNumber = normalizeOrderTrackingNumber(text(data, "trackingNumber"));
+    } else if (kind === "payment" && isPaymentStatus(value)) {
       if (order.source === "web")
         throw new Error("Les paiements boutique sont gérés par Stripe.");
       input = {
@@ -201,7 +203,7 @@ export async function quickOrderAction(
           "Statut mis à jour, mais le client n’a pas d’adresse e-mail.";
       } else {
         try {
-          await sendOrderStatusChanged(updatedOrder);
+          if (!(await sendOrderStatusChanged(updatedOrder))) throw new Error("Envoi refusé.");
           emailSent = true;
         } catch (error) {
           console.error("E-mail de statut client :", error);
@@ -227,6 +229,7 @@ export async function bulkProductionAction(
   ids: string[],
   status: string,
   notifyCustomer = false,
+  trackingNumbers: Record<string, string> = {},
 ): Promise<OrderActionResult> {
   await authorize();
   let updated = 0;
@@ -244,6 +247,12 @@ export async function bulkProductionAction(
     const orders = await Promise.all([...new Set(ids)].map(getOrderById));
     if (orders.some((order) => !order))
       throw new Error("Une commande sélectionnée n'existe plus.");
+    if (!trackingNumbers || typeof trackingNumbers !== "object" || Array.isArray(trackingNumbers)
+      || Object.keys(trackingNumbers).some(id => !ids.includes(id))) throw new Error("Numéros de suivi invalides pour la sélection.");
+    const tracking = new Map<string, string>();
+    if (status === "shipped") for (const order of orders) {
+      if (order && Object.hasOwn(trackingNumbers, order.id)) tracking.set(order.id, normalizeOrderTrackingNumber(trackingNumbers[order.id]));
+    }
     await ensureOrderManagementSchema();
     for (const order of orders) {
       if (!order) continue;
@@ -251,13 +260,14 @@ export async function bulkProductionAction(
         status,
         paymentStatus: order.paymentStatus,
         amountPaidCents: order.amountPaidCents,
+        ...(tracking.has(order.id) ? { trackingNumber: tracking.get(order.id)! } : {}),
       });
       updated++;
       if (notifyCustomer && order.status !== status) {
         if (!saved.email) emailErrors++;
         else {
           try {
-            await sendOrderStatusChanged(saved);
+            if (!(await sendOrderStatusChanged(saved))) throw new Error("Envoi refusé.");
             emailsSent++;
           } catch (error) {
             console.error("E-mail de statut client :", error);
