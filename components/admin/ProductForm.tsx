@@ -263,8 +263,12 @@ export default function ProductForm({
         <h2 className="mb-5 font-display text-lg font-semibold">Visibilité</h2>
         <div className="flex flex-wrap gap-8 text-sm font-semibold">
           <label className="flex items-center gap-2.5">
+            <input type="checkbox" name="privateSale" defaultChecked={product?.privateSale} className="h-4 w-4 accent-terra" />
+            Offre sur mesure (hors catalogue, accessible par lien)
+          </label>
+          <label className="flex items-center gap-2.5">
             <input type="checkbox" name="active" defaultChecked={product?.active ?? true} className="h-4 w-4 accent-terra" />
-            En ligne sur la boutique
+            Disponible à la commande
           </label>
           <label className="flex items-center gap-2.5">
             <input type="checkbox" name="featured" defaultChecked={product?.featured} className="h-4 w-4 accent-terra" />

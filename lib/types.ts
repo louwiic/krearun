@@ -75,6 +75,7 @@ export interface Product {
   isNew: boolean;
   preorder: boolean;
   partnerShared: boolean;
+  privateSale?: boolean;
   namePersonalizationEnabled: boolean;
   namePersonalizationPriceCents: number;
   variants: ProductVariant[];

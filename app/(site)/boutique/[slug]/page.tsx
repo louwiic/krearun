@@ -24,11 +24,12 @@ export async function generateMetadata({
   const { slug } = await params;
   const [product, settings] = await Promise.all([getProductBySlug(slug), getSettings()]);
   const visibleCategories = getVisibleCategories(settings.categories_json);
-  if (!product || !visibleCategories.some((category) => category.value === product.category)) {
+  if (!product || !product.active || (!product.privateSale && !visibleCategories.some((category) => category.value === product.category))) {
     return { title: "Objet introuvable" };
   }
   return {
     title: product.name,
+    robots: product.privateSale ? { index: false, follow: false } : undefined,
     description: publicProductCopy(product.tagline || product.description.slice(0, 155)),
     alternates: { canonical: `/boutique/${product.slug}` },
     openGraph: {
@@ -50,14 +51,14 @@ export default async function ProductPage({
   if (
     !product ||
     !product.active ||
-    !categories.some((category) => category.value === product.category)
+    (!product.privateSale && !categories.some((category) => category.value === product.category))
   ) notFound();
 
   if (slug === HOLDER_SLUG) return <CustomHolderProduct />;
 
   const [all, reviews] = await Promise.all([
     getProducts(),
-    getApprovedReviews(product.id),
+    product.privateSale ? Promise.resolve([]) : getApprovedReviews(product.id),
   ]);
   const related = all
     .filter((p) => p.category === product.category && p.id !== product.id)
@@ -96,10 +97,11 @@ export default async function ProductPage({
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10">
-      <script
+      {!product.privateSale && <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
+      />}
+      {product.privateSale && <p className="mb-5 rounded-2xl border border-sand bg-white p-4 text-sm font-semibold">Votre création sur mesure — préparée selon votre demande.</p>}
       <nav className="mb-5 truncate text-xs text-ink-faint sm:mb-8 sm:text-sm">
         <Link href="/boutique" className="hover:text-terra">
           Boutique
@@ -118,7 +120,7 @@ export default async function ProductPage({
       <div className="grid gap-8 md:grid-cols-[0.9fr_1.1fr] md:gap-10">
         <Gallery
           images={[
-            ...product.images,
+            ...(product.images.length ? product.images : product.privateSale ? ["/products/sur-mesure.svg"] : []),
             ...product.variants.map((variant) => variant.image).filter(Boolean),
           ].filter((image, index, images) => images.indexOf(image) === index)}
           videoUrl={product.videoUrl}
@@ -214,7 +216,7 @@ export default async function ProductPage({
         </section>
       )}
 
-      <section className="mt-16 grid gap-8 sm:mt-24 lg:grid-cols-[1fr_0.9fr]">
+      {!product.privateSale && <section className="mt-16 grid gap-8 sm:mt-24 lg:grid-cols-[1fr_0.9fr]">
         <div>
           <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.14em] text-terra sm:text-xs sm:tracking-[0.18em]">
             Avis clients
@@ -251,7 +253,7 @@ export default async function ProductPage({
           )}
         </div>
         <ReviewForm productId={product.id} productName={product.name} />
-      </section>
+      </section>}
     </div>
   );
 }

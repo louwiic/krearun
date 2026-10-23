@@ -224,6 +224,7 @@ interface PbProduct {
   isNew: boolean;
   preorder: boolean;
   partnerShared: boolean;
+  privateSale?: boolean;
   namePersonalizationEnabled: boolean;
   namePersonalizationPriceCents: number;
   variants: Product["variants"] | null;
@@ -252,6 +253,7 @@ function mapProduct(r: PbProduct): Product {
     isNew: Boolean(r.isNew),
     preorder: Boolean(r.preorder),
     partnerShared: Boolean(r.partnerShared),
+    privateSale: Boolean(r.privateSale),
     namePersonalizationEnabled: Boolean(r.namePersonalizationEnabled),
     namePersonalizationPriceCents: Math.max(0, r.namePersonalizationPriceCents ?? 0),
     variants: Array.isArray(r.variants) ? r.variants : [],
@@ -275,6 +277,7 @@ export async function getProducts(opts?: {
   const conditions = [
     ...(opts?.includeInactive ? [] : ["active=true"]),
     ...(opts?.partnerSharedOnly ? ["partnerShared=true"] : []),
+    ...(!opts?.includeInactive || opts?.partnerSharedOnly ? ["privateSale=false"] : []),
   ];
   const filter = conditions.length
     ? `&filter=${encodeURIComponent(conditions.join(" && "))}`

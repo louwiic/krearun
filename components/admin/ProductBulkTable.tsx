@@ -125,6 +125,7 @@ export function ProductBulkTable({ products }: ProductBulkTableProps) {
                       <span>
                         {product.name}
                         {product.featured && <span className="ml-2" title="Coup de cœur">💛</span>}
+                        {product.privateSale && <span className="ml-2 rounded-full bg-sand px-2 py-1 text-xs">Sur mesure</span>}
                         {product.isNew && <span className="ml-1 rounded-full bg-sage/30 px-2 py-0.5 text-[10px] font-bold text-sage-deep">NEW</span>}
                         {product.preorder && <span className="ml-1 rounded-full bg-terra/15 px-2 py-0.5 text-[10px] font-bold text-terra-deep">PRÉCO</span>}
                         {product.partnerShared && <span className="ml-1 rounded-full bg-sage/30 px-2 py-0.5 text-[10px] font-bold text-sage-deep">PARTENAIRE</span>}

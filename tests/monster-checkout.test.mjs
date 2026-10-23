@@ -8,12 +8,12 @@ import * as gift from '../lib/monster-gift.ts';
 import * as metadata from '../lib/checkout-item-metadata.ts';
 import * as legal from '../lib/legal.ts';
 const require=createRequire(import.meta.url);
-function checkout(slug='porte-canette-monster',weightGrams=180, settings={}) {
+function checkout(slug='porte-canette-monster',weightGrams=180, settings={}, productOverrides={}) {
  const sessions=[];
  const mocks={
   '@/lib/metropolitan-shipping':metropolitan,
   '@/lib/monster-gift':gift,'@/lib/legal':legal,'@/lib/checkout-item-metadata':metadata,
-  '@/lib/store':{getSettings:async()=>settings,getProductById:async()=>({id:'monster',slug,name:'Produit',active:true,variants:[],stock:10,priceCents:1790,weightGrams,images:[]})},
+  '@/lib/store':{getSettings:async()=>settings,getProductById:async()=>({id:'monster',slug,name:'Produit',active:true,variants:[],stock:10,priceCents:1790,weightGrams,images:[],...productOverrides})},
   '@/lib/stripe':{stripeConfigured:()=>true,getStripe:()=>({checkout:{sessions:{create:async data=>{sessions.push(data);return {url:'https://checkout.invalid/test'};}}}})},
   '@/lib/colors':{publicColorName:v=>v},'@/lib/free-shipping':{billableProductWeight:()=>weightGrams,hasMissingProductWeight:()=>weightGrams<=0},
   '@/lib/shipping':{parseShippingRates:()=>[],calculateShippingCents:()=>({priceCents:577,label:'Test'})},
@@ -44,5 +44,18 @@ test('mainland parcels above 30 kg, missing weights and other overseas destinati
  for(const [weight,postalCode,country] of [[30001,'75001','FR'],[0,'75001','FR'],[180,'97200','FR'],[180,'75001','BE']]) {
   const {sessions,post}=checkout('porte-canette-monster',weight);
   assert.equal((await post(request({},true,{country,postalCode}))).status,400);assert.equal(sessions.length,0);
+ }
+});
+
+
+test('unlisted offers charge the saved price and reject deactivated or exhausted offers',async()=>{
+ const product={privateSale:true,priceCents:4590,stock:1};
+ const {sessions,post}=checkout('creation-unique-opaque-token',600,{},product);
+ assert.equal((await post(request({priceCents:1,unitPriceCents:1,quantity:1}))).status,200);
+ assert.equal(sessions[0].line_items[0].price_data.unit_amount,4590);
+ for(const overrides of [{active:false},{stock:0}]) {
+  const closed=checkout('creation-unique-opaque-token',600,{}, {...product,...overrides});
+  assert.equal((await closed.post(request())).status,400);
+  assert.equal(closed.sessions.length,0);
  }
 });

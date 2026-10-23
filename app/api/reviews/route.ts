@@ -34,7 +34,7 @@ export async function POST(req: Request) {
     }
 
     const product = await getProductById(productId);
-    if (!product || product.name !== productName) {
+    if (!product || product.privateSale || product.name !== productName) {
       return NextResponse.json({ error: "Produit introuvable." }, { status: 404 });
     }
 

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import ProductForm from "@/components/admin/ProductForm";
+import { PrivateSaleShare } from "@/components/admin/PrivateSaleShare";
 import DeleteProductButton from "@/components/admin/DeleteProductButton";
 import { getInventoryColors, getProductById } from "@/lib/store";
 
@@ -35,6 +36,7 @@ export default async function EditProduitPage({
       <h1 className="mb-8 mt-2 font-display text-3xl font-semibold">
         {product.name}
       </h1>
+      {product.privateSale && <PrivateSaleShare slug={product.slug} active={product.active} />}
       <ProductForm product={product} inventoryColors={inventoryColors} />
       <div className="mt-10 border-t border-sand/70 pt-6">
         <DeleteProductButton id={product.id} name={product.name} />

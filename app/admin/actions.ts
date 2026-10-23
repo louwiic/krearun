@@ -38,6 +38,7 @@ import {
   sendOrderShipped,
 } from "@/lib/email";
 import { slugify } from "@/lib/format";
+import { privateSaleSlug, parsePrivateSale } from "@/lib/private-sales";
 import { newsletterPublicUrl } from "@/lib/newsletter-urls";
 import { mailingContacts, newsletterRecipients, type RecipientMode } from "@/lib/newsletter-targeting";
 import { uploadSiteImageToR2, uploadSiteMediaToR2 } from "@/lib/r2";
@@ -199,6 +200,10 @@ export async function saveProductAction(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
   if (!name) redirect("/admin/produits");
 
+  const privateSale = formData.get("privateSale") === "on";
+  const existingProduct = id ? await getProductById(id) : null;
+  const validatedOffer = privateSale ? parsePrivateSale(formData, true) : null;
+
   const existingImages = String(formData.get("images") ?? "")
     .split("\n")
     .map((s) => s.trim())
@@ -231,10 +236,12 @@ export async function saveProductAction(formData: FormData) {
 
   const data = {
     name,
-    slug: slugify(String(formData.get("slug") ?? "") || name),
+    slug: privateSale
+      ? privateSaleSlug(name, existingProduct?.privateSale ? existingProduct.slug : undefined)
+      : slugify(String(formData.get("slug") ?? "") || name),
     tagline: String(formData.get("tagline") ?? "").trim(),
     description: String(formData.get("description") ?? "").trim(),
-    priceCents: Math.round(parseFloat(priceRaw || "0") * 100),
+    priceCents: validatedOffer?.priceCents ?? Math.round(parseFloat(priceRaw || "0") * 100),
     compareAtCents: compareAtRaw
       ? Math.round(parseFloat(compareAtRaw) * 100)
       : null,
@@ -249,11 +256,12 @@ export async function saveProductAction(formData: FormData) {
     stock: variants.length > 0
       ? variants.filter((variant) => variant.active).reduce((total, variant) => total + variant.stock, 0)
       : Math.max(0, parseInt(String(formData.get("stock") ?? "0"), 10) || 0),
-    featured: formData.get("featured") === "on",
+    privateSale,
+    featured: !privateSale && formData.get("featured") === "on",
     active: formData.get("active") === "on",
     isNew: formData.get("isNew") === "on",
     preorder: formData.get("preorder") === "on",
-    partnerShared: formData.get("partnerShared") === "on",
+    partnerShared: !privateSale && formData.get("partnerShared") === "on",
     namePersonalizationEnabled: formData.get("namePersonalizationEnabled") === "on",
     namePersonalizationPriceCents: Math.max(
       0,
@@ -295,7 +303,7 @@ export async function saveProductAction(formData: FormData) {
 
   revalidatePath("/", "layout");
   revalidatePath("/api/partenaires/produits");
-  redirect("/admin/produits");
+  redirect(privateSale && product ? `/admin/produits/${product.id}` : "/admin/produits");
 }
 
 export async function deleteProductAction(formData: FormData) {
