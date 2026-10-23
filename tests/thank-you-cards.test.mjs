@@ -4,6 +4,8 @@ import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import ts from "typescript";
 import { PDFDocument, decodePDFRawStream } from "pdf-lib";
+import sharp from "sharp";
+import jsQR from "jsqr";
 
 const require = createRequire(import.meta.url);
 function load(path, mocks = {}) {
@@ -26,6 +28,22 @@ test("both A4 layouts retain original card proportions, safe margins and cut mar
     assert.ok(l.left >= 8 && l.top >= 8 - 1e-9);
     assert.ok(l.left + l.columns * l.width + (l.columns - 1) * l.gap + 1.8 < l.pageWidth);
     assert.ok(l.top + l.rows * l.height + (l.rows - 1) * l.gap + 1.8 < l.pageHeight);
+    assert.ok(l.width * cards.THANK_YOU_QR_LAYOUT.size / 1748 >= 20, "QR codes must remain at least 20 mm wide, including their quiet zone");
+  }
+});
+
+test("all three QR codes decode to the right destinations on both cards at the smallest print size", async () => {
+  for (const model of ["merci", "essence"]) {
+    const svg = await renderer.renderThankYouCardSvg(request({ model, texts: cards.THANK_YOU_DEFAULTS[model] }));
+    const width = Math.round(cards.thankYouLayout(8).width / 25.4 * 300), scale = width / 1748;
+    const png = await sharp(Buffer.from(svg)).resize({ width }).png().toBuffer();
+    const layout = cards.THANK_YOU_QR_LAYOUT;
+    for (const [index, link] of cards.THANK_YOU_LINKS.entries()) {
+      const crop = { left: Math.round(layout.x[index] * scale), top: Math.round(layout.y * scale), width: Math.round(layout.size * scale), height: Math.round(layout.size * scale) };
+      const { data, info } = await sharp(png).extract(crop).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+      const decoded = jsQR(new Uint8ClampedArray(data), info.width, info.height, { inversionAttempts: "dontInvert" });
+      assert.equal(decoded?.data, link.url, `${model}: ${link.label}`);
+    }
   }
 });
 

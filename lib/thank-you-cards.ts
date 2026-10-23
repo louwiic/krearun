@@ -3,6 +3,13 @@ export type ThankYouTexts = { heading: string; message: string; code: string; of
 export type ThankYouDrafts = Record<ThankYouModel, ThankYouTexts>;
 export type ThankYouRequest = { model: ThankYouModel; texts: ThankYouTexts; perPage: 4 | 8; quantity: number; cropMarks: boolean };
 
+export const THANK_YOU_LINKS = [
+  { label: "Notre boutique", url: "https://krearun.re/boutique" },
+  { label: "Newsletter", url: "https://krearun.re/newsletter" },
+  { label: "Laisser un avis", url: "https://krearun.re/avis" },
+] as const;
+export const THANK_YOU_QR_LAYOUT = { x: [140, 680, 1220], y: 800, size: 390, labelY: 1191, labelHeight: 40 } as const;
+
 export const THANK_YOU_DEFAULTS: ThankYouDrafts = {
   merci: {
     heading: "Merci",

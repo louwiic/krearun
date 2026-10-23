@@ -37,11 +37,12 @@ export default function Newsletter() {
       <div className="flex gap-2">
       <input
         type="email"
+        aria-label="Adresse e-mail"
         required
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         placeholder="votre@email.fr"
-        className="w-full rounded-full border border-sand bg-cream px-5 py-3 text-sm outline-none transition-colors placeholder:text-ink-faint focus:border-terra"
+        className="min-w-0 w-full rounded-full border border-sand bg-cream px-5 py-3 text-sm text-ink outline-none transition-colors placeholder:text-ink-faint focus:border-terra"
       />
       <button
         type="submit"

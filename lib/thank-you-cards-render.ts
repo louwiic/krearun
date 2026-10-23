@@ -3,9 +3,22 @@ import { join } from "node:path";
 import opentype, { type Font } from "opentype.js";
 import sharp from "sharp";
 import { PDFDocument, PrintScaling, rgb } from "pdf-lib";
-import { thankYouLayout, type ThankYouRequest } from "./thank-you-cards";
+import QRCode from "qrcode";
+import { THANK_YOU_LINKS, THANK_YOU_QR_LAYOUT, thankYouLayout, type ThankYouRequest } from "./thank-you-cards";
 
 const W = 1748, H = 1240;
+const qrCodes = THANK_YOU_LINKS.map(link => QRCode.create(link.url, { errorCorrectionLevel: "M" }));
+
+function qrCodeSvg(index: number) {
+  const { modules } = qrCodes[index];
+  const margin = 4, size = modules.size + margin * 2;
+  let path = "";
+  for (let row = 0; row < modules.size; row++) for (let column = 0; column < modules.size; column++) {
+    if (modules.get(row, column)) path += `M${column + margin} ${row + margin}h1v1h-1z`;
+  }
+  const layout = THANK_YOU_QR_LAYOUT;
+  return `<svg x="${layout.x[index]}" y="${layout.y}" width="${layout.size}" height="${layout.size}" viewBox="0 0 ${size} ${size}" shape-rendering="crispEdges"><rect width="${size}" height="${size}" fill="#fff"/><path d="${path}" fill="#000"/></svg>`;
+}
 let assets: Promise<{ font: Font; wordmark: string; nozzle: string }> | undefined;
 function loadAssets() {
   if (!assets) assets = Promise.all([
@@ -71,24 +84,30 @@ export async function renderThankYouCardSvg(input: ThankYouRequest) {
   const { font, wordmark, nozzle } = await loadAssets();
   const { texts, model } = input;
   const logo = (cx: number, cy: number, radius: number) => `<g><circle cx="${cx}" cy="${cy}" r="${radius}" fill="#f6f3ee" stroke="#171717" stroke-width="9"/><image href="${nozzle}" x="${cx - radius * .27}" y="${cy - radius * .65}" width="${radius * .54}" height="${radius * .72}"/><image href="${wordmark}" x="${cx - radius * .81}" y="${cy + radius * .19}" width="${radius * 1.62}" height="${radius * .35}"/></g>`;
-  let art = `<rect width="${W}" height="${H}" fill="#fff9e2"/><path fill="#ece9e4" d="M0 491Q100 395 183 469T350 473T516 473T682 473T848 473T1014 473T1180 473T1346 473T1512 473T1678 473T1844 473V1240H0Z"/>${stars()}`;
+  let art = `<rect width="${W}" height="${H}" fill="#fff9e2"/><path fill="#ece9e4" d="M0 310Q100 214 183 288T350 292T516 292T682 292T848 292T1014 292T1180 292T1346 292T1512 292T1678 292T1844 292V1240H0Z"/>${stars()}`;
   if (model === "merci") {
     // Editable vector recreation of the supplied card; originals are archived separately.
-    const petals = Array.from({ length: 10 }, (_, i) => `<ellipse cx="632" cy="724" rx="98" ry="178" transform="rotate(${i * 36} 632 850)"/>`).join("");
-    art += `<g fill="#b9dff2">${petals}<ellipse cx="632" cy="850" rx="310" ry="174"/></g>`;
-    art += textBlock(font, texts.heading, 215, 100, 1320, 440, 480, { fill: "#ff6b35", shadow: true });
-    art += textBlock(font, texts.message, 318, 668, 635, 365, 52);
-    art += logo(1420, 938, 163);
-    art += textBlock(font, texts.signature, 1150, 1144, 550, 64, 48);
+    const petals = Array.from({ length: 10 }, (_, i) => `<ellipse cx="570" cy="390" rx="120" ry="155" transform="rotate(${i * 36} 570 500)"/>`).join("");
+    art += `<g fill="#b9dff2">${petals}<ellipse cx="570" cy="500" rx="390" ry="180"/></g>`;
+    art += textBlock(font, texts.heading, 210, 20, 970, 245, 310, { fill: "#ff6b35", shadow: true });
+    art += textBlock(font, texts.message, 180, 345, 780, 310, 50);
+    art += logo(1430, 225, 150);
+    art += textBlock(font, texts.code, 1060, 458, 610, 84, 44);
+    art += textBlock(font, texts.offer, 1060, 546, 610, 95, 42);
+    art += textBlock(font, texts.signature, 1035, 675, 660, 64, 44);
   } else {
-    art += textBlock(font, texts.heading, 150, 290, 1515, texts.message ? 445 : 570, 170, { fill: "#ff6b35", shadow: true });
-    art += textBlock(font, texts.message, 440, 751, 810, 237, 48);
-    art += logo(188, 961, 106) + gift();
-    art += textBlock(font, texts.signature, 920, 1160, 760, 52, 40);
+    art += textBlock(font, texts.heading, 180, 135, 1390, texts.message ? 300 : 430, 138, { fill: "#ff6b35", shadow: true });
+    art += textBlock(font, texts.message, 390, 455, 930, 170, 44);
+    art += logo(180, 618, 100) + `<g transform="translate(800 25) scale(.5)">${gift()}</g>`;
+    art += textBlock(font, texts.signature, 850, 46, 800, 60, 40);
+    art += textBlock(font, texts.code, 390, 647, 1000, 55, 44);
+    art += textBlock(font, texts.offer, 390, 706, 1000, 55, 42);
   }
-  const footerWidth = model === "merci" ? 1000 : texts.signature ? 820 : 1100;
-  art += textBlock(font, texts.code, 48, 1108, footerWidth, 53, 44, { align: "left" });
-  art += textBlock(font, texts.offer, 48, 1163, footerWidth, 55, 42, { align: "left" });
+  art += `<path d="M80 780H1668" stroke="#171717" stroke-opacity=".2" stroke-width="2"/>`;
+  THANK_YOU_LINKS.forEach((link, index) => {
+    art += qrCodeSvg(index);
+    art += textBlock(font, link.label, THANK_YOU_QR_LAYOUT.x[index] - 45, THANK_YOU_QR_LAYOUT.labelY, THANK_YOU_QR_LAYOUT.size + 90, THANK_YOU_QR_LAYOUT.labelHeight, 38);
+  });
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${art}</svg>`;
 }
 
