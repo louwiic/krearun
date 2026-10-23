@@ -405,12 +405,15 @@ export async function getApprovedReviews(productId?: string): Promise<Review[]> 
   const filters = ["approved=true"];
   if (productId) filters.push(`productId='${escapeFilter(productId)}'`);
   try {
-    const res = await pb<ListResult<PbReview>>(
-      `/collections/reviews/records?perPage=100&sort=-created&filter=${encodeURIComponent(
-        filters.join(" && ")
-      )}`
-    );
-    return res.items.map(mapReview);
+    const reviews: Review[] = [];
+    for (let page = 1; ; page++) {
+      const res = await pb<ListResult<PbReview>>(
+        `/collections/reviews/records?perPage=100&page=${page}&sort=-created,id&filter=${encodeURIComponent(filters.join(" && "))}`,
+      );
+      reviews.push(...res.items.map(mapReview));
+      if (page >= res.totalPages) break;
+    }
+    return reviews;
   } catch {
     return [];
   }

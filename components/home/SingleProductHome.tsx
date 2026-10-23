@@ -6,6 +6,7 @@ import { hasFreeShipping } from "@/lib/free-shipping";
 import { publicProductCopy } from "@/lib/public-copy";
 import type { Product, Review, Settings } from "@/lib/types";
 import { HOLDER_SLUG } from "@/lib/custom-holder";
+import HomeReviews from "./HomeReviews";
 
 export default function SingleProductHome({
   product,
@@ -220,29 +221,7 @@ export default function SingleProductHome({
         </div>
       </section>
 
-      {reviews.length > 0 ? (
-        <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-18">
-          <p className="text-xs font-bold uppercase tracking-[0.18em] text-terra">Avis clients</p>
-          <h2 className="mt-3 font-display text-4xl uppercase leading-[0.9] sm:text-5xl">
-            Ils l’ont adopté
-          </h2>
-          <div className="mt-8 grid gap-5 md:grid-cols-3">
-            {reviews.slice(0, 3).map((review) => (
-              <figure key={review.id} className="rounded-2xl border-2 border-ink bg-cream p-7 shadow-hard">
-                <div className="mb-4 text-terra" aria-label={`${review.rating} sur 5`}>
-                  {"★ ".repeat(review.rating).trim()}
-                </div>
-                <blockquote className="text-sm leading-relaxed text-ink-soft">
-                  « {review.message} »
-                </blockquote>
-                <figcaption className="mt-5 font-display text-base uppercase">
-                  {review.authorName}
-                </figcaption>
-              </figure>
-            ))}
-          </div>
-        </section>
-      ) : null}
+      <HomeReviews reviews={reviews} />
     </>
   );
 }
