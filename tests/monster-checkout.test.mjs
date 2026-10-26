@@ -14,7 +14,7 @@ function checkout(slug='porte-canette-monster',weightGrams=180, settings={}, pro
  const mocks={
   '@/lib/metropolitan-shipping':metropolitan,'@/lib/nos':nos,
   '@/lib/monster-gift':gift,'@/lib/legal':legal,'@/lib/checkout-item-metadata':metadata,
-  '@/lib/store':{getNosLogo:async id=>id==='abc123def456ghi'?{id}:null,getSettings:async()=>settings,getProductById:async()=>({id:'monster',slug,name:'Produit',active:true,variants:[],stock:10,priceCents:1790,weightGrams,images:[],...productOverrides})},
+  '@/lib/store':{getNosLogo:async id=>id==='abc123def456ghi'?{id}:null,getSettings:async()=>settings,getProductById:async()=>({id:'monster',slug,name:'Produit',active:true,variants:[],stock:10,priceCents:1790,weightGrams,images:[],colors:slug===nos.NOS_SLUG?nos.NOS_COLORS:[],...productOverrides})},
   '@/lib/stripe':{stripeConfigured:()=>true,getStripe:()=>({checkout:{sessions:{create:async data=>{sessions.push(data);return {url:'https://checkout.invalid/test'};}}}})},
   '@/lib/colors':{publicColorName:v=>v},'@/lib/free-shipping':{billableProductWeight:()=>weightGrams,hasMissingProductWeight:()=>weightGrams<=0},
   '@/lib/shipping':{parseShippingRates:()=>[],calculateShippingCents:()=>({priceCents:577,label:'Test'})},
@@ -70,4 +70,22 @@ test('NOS preserves a verified logo reference in the order and charges its saved
  const invalid=checkout(nos.NOS_SLUG,185,{}, {namePersonalizationEnabled:true});
  assert.equal((await invalid.post(request({customName:'Logo : xyz123def456ghi'}))).status,400);
  assert.equal(invalid.sessions.length,0);
+});
+
+
+test('NOS keeps the complete custom text and the selected black, pink or white color in the order',async()=>{
+ const customName='Toujours à fond avec mon porte-boisson personnalisé !';
+ for(const color of ['Noir','Rose','Blanc']) {
+  const {sessions,post}=checkout(nos.NOS_SLUG,185,{}, {priceCents:2290,namePersonalizationEnabled:true,namePersonalizationPriceCents:0});
+  assert.equal((await post(request({customName,color}))).status,200);
+  const items=JSON.parse(metadata.readCheckoutItems(sessions[0].metadata));
+  assert.equal(items[0].n,customName);assert.equal(items[0].c,color);
+  assert.equal(sessions[0].line_items[0].price_data.unit_amount,2290);
+ }
+});
+test('NOS rejects an unavailable color or text longer than 60 characters before taking payment',async()=>{
+ for(const values of [{color:'Bleu'},{color:'Rose',customName:'a'.repeat(61)}]) {
+  const {sessions,post}=checkout(nos.NOS_SLUG,185,{}, {namePersonalizationEnabled:true});
+  assert.equal((await post(request(values))).status,400);assert.equal(sessions.length,0);
+ }
 });

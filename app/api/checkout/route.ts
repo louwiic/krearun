@@ -1,4 +1,4 @@
-import { NOS_SLUG, nosLogoId } from "@/lib/nos";
+import { NOS_SLUG, NOS_TEXT_MAX, nosLogoId } from "@/lib/nos";
 import { parseMetropolitanShipping, shippingZone, metropolitanQuote, shippingQuoteMetadata } from "@/lib/metropolitan-shipping";
 import { MONSTER_GIFT, monsterGiftLabel } from "@/lib/monster-gift";
 import { LEGAL_VERSION } from "@/lib/legal";
@@ -40,8 +40,8 @@ interface CheckoutBody {
   pickupPointId?: string;
 }
 
-function normalizeCustomName(value: unknown): string {
-  return String(value ?? "").trim().replace(/\s+/g, " ").slice(0, 24);
+function normalizeCustomName(value: unknown, max = 24): string {
+  return String(value ?? "").trim().replace(/\s+/g, " ").slice(0, max);
 }
 
 function text(value: unknown, max = 120): string {
@@ -174,9 +174,14 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
+    const orderColor = publicColorName(item.color || "");
+    if (product.slug === NOS_SLUG) {
+      if (!product.colors.some(color => publicColorName(color.name) === orderColor)) return NextResponse.json({error:"Choisissez un coloris disponible pour le NOS : noir, rose ou blanc."},{status:400});
+      if (product.namePersonalizationEnabled && String(item.customName ?? "").trim().replace(/\s+/g," ").length > NOS_TEXT_MAX) return NextResponse.json({error:`Le texte NOS doit contenir ${NOS_TEXT_MAX} caractères maximum.`},{status:400});
+    }
     const personalizedLamp = isPersonalizedLamp(product.slug);
     const customName = personalizedLamp ? normalizeLampPersonalization(product.slug, item.customName)
-      : product.namePersonalizationEnabled ? normalizeCustomName(item.customName) : "";
+      : product.namePersonalizationEnabled ? normalizeCustomName(item.customName, product.slug === NOS_SLUG ? NOS_TEXT_MAX : 24) : "";
     const nosLogo = product.slug === NOS_SLUG ? nosLogoId(customName) : null;
     if (nosLogo && !(await getNosLogo(nosLogo))) return NextResponse.json({error:"Votre logo NOS est introuvable. Importez-le à nouveau depuis la fiche produit."},{status:400});
     if (personalizedLamp && !customName) {
@@ -189,7 +194,7 @@ export async function POST(req: Request) {
     const keychainChoice = product.slug === "porte-canette-monster" ? MONSTER_GIFT : "";
     const optionParts = [
       variant?.name || "",
-      publicColorName(item.color),
+      orderColor,
       clicker ? `Texte : ${text(clicker.text, 14)}` : "",
       clicker ? `Caps : ${text(clicker.capColor, 60)}` : "",
       clicker ? `Lettres : ${text(clicker.letterColor, 60)}` : "",
@@ -224,7 +229,7 @@ export async function POST(req: Request) {
     metadataItems.push({
       p: product.id,
       q: quantity,
-      c: publicColorName(item.color || ""),
+      c: orderColor,
       u: unitAmount,
       ...(customName ? { n: customName } : {}),
       ...(variant ? { v: variant.id } : {}),

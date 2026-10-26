@@ -37,9 +37,9 @@ if (existing) {
 } else {
   const product=api("/collections/products/records","POST",{
     name:"Porte-boisson NOS 500 ml",slug,tagline:"L’esprit NOS, une touche à votre nom.",
-    description:"Porte-boisson personnalisé pour canette de 500 ml, avec un corps bleu, un motif NOS en relief et une valve décorative dorée.\n\nAjoutez votre prénom sous le motif NOS ou importez votre logo pour une création à votre image. La personnalisation est incluse dans le prix.\n\nImprimé en 3D dans notre atelier à La Réunion. Les fines lignes visibles sur la photo font partie de la texture de fabrication.\n\nVendu sans boisson. Il s’agit d’un porte-boisson décoratif, pas d’une bouteille de gaz. Poids emballé estimé : 185 g.",
+    description:"Porte-boisson personnalisé pour canette de 500 ml, avec un corps au choix noir, rose ou blanc, un motif NOS en relief et une valve décorative dorée.\n\nAjoutez votre texte (60 caractères maximum) sous le motif NOS ou importez votre logo pour une création à votre image. La personnalisation est incluse dans le prix.\n\nImprimé en 3D dans notre atelier à La Réunion. Les fines lignes visibles sur la photo font partie de la texture de fabrication.\n\nVendu sans boisson. Il s’agit d’un porte-boisson décoratif, pas d’une bouteille de gaz. Poids emballé estimé : 185 g.",
     priceCents:2290,compareAtCents:0,category:"porte-boisson",images:["/products/nos/porte-boisson-nos-500ml.webp"],
-    videoUrl:"",weightGrams:185,colors:[{name:"Bleu",hex:"#243ecb"}],stock:0,
+    videoUrl:"",weightGrams:185,colors:[{name:"Noir",hex:"#171717"},{name:"Rose",hex:"#e66a9c"},{name:"Blanc",hex:"#ffffff"}],stock:0,
     featured:false,active:false,isNew:true,preorder:false,partnerShared:false,privateSale:false,
     namePersonalizationEnabled:true,namePersonalizationPriceCents:0,variants:[],quantityDiscounts:[],
   },token);

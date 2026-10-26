@@ -179,6 +179,8 @@ export default function AddToCart({ product }: { product: Product }) {
         </div>
       )}
 
+      {product.slug === NOS_SLUG && <p className="text-xs text-ink-soft">La photo présente le modèle bleu. Votre porte-boisson sera fabriqué dans le coloris choisi.</p>}
+
       {personalizedLamp && <LampPersonalization slug={product.slug} value={lamp} onChange={setLamp} />}
 
       {product.slug === NOS_SLUG && product.namePersonalizationEnabled && <NosPersonalization value={customName} priceCents={product.namePersonalizationPriceCents} onChange={(value,enabled)=>{setCustomName(value);setAddPersonalization(enabled);}} />}
