@@ -6,10 +6,12 @@ export default function Gallery({
   images,
   videoUrl = "",
   name,
+  imageFit = "cover",
 }: {
   images: string[];
   videoUrl?: string;
   name: string;
+  imageFit?: "cover" | "contain";
 }) {
   const [active, setActive] = useState(0);
   const media = useMemo(
@@ -50,7 +52,7 @@ export default function Gallery({
           <img
             src={activeMedia.src}
             alt={name}
-            className="aspect-square max-h-[520px] w-full object-cover"
+            className={`aspect-square max-h-[520px] w-full ${imageFit === "contain" ? "object-contain" : "object-cover"}`}
           />
         )}
       </div>

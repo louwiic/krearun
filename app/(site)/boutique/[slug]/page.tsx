@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import NosProductGallery from "@/components/product/NosProductGallery";
+import { NOS_SLUG, NOS_COLORS } from "@/lib/nos";
 import Gallery from "@/components/product/Gallery";
 import AddToCart from "@/components/product/AddToCart";
 import ProductCard from "@/components/product/ProductCard";
@@ -118,14 +120,14 @@ export default async function ProductPage({
       </nav>
 
       <div className="grid gap-8 md:grid-cols-[0.9fr_1.1fr] md:gap-10">
-        <Gallery
+        {product.slug === NOS_SLUG ? <NosProductGallery images={product.images} videoUrl={product.videoUrl} name={product.name} initialColor={product.colors[0] || NOS_COLORS[0]} /> : <Gallery
           images={[
             ...(product.images.length ? product.images : product.privateSale ? ["/products/sur-mesure.svg"] : []),
             ...product.variants.map((variant) => variant.image).filter(Boolean),
           ].filter((image, index, images) => images.indexOf(image) === index)}
           videoUrl={product.videoUrl}
           name={product.name}
-        />
+        />}
 
         <div>
           <div className="mb-4 flex flex-wrap gap-2">

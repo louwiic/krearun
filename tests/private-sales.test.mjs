@@ -65,6 +65,7 @@ test("unlisted offer pages use noindex even when their catalog category is hidde
     "next/link": () => null, "next/navigation": {},
     ...Object.fromEntries(["Gallery", "AddToCart", "ProductCard", "ReviewForm"].map(name => [`@/components/product/${name}`, () => null])),
     "@/components/custom-holder/CustomHolderProduct": () => null,
+    "@/components/product/NosProductGallery": () => null, "@/lib/nos": { NOS_SLUG: "nos", NOS_COLORS: [] },
     "@/lib/store": { getProductBySlug: async () => product, getSettings: async () => ({}) },
     "@/lib/format": {}, "@/lib/free-shipping": {}, "@/lib/public-copy": { publicProductCopy: value => value },
     "@/lib/shipping": {}, "@/lib/categories": { getVisibleCategories: () => [] }, "@/lib/custom-holder": {},

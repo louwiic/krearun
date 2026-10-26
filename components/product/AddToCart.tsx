@@ -4,6 +4,7 @@ import NosPersonalization from "./NosPersonalization";
 import { NOS_SLUG } from "@/lib/nos";
 import { MONSTER_GIFT } from "@/lib/monster-gift";
 import { useState } from "react";
+import { NOS_COLOR_EVENT } from "@/lib/nos-preview";
 import Link from "next/link";
 import { HOLDER_SLUG } from "@/lib/custom-holder";
 import { useCart } from "@/components/cart/CartContext";
@@ -157,6 +158,7 @@ export default function AddToCart({ product }: { product: Product }) {
                 type="button"
                 onClick={() => {
                   setColor(c.name);
+                  if (product.slug === NOS_SLUG) window.dispatchEvent(new CustomEvent(NOS_COLOR_EVENT, {detail:{name:publicColorName(c.name),hex:c.hex}}));
                   if (c.image) {
                     window.dispatchEvent(
                       new CustomEvent("krearun:select-product-image", {
@@ -179,7 +181,7 @@ export default function AddToCart({ product }: { product: Product }) {
         </div>
       )}
 
-      {product.slug === NOS_SLUG && <p className="text-xs text-ink-soft">La photo présente le modèle bleu. Votre porte-boisson sera fabriqué dans le coloris choisi.</p>}
+      {product.slug === NOS_SLUG && <p className="text-xs text-ink-soft">L’aperçu 3D suit votre choix de couleur. La photo réelle présente le modèle bleu.</p>}
 
       {personalizedLamp && <LampPersonalization slug={product.slug} value={lamp} onChange={setLamp} />}
 
