@@ -1,5 +1,7 @@
 "use client";
 
+import { personalizationLabel } from "@/lib/nos";
+
 import { monsterGiftLabel } from "@/lib/monster-gift";
 
 import Link from "next/link";
@@ -150,7 +152,7 @@ export default function CartDrawer({
                         )}
                         {item.customName && (
                           <p className="text-xs font-semibold text-terra-deep">
-                            Personnalisation : {item.customName}
+                            Personnalisation : {personalizationLabel(item.customName)}
                           </p>
                         )}
                         {item.preorder && (

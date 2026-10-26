@@ -7,13 +7,14 @@ import * as metropolitan from '../lib/metropolitan-shipping.ts';
 import * as gift from '../lib/monster-gift.ts';
 import * as metadata from '../lib/checkout-item-metadata.ts';
 import * as legal from '../lib/legal.ts';
+import * as nos from '../lib/nos.ts';
 const require=createRequire(import.meta.url);
 function checkout(slug='porte-canette-monster',weightGrams=180, settings={}, productOverrides={}) {
  const sessions=[];
  const mocks={
-  '@/lib/metropolitan-shipping':metropolitan,
+  '@/lib/metropolitan-shipping':metropolitan,'@/lib/nos':nos,
   '@/lib/monster-gift':gift,'@/lib/legal':legal,'@/lib/checkout-item-metadata':metadata,
-  '@/lib/store':{getSettings:async()=>settings,getProductById:async()=>({id:'monster',slug,name:'Produit',active:true,variants:[],stock:10,priceCents:1790,weightGrams,images:[],...productOverrides})},
+  '@/lib/store':{getNosLogo:async id=>id==='abc123def456ghi'?{id}:null,getSettings:async()=>settings,getProductById:async()=>({id:'monster',slug,name:'Produit',active:true,variants:[],stock:10,priceCents:1790,weightGrams,images:[],...productOverrides})},
   '@/lib/stripe':{stripeConfigured:()=>true,getStripe:()=>({checkout:{sessions:{create:async data=>{sessions.push(data);return {url:'https://checkout.invalid/test'};}}}})},
   '@/lib/colors':{publicColorName:v=>v},'@/lib/free-shipping':{billableProductWeight:()=>weightGrams,hasMissingProductWeight:()=>weightGrams<=0},
   '@/lib/shipping':{parseShippingRates:()=>[],calculateShippingCents:()=>({priceCents:577,label:'Test'})},
@@ -58,4 +59,15 @@ test('unlisted offers charge the saved price and reject deactivated or exhausted
   assert.equal((await closed.post(request())).status,400);
   assert.equal(closed.sessions.length,0);
  }
+});
+
+
+test('NOS preserves a verified logo reference in the order and charges its saved personalization price',async()=>{
+ const {sessions,post}=checkout(nos.NOS_SLUG,185,{}, {priceCents:2290,namePersonalizationEnabled:true,namePersonalizationPriceCents:0});
+ assert.equal((await post(request({customName:'Logo : abc123def456ghi'}))).status,200);
+ const items=JSON.parse(metadata.readCheckoutItems(sessions[0].metadata));
+ assert.equal(items[0].n,'Logo : abc123def456ghi');assert.equal(sessions[0].line_items[0].price_data.unit_amount,2290);
+ const invalid=checkout(nos.NOS_SLUG,185,{}, {namePersonalizationEnabled:true});
+ assert.equal((await invalid.post(request({customName:'Logo : xyz123def456ghi'}))).status,400);
+ assert.equal(invalid.sessions.length,0);
 });

@@ -1,3 +1,4 @@
+import { nosLogoId } from "@/lib/nos";
 import { monsterGiftLabel } from "@/lib/monster-gift";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
@@ -74,6 +75,7 @@ export default async function CommandeDetailPage({
                       </p>
                     )}
                     {item.color && <p className="text-xs text-ink-soft">Coloris : <OrderColorName name={item.color} item={item} catalog={colorCatalog} /></p>}
+                    {nosLogoId(item.customName) && <a href={`/api/nos/logo/${nosLogoId(item.customName)}`} className="mt-2 inline-block text-sm font-semibold text-terra underline">Télécharger le logo NOS du client</a>}
                     {item.customName && (
                       <p className="text-xs font-semibold text-terra-deep">
                         Personnalisation : {item.customName}

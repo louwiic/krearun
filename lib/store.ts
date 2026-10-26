@@ -1084,3 +1084,25 @@ export async function getWithdrawals(): Promise<import("./withdrawal").Withdrawa
     all.push(...result.items); if (page >= result.totalPages) return all;
   }
 }
+
+// Customer NOS logos are protected PocketBase files; never published on R2.
+export async function createNosLogo(image: Buffer): Promise<string> {
+  const recent = await pb<ListResult<{id:string}>>(`/collections/nos_logos/records?perPage=1&filter=${encodeURIComponent(`created>'${new Date(Date.now()-86400000).toISOString()}'`)}`);
+  if (recent.totalItems >= 300) throw new Error("L’envoi de logos est momentanément indisponible. Réessayez plus tard.");
+  const form = new FormData();
+  form.set("image", new Blob([new Uint8Array(image)], {type:"image/png"}), "logo-nos.png");
+  const response = await fetch(`${PB_URL}/api/collections/nos_logos/records`, {method:"POST", headers:{Authorization:await getToken()}, body:form, cache:"no-store"});
+  if (!response.ok) throw new Error("Impossible d’enregistrer le logo.");
+  return (await response.json() as {id:string}).id;
+}
+export async function getNosLogo(id: string): Promise<{id:string;image:string} | null> {
+  if (!/^[a-z0-9]{15}$/.test(id)) return null;
+  try { return await pb(`/collections/nos_logos/records/${id}`); } catch { return null; }
+}
+export async function getNosLogoImage(id: string): Promise<Buffer | null> {
+  const record = await getNosLogo(id);
+  if (!record) return null;
+  const {token} = await pb<{token:string}>("/files/token", {method:"POST"});
+  const response = await fetch(`${PB_URL}/api/files/nos_logos/${id}/${encodeURIComponent(record.image)}?token=${encodeURIComponent(token)}`, {cache:"no-store"});
+  return response.ok ? Buffer.from(await response.arrayBuffer()) : null;
+}

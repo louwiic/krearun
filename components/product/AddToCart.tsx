@@ -1,5 +1,7 @@
 "use client";
 
+import NosPersonalization from "./NosPersonalization";
+import { NOS_SLUG } from "@/lib/nos";
 import { MONSTER_GIFT } from "@/lib/monster-gift";
 import { useState } from "react";
 import Link from "next/link";
@@ -179,7 +181,9 @@ export default function AddToCart({ product }: { product: Product }) {
 
       {personalizedLamp && <LampPersonalization slug={product.slug} value={lamp} onChange={setLamp} />}
 
-      {!personalizedLamp && product.namePersonalizationEnabled && (
+      {product.slug === NOS_SLUG && product.namePersonalizationEnabled && <NosPersonalization value={customName} priceCents={product.namePersonalizationPriceCents} onChange={(value,enabled)=>{setCustomName(value);setAddPersonalization(enabled);}} />}
+
+      {!personalizedLamp && product.slug !== NOS_SLUG && product.namePersonalizationEnabled && (
         <div className="space-y-3">
           <p className="text-sm font-bold">
             Ajouter un prénom ?

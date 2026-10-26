@@ -1,9 +1,10 @@
+import { NOS_SLUG, nosLogoId } from "@/lib/nos";
 import { parseMetropolitanShipping, shippingZone, metropolitanQuote, shippingQuoteMetadata } from "@/lib/metropolitan-shipping";
 import { MONSTER_GIFT, monsterGiftLabel } from "@/lib/monster-gift";
 import { LEGAL_VERSION } from "@/lib/legal";
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
-import { getProductById, getSettings } from "@/lib/store";
+import { getProductById, getSettings, getNosLogo } from "@/lib/store";
 import { getStripe, stripeConfigured } from "@/lib/stripe";
 import { publicColorName } from "@/lib/colors";
 import { billableProductWeight, hasMissingProductWeight } from "@/lib/free-shipping";
@@ -176,6 +177,8 @@ export async function POST(req: Request) {
     const personalizedLamp = isPersonalizedLamp(product.slug);
     const customName = personalizedLamp ? normalizeLampPersonalization(product.slug, item.customName)
       : product.namePersonalizationEnabled ? normalizeCustomName(item.customName) : "";
+    const nosLogo = product.slug === NOS_SLUG ? nosLogoId(customName) : null;
+    if (nosLogo && !(await getNosLogo(nosLogo))) return NextResponse.json({error:"Votre logo NOS est introuvable. Importez-le à nouveau depuis la fiche produit."},{status:400});
     if (personalizedLamp && !customName) {
       return NextResponse.json({ error: `Complétez la personnalisation de « ${product.name} ».` }, { status: 400 });
     }
