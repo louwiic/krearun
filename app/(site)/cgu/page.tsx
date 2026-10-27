@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { BUSINESS, BUSINESS_ADDRESS, LEGAL_DATE } from "@/lib/legal";
-export const metadata: Metadata = { title: "Conditions générales d’utilisation" };
+export const metadata: Metadata = {
+  alternates: { canonical: "/cgu" }, title: "Conditions générales d’utilisation" };
 const sections = [
   { title: "Accès au site", text: "Le site présente les créations Kréarun, permet de commander, de suivre un achat, de déposer un avis et de demander certaines personnalisations. Sa consultation est gratuite, hors frais de connexion. Les ventes sont régies par les CGV. Les opérations de maintenance peuvent interrompre temporairement certains services sans limiter les droits liés à une commande existante." },
   { title: "Votre compte", text: "Vous fournissez des informations exactes et protégez vos identifiants. Prévenez-nous en cas d’utilisation non autorisée. Vous pouvez demander la fermeture de votre compte ; les données soumises à une conservation légale ou nécessaires au traitement d’une commande ou d’un litige restent conservées dans les limites de la politique de confidentialité. La création d’un compte ne vaut pas consentement aux communications commerciales." },

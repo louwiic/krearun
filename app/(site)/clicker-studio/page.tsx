@@ -2,7 +2,8 @@ import ClickerConfigurator from "@/components/clicker/ClickerConfigurator";
 import { getInventoryColors } from "@/lib/store";
 
 export const metadata = {
-  title: "Clicker Studio | KreaRun",
+  alternates: { canonical: "/clicker-studio" },
+  title: "Clicker personnalisé",
   description: "Créez votre clicker personnalisé avec vos couleurs et votre symbole.",
 };
 

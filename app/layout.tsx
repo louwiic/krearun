@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { siteOrigin } from "@/lib/seo";
 import { Bricolage_Grotesque, Manrope } from "next/font/google";
 import { CartProvider } from "@/components/cart/CartContext";
 import "./globals.css";
@@ -14,12 +15,12 @@ const manrope = Manrope({
   subsets: ["latin"],
 });
 
-const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/$/, "");
+const siteUrl = siteOrigin();
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Kréarun — Découvrez nos produits personnalisés",
+    default: "Objets personnalisés à La Réunion · Kréarun",
     template: "%s · Kréarun",
   },
   description:

@@ -5,6 +5,7 @@ import { formatWeight } from "@/lib/shipping";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/faq" },
   title: "FAQ & livraison",
   description:
     "Délais de fabrication, livraison, retours, entretien : toutes les réponses sur nos objets.",

@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { getSettings } from "@/lib/store";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/contact" },
   title: "Nous écrire",
   description: "Une question, une idée de personnalisation ? Écrivez-nous.",
 };

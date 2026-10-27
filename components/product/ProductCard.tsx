@@ -10,10 +10,12 @@ export default function ProductCard({
   product,
   className = "",
   showCta = false,
+  priority = false,
 }: {
   product: Product;
   className?: string;
   showCta?: boolean;
+  priority?: boolean;
 }) {
   const activeVariants = product.variants.filter((variant) => variant.active);
   const availableStock = activeVariants.length > 0
@@ -38,6 +40,7 @@ export default function ProductCard({
         <img
           src={product.images[0] ?? "/products/hero.svg"}
           alt={product.name}
+          width={800} height={800} decoding="async" loading={priority ? "eager" : "lazy"}
           className="aspect-square w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04]"
         />
         {product.images[1] && (
@@ -45,6 +48,7 @@ export default function ProductCard({
           <img
             src={product.images[1]}
             alt=""
+            width={800} height={800} decoding="async" loading="lazy"
             aria-hidden
             className="absolute inset-0 aspect-square w-full object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100"
           />

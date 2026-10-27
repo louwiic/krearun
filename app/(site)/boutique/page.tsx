@@ -3,15 +3,20 @@ import type { Metadata } from "next";
 import ProductCard from "@/components/product/ProductCard";
 import { getProducts, getSettings } from "@/lib/store";
 import { getVisibleCategories } from "@/lib/categories";
+import { CATEGORY_DESCRIPTIONS, SHOP_DESCRIPTION } from "@/lib/seo";
 import type { Category } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "La boutique",
-  description:
-    "Découvrez nos objets, accessoires et lunettes : veilleuses, vases, décoration et lunettes à 15,90 € avec livraison offerte.",
-};
+export async function generateMetadata({ searchParams }: { searchParams: Promise<{ categorie?: string }> }): Promise<Metadata> {
+  const { categorie } = await searchParams;
+  const settings = await getSettings();
+  const category = getVisibleCategories(settings.categories_json).find(category => category.value === categorie);
+  const title = category ? `${category.label} à La Réunion` : "Boutique d’objets personnalisés à La Réunion";
+  const description = category ? CATEGORY_DESCRIPTIONS[category.value] || `${category.label} : découvrez les créations Kréarun à La Réunion.` : SHOP_DESCRIPTION;
+  const canonical = category ? `/boutique?categorie=${encodeURIComponent(category.value)}` : "/boutique";
+  return { title, description, alternates: { canonical }, openGraph: { title, description, url: canonical } };
+}
 
 export default async function BoutiquePage({
   searchParams,
@@ -41,9 +46,7 @@ export default async function BoutiquePage({
           {currentLabel ?? "Tous nos petits objets"}
         </h1>
         <p className="mt-3 max-w-xl text-sm leading-relaxed text-ink-soft sm:text-base">
-          {categorie === "lunette"
-            ? "Six modèles pour trouver votre style, à 15,90 € la paire. Livraison offerte sur les lunettes."
-            : "Découvrez nos créations et accessoires. Les pièces de l’atelier demandent 2 à 4 jours de fabrication avant leur envoi."}
+          {valid ? CATEGORY_DESCRIPTIONS[categorie!] || `Découvrez nos créations ${currentLabel} préparées à La Réunion.` : SHOP_DESCRIPTION}
         </p>
       </div>
 
@@ -82,8 +85,8 @@ export default async function BoutiquePage({
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:gap-x-8 sm:gap-y-12 lg:grid-cols-3">
-          {filtered.map((p) => (
-            <ProductCard key={p.id} product={p} />
+          {filtered.map((p, index) => (
+            <ProductCard key={p.id} product={p} priority={index < 3} />
           ))}
         </div>
       )}

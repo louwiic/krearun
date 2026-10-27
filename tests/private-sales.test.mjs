@@ -62,7 +62,9 @@ test("creation requires admin and persists an unlisted offer with server validat
 test("unlisted offer pages use noindex even when their catalog category is hidden", async () => {
   const product = { name: "Sur mesure", privateSale: true, active: true, category: "deco", slug: "secret", description: "Demande particulière", images: [] };
   const { generateMetadata } = load("../app/(site)/boutique/[slug]/page.tsx", {
-    "next/link": () => null, "next/navigation": {},
+    "@/lib/seo": load("../lib/seo.ts"),
+      "@/lib/legal": { BUSINESS: {} },
+      "next/link": () => null, "next/navigation": {},
     ...Object.fromEntries(["Gallery", "AddToCart", "ProductCard", "ReviewForm"].map(name => [`@/components/product/${name}`, () => null])),
     "@/components/custom-holder/CustomHolderProduct": () => null,
     "@/components/product/NosProductGallery": () => null, "@/lib/nos": { NOS_SLUG: "nos", NOS_COLORS: [] },

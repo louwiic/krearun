@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { LEGAL_DATE, LEGAL_VERSION, LEGAL_SECTIONS, GUARANTEE_PARAGRAPHS, WITHDRAWAL_TEMPLATE } from "@/lib/legal";
-export const metadata: Metadata = { title: "Conditions générales de vente" };
+export const metadata: Metadata = {
+  alternates: { canonical: "/cgv" }, title: "Conditions générales de vente" };
 export default function CgvPage() {
   return <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
     <p className="text-xs font-bold text-ink-soft">Version {LEGAL_VERSION} · Mise à jour le {LEGAL_DATE}</p>

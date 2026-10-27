@@ -1,11 +1,12 @@
 import type { MetadataRoute } from "next";
+import { siteOrigin } from "@/lib/seo";
 import { getProducts, getSettings } from "@/lib/store";
 import { getVisibleCategories } from "@/lib/categories";
 
 export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const base = (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/$/, "");
+  const base = siteOrigin();
 
   const staticPages: MetadataRoute.Sitemap = [
     { url: base, changeFrequency: "weekly", priority: 1 },
@@ -14,7 +15,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/newsletter`, changeFrequency: "monthly", priority: 0.5 },
     { url: `${base}/faq`, changeFrequency: "monthly", priority: 0.6 },
     { url: `${base}/contact`, changeFrequency: "yearly", priority: 0.4 },
-    { url: `${base}/suivi`, changeFrequency: "yearly", priority: 0.3 },
+    { url: `${base}/clicker-studio`, changeFrequency: "monthly", priority: 0.8 },
+    { url: `${base}/lettre-personnalisee`, changeFrequency: "monthly", priority: 0.8 },
+    { url: `${base}/avis`, changeFrequency: "weekly", priority: 0.6 },
     { url: `${base}/cgu`, changeFrequency: "yearly", priority: 0.2 },
     { url: `${base}/retractation`, changeFrequency: "yearly", priority: 0.3 },
     { url: `${base}/cgv`, changeFrequency: "yearly", priority: 0.2 },
@@ -36,7 +39,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   const productPages: MetadataRoute.Sitemap = products
-    .filter((product) => visibleValues.has(product.category))
+    .filter((product) => product.active && !product.privateSale && visibleValues.has(product.category))
     .map((p) => ({
     url: `${base}/boutique/${p.slug}`,
     lastModified: new Date(p.updatedAt),

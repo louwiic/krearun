@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { BUSINESS, BUSINESS_ADDRESS } from "@/lib/legal";
 
-export const metadata: Metadata = { title: "Mentions légales" };
+export const metadata: Metadata = {
+  alternates: { canonical: "/mentions-legales" }, title: "Mentions légales" };
 
 export default function MentionsLegalesPage() {
   return (

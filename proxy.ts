@@ -51,9 +51,8 @@ export default async function proxy(req: NextRequest) {
     requestedHostname !== PUBLIC_HOST
   ) {
     const url = new URL(`${req.nextUrl.pathname}${req.nextUrl.search}`, publicOrigin);
-    // 307 évite qu'un navigateur conserve définitivement une ancienne
-    // redirection erronée vers le port interne.
-    return NextResponse.redirect(url, 307);
+    // Le domaine www est un alias permanent du domaine public.
+    return NextResponse.redirect(url, requestedHostname === `www.${PUBLIC_HOST}` ? 308 : 307);
   }
 
   if (pathname.startsWith("/admin") && pathname !== "/admin/login") {

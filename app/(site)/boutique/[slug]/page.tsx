@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { productDescription, productStructuredData, productBreadcrumb, jsonLdString } from "@/lib/seo";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import NosProductGallery from "@/components/product/NosProductGallery";
@@ -32,11 +33,12 @@ export async function generateMetadata({
   return {
     title: product.name,
     robots: product.privateSale ? { index: false, follow: false } : undefined,
-    description: publicProductCopy(product.tagline || product.description.slice(0, 155)),
+    description: productDescription(product),
     alternates: { canonical: `/boutique/${product.slug}` },
     openGraph: {
       title: product.name,
-      description: publicProductCopy(product.tagline),
+      description: productDescription(product),
+      url: `/boutique/${product.slug}`,
       images: product.images[0] ? [{ url: product.images[0] }] : undefined,
     },
   };
@@ -71,37 +73,13 @@ export default async function ProductPage({
   const variantPrices = activeVariants.map((variant) => variant.priceCents || product.priceCents);
   const displayPrice = variantPrices.length > 0 ? Math.min(...variantPrices) : product.priceCents;
 
-  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/$/, "");
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Product",
-    name: product.name,
-    description: publicProductCopy(product.tagline || product.description.slice(0, 200)),
-    image: product.images.map((img) =>
-      img.startsWith("http") ? img : `${siteUrl}${img}`
-    ),
-    url: `${siteUrl}/boutique/${product.slug}`,
-    category: categoryLabel,
-    brand: { "@type": "Brand", name: "Krearun Studio" },
-    offers: {
-      "@type": "Offer",
-      price: (product.priceCents / 100).toFixed(2),
-      priceCurrency: "EUR",
-      availability:
-        product.preorder
-          ? "https://schema.org/PreOrder"
-          : product.stock > 0
-          ? "https://schema.org/InStock"
-          : "https://schema.org/OutOfStock",
-      url: `${siteUrl}/boutique/${product.slug}`,
-    },
-  };
+  const jsonLd = [productStructuredData(product, categoryLabel, reviews), productBreadcrumb(product, categoryLabel)];
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10">
       {!product.privateSale && <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdString(jsonLd) }}
       />}
       {product.privateSale && <p className="mb-5 rounded-2xl border border-sand bg-white p-4 text-sm font-semibold">Votre création sur mesure — préparée selon votre demande.</p>}
       <nav data-product-view={product.id} className="mb-5 truncate text-xs text-ink-faint sm:mb-8 sm:text-sm">

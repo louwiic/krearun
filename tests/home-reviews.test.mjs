@@ -35,6 +35,8 @@ test("all approved reviews show their photos and products, with no three-review 
 test("both homepage modes retain approved reviews for products other than the featured product", async () => {
   for (const mode of ["single_product", "catalog"]) {
     const Page = load("../app/(site)/page.tsx", {
+      "@/lib/seo": load("../lib/seo.ts"),
+      "@/lib/legal": { BUSINESS: {} },
       "next/link": ({ children, ...props }) => createElement("a", props, children),
       "@/components/home/HomeReviews": HomeReviews,
       "@/components/home/SingleProductHome": ({ reviews }) => createElement(HomeReviews, { reviews }),

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import PersonalizationChoices from "@/components/personalization/PersonalizationChoices";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/personnaliser" },
   title: "Choisissez votre objet à personnaliser",
   description: "Découvrez nos aperçus 3D et choisissez votre porte-boisson, clicker ou lettre avant de créer votre objet personnalisé.",
 };

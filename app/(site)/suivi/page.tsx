@@ -8,6 +8,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Suivre ma commande",
+  robots: { index: false, follow: false },
   description: "Où en est votre colis ? Entrez votre numéro de commande.",
 };
 

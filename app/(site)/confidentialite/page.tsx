@@ -2,7 +2,8 @@ import { BUSINESS, BUSINESS_ADDRESS, LEGAL_DATE } from "@/lib/legal";
 import type { Metadata } from "next";
 import Link from "next/link";
 
-export const metadata: Metadata = { title: "Politique de confidentialité" };
+export const metadata: Metadata = {
+  alternates: { canonical: "/confidentialite" }, title: "Politique de confidentialité" };
 
 const contactEmail = BUSINESS.email;
 const updatedAt = LEGAL_DATE;
