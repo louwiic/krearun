@@ -1,3 +1,4 @@
+import ProductTracking from "@/components/analytics/ProductTracking";
 import PrivacyPreferences from "@/components/site/PrivacyPreferences";
 import Navbar from "@/components/site/Navbar";
 import Footer from "@/components/site/Footer";
@@ -57,6 +58,7 @@ export default async function SiteLayout({
         storeName={settings.store_name}
       />
     <PrivacyPreferences />
+    <ProductTracking />
       </div>
   );
 }

@@ -29,6 +29,8 @@ export default function ProductCard({
   return (
     <Link
       href={`/boutique/${product.slug}`}
+      data-product-impression={product.id}
+      data-product-click={product.id}
       className={`group block ${className}`}
     >
       <div className="relative overflow-hidden rounded-2xl border-2 border-ink bg-cream transition-all duration-200 group-hover:-translate-y-1 group-hover:shadow-hard">

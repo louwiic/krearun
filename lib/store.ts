@@ -1106,3 +1106,21 @@ export async function getNosLogoImage(id: string): Promise<Buffer | null> {
   const response = await fetch(`${PB_URL}/api/files/nos_logos/${id}/${encodeURIComponent(record.image)}?token=${encodeURIComponent(token)}`, {cache:"no-store"});
   return response.ok ? Buffer.from(await response.arrayBuffer()) : null;
 }
+
+// Product audience: no names, email addresses, IPs, URLs or visitor IDs are stored.
+export async function recordProductEvent(event: import("./product-events").ProductEvent) {
+  const path=`/collections/product_events/records?perPage=1&filter=${encodeURIComponent(`eventId='${event.eventId}'`)}`;
+  if((await pb<ListResult<{id:string}>>(path)).items.length)return;
+  try{await pb("/collections/product_events/records",{method:"POST",body:event});}
+  catch(error){if((await pb<ListResult<{id:string}>>(path)).items.length)return;throw error;}
+}
+export async function getProductDailyStats():Promise<import("./product-events").ProductDailyStats[]|null>{
+  try{
+    const rows:import("./product-events").ProductDailyStats[]=[];
+    for(let page=1;;page++){
+      const data=await pb<ListResult<import("./product-events").ProductDailyStats>>(`/collections/product_daily_stats/records?perPage=500&page=${page}&sort=day,productId`);
+      rows.push(...data.items);if(page>=data.totalPages)break;
+    }
+    return rows;
+  }catch{console.error("[Product stats] Dashboard unavailable");return null;}
+}

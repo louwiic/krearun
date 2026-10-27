@@ -59,6 +59,8 @@ export default async function AdminDashboard() {
 
       <SalesDashboard orders={salesOrders} products={products.map(({ id, name }) => ({ id, name }))} today={reunionDay(new Date().toISOString())} />
 
+      <Link href="/admin/produits/statistiques" className="mt-8 inline-flex rounded-full border border-ink px-5 py-3 text-sm font-bold">Voir les impressions, clics et vues des produits ↗</Link>
+
       <h2 className="mt-12 font-display text-2xl">Vue générale de la boutique</h2>
       <p className="mt-1 text-xs text-ink-soft">Tout l’historique · indépendant des filtres de ventes ci-dessus</p>
       <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

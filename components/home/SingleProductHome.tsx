@@ -48,7 +48,7 @@ export default function SingleProductHome({
               <span className="h-2 w-2 animate-pulse rounded-full bg-ink" />
               Le produit vedette
             </p>
-            <h2 className="font-display text-3xl leading-tight text-ink sm:text-4xl lg:text-5xl">
+            <h2 data-product-impression={product.id} className="font-display text-3xl leading-tight text-ink sm:text-4xl lg:text-5xl">
               {product.name}
             </h2>
             <p className="mt-5 max-w-xl text-base leading-relaxed text-ink-soft sm:text-lg">
@@ -140,6 +140,8 @@ export default function SingleProductHome({
               </div>
               <Link
                 href={`/boutique/${secondaryProduct.slug}`}
+                data-product-impression={secondaryProduct.id}
+                data-product-click={secondaryProduct.id}
                 className="mt-7 inline-flex border-2 border-ink bg-ink px-6 py-3 text-sm font-bold uppercase tracking-[0.06em] text-cream transition-colors hover:bg-sage hover:border-sage"
               >
                 Voir la fiche complète →

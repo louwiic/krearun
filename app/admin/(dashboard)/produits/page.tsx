@@ -1,11 +1,14 @@
 import Link from "next/link";
-import { getProducts } from "@/lib/store";
+import { productCounts, productDay, shiftProductDay } from "@/lib/product-events";
+import { getProducts, getProductDailyStats } from "@/lib/store";
 import { ProductBulkTable } from "@/components/admin/ProductBulkTable";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminProduitsPage() {
-  const products = await getProducts({ includeInactive: true });
+  const [products,rows] = await Promise.all([getProducts({ includeInactive: true }),getProductDailyStats()]);
+  const today=productDay();
+  const audience=rows?productCounts(rows,shiftProductDay(today,-29),today).byProduct:null;
 
   return (
     <div className="mx-auto max-w-5xl">
@@ -17,6 +20,7 @@ export default async function AdminProduitsPage() {
           </p>
         </div>
         <div className="flex flex-wrap gap-3">
+        <Link href="/admin/produits/statistiques" className="rounded-full border border-ink px-6 py-3 text-sm font-bold hover:bg-sand">Statistiques des produits</Link>
         <Link href="/admin/produits/sur-mesure" className="rounded-full border border-ink px-6 py-3 text-sm font-bold hover:bg-sand">+ Offre sur mesure</Link>
         <Link
           href="/admin/produits/nouveau"
@@ -27,7 +31,8 @@ export default async function AdminProduitsPage() {
         </div>
       </div>
 
-      <ProductBulkTable products={products} />
+      <p className="mb-4 text-xs text-ink-soft">Impressions, clics et vues des fiches : 30 derniers jours. <Link href="/admin/produits/statistiques" className="font-semibold underline">Choisir une autre période et voir les graphiques</Link></p>
+      <ProductBulkTable products={products} audience={audience} />
     </div>
   );
 }

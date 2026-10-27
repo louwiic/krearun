@@ -8,5 +8,5 @@ export const metadata = {
 
 export default async function Page() {
   const colors = await getInventoryColors();
-  return <ClickerConfigurator colors={colors} />;
+  return <><div data-product-view="clicker-studio" aria-hidden className="h-px"/><ClickerConfigurator colors={colors} /></>;
 }

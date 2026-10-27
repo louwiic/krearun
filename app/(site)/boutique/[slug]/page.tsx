@@ -56,7 +56,7 @@ export default async function ProductPage({
     (!product.privateSale && !categories.some((category) => category.value === product.category))
   ) notFound();
 
-  if (slug === HOLDER_SLUG) return <CustomHolderProduct />;
+  if (slug === HOLDER_SLUG) return <><div data-product-view={product.id} aria-hidden className="h-px"/><CustomHolderProduct /></>;
 
   const [all, reviews] = await Promise.all([
     getProducts(),
@@ -104,7 +104,7 @@ export default async function ProductPage({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />}
       {product.privateSale && <p className="mb-5 rounded-2xl border border-sand bg-white p-4 text-sm font-semibold">Votre création sur mesure — préparée selon votre demande.</p>}
-      <nav className="mb-5 truncate text-xs text-ink-faint sm:mb-8 sm:text-sm">
+      <nav data-product-view={product.id} className="mb-5 truncate text-xs text-ink-faint sm:mb-8 sm:text-sm">
         <Link href="/boutique" className="hover:text-terra">
           Boutique
         </Link>

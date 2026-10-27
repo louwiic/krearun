@@ -1,5 +1,6 @@
 "use client";
 
+import type { ProductCounts } from "@/lib/product-events";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { bulkUpdateProductsAction } from "@/app/admin/actions";
@@ -8,9 +9,10 @@ import { CATEGORIES, type Product } from "@/lib/types";
 
 interface ProductBulkTableProps {
   products: Product[];
+  audience?: Record<string,ProductCounts>|null;
 }
 
-export function ProductBulkTable({ products }: ProductBulkTableProps) {
+export function ProductBulkTable({ products, audience }: ProductBulkTableProps) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const selectAllRef = useRef<HTMLInputElement>(null);
   const allSelected = products.length > 0 && selectedIds.size === products.length;
@@ -96,6 +98,7 @@ export function ProductBulkTable({ products }: ProductBulkTableProps) {
               <th className="hidden px-5 py-4 font-bold sm:table-cell">Catégorie</th>
               <th className="px-5 py-4 font-bold">Prix</th>
               <th className="px-5 py-4 font-bold">Stock</th>
+              {["Impressions","Clics","Vues fiche"].map(label=><th key={label} className="px-4 py-4 text-right font-bold">{label}</th>)}
               <th className="hidden px-5 py-4 font-bold md:table-cell">Statut</th>
             </tr>
           </thead>
@@ -148,6 +151,7 @@ export function ProductBulkTable({ products }: ProductBulkTableProps) {
                       {product.stock}
                     </span>
                   </td>
+                  {(["impressions","clicks","views"] as const).map(key=><td key={key} className="px-4 py-3 text-right"><Link href={`/admin/produits/statistiques?produit=${product.id}`} className="hover:underline">{audience===null||audience===undefined?"—":(audience[product.id]?.[key]||0).toLocaleString("fr-FR")}</Link></td>)}
                   <td className="hidden px-5 py-3 md:table-cell">
                     {product.active ? (
                       <span className="text-xs font-bold text-sage-deep">
