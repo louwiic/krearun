@@ -1,4 +1,6 @@
 import Link from "next/link";
+import AdminToasts from "@/components/admin/AdminToasts";
+import { getAdminNotice } from "@/lib/admin-notice";
 import BrandLogo from "@/components/site/BrandLogo";
 import { redirect } from "next/navigation";
 import { isAdmin } from "@/lib/auth";
@@ -81,6 +83,7 @@ export default async function AdminLayout({
         </>
       }
     >
+      <AdminToasts notice={await getAdminNotice()} />
       {children}
     </AdminShell>
   );

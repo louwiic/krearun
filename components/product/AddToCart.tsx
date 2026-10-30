@@ -1,5 +1,6 @@
 "use client";
 
+import { useColorAvailability } from "./ColorAvailabilityProvider";
 import NosPersonalization from "./NosPersonalization";
 import { NOS_SLUG } from "@/lib/nos";
 import { MONSTER_GIFT } from "@/lib/monster-gift";
@@ -19,9 +20,10 @@ import { discountedUnitPriceCents, quantityDiscountPercent } from "@/lib/quantit
 
 export default function AddToCart({ product }: { product: Product }) {
   const { addItem } = useCart();
+  const isColorAvailable = useColorAvailability(product.category === "lunette");
   const activeVariants = product.variants.filter((variant) => variant.active);
   const [variantId, setVariantId] = useState(activeVariants[0]?.id ?? "");
-  const [color, setColor] = useState(product.colors[0]?.name ?? "");
+  const [requestedColor, setColor] = useState(product.colors.find(isColorAvailable)?.name ?? "");
   const [addPersonalization, setAddPersonalization] = useState(false);
   const [customName, setCustomName] = useState("");
   const personalizedLamp = isPersonalizedLamp(product.slug);
@@ -30,12 +32,14 @@ export default function AddToCart({ product }: { product: Product }) {
   const [quantity, setQuantity] = useState(1);
   const selectedVariant = activeVariants.find((variant) => variant.id === variantId);
   const availableColors = selectedVariant?.colors?.length ? selectedVariant.colors : product.colors;
-  const selectedColor = availableColors.find((item) => item.name === color) ?? availableColors[0];
+  const selectedColor = availableColors.find((item) => item.name === requestedColor && isColorAvailable(item)) ?? availableColors.find(isColorAvailable);
+  const color = selectedColor?.name ?? "";
+  const colorsSoldOut = availableColors.length > 0 && !selectedColor;
   const selectedStock = selectedVariant?.stock ?? product.stock;
   const selectedWeight = selectedVariant?.weightGrams || product.weightGrams;
   const selectedImage = selectedColor?.image || selectedVariant?.image || product.images[0] || "";
   const maxQuantity = product.preorder ? 20 : selectedStock;
-  const soldOut = selectedStock <= 0 && !product.preorder;
+  const soldOut = colorsSoldOut || (selectedStock <= 0 && !product.preorder);
   const normalizedCustomName = customName.trim().replace(/\s+/g, " ");
   const missingCustomName =
     personalizedLamp ? !lampDetails : product.namePersonalizationEnabled && addPersonalization && !normalizedCustomName;
@@ -67,7 +71,7 @@ export default function AddToCart({ product }: { product: Product }) {
                 onClick={() => {
                   const variantColors = variant.colors?.length ? variant.colors : product.colors;
                   const nextColor =
-                    variantColors.find((item) => item.name === color) ?? variantColors[0];
+                    variantColors.find((item) => item.name === color && isColorAvailable(item)) ?? variantColors.find(isColorAvailable);
                   setVariantId(variant.id);
                   setColor(nextColor?.name ?? "");
                   setQuantity(1);
@@ -143,7 +147,7 @@ export default function AddToCart({ product }: { product: Product }) {
       {availableColors.length > 0 && (
         <div className="space-y-3">
           <p className="mb-2 text-sm font-bold">
-            Coloris — <span className="font-semibold text-ink-soft">{publicColorName(color)}</span>
+            Coloris — <span className="font-semibold text-ink-soft">{color ? publicColorName(color) : "Aucun coloris disponible"}</span>
           </p>
           {showMonsterPreview && selectedColor ? (
             <MonsterClawPreview
@@ -156,6 +160,7 @@ export default function AddToCart({ product }: { product: Product }) {
               <button
                 key={c.name}
                 type="button"
+                disabled={!isColorAvailable(c)}
                 onClick={() => {
                   setColor(c.name);
                   if (product.slug === NOS_SLUG) window.dispatchEvent(new CustomEvent(NOS_COLOR_EVENT, {detail:{name:publicColorName(c.name),hex:c.hex}}));
@@ -167,9 +172,9 @@ export default function AddToCart({ product }: { product: Product }) {
                     );
                   }
                 }}
-                title={publicColorName(c.name)}
-                aria-label={`Coloris ${publicColorName(c.name)}`}
-                className={`h-8 w-8 rounded-full border-2 transition-all ${
+                title={`${publicColorName(c.name)}${isColorAvailable(c) ? "" : " — Rupture de stock"}`}
+                aria-label={`Coloris ${publicColorName(c.name)}${isColorAvailable(c) ? "" : " — Rupture de stock"}`}
+                className={`relative h-8 w-8 rounded-full border-2 transition-all disabled:cursor-not-allowed disabled:opacity-60 ${!isColorAvailable(c) ? "color-swatch-unavailable" : ""} ${
                   color === c.name
                     ? "scale-110 border-terra shadow-soft"
                     : "border-sand hover:border-ink-faint"
@@ -178,6 +183,7 @@ export default function AddToCart({ product }: { product: Product }) {
               />
             ))}
           </div>
+          {availableColors.some(c => !isColorAvailable(c)) && <p className="text-xs font-semibold text-ink-soft">Coloris barrés : rupture de stock.</p>}
         </div>
       )}
 
@@ -306,7 +312,7 @@ export default function AddToCart({ product }: { product: Product }) {
           className="w-full rounded-full bg-terra px-8 py-3.5 text-sm font-bold text-cream transition-all hover:bg-terra-deep hover:shadow-lifted disabled:cursor-not-allowed disabled:bg-ink-faint sm:flex-1"
         >
           {soldOut
-            ? "Bientôt de retour"
+            ? (colorsSoldOut ? "Coloris en rupture de stock" : "Bientôt de retour")
             : missingCustomName
               ? "Indiquer le prénom"
             : product.preorder

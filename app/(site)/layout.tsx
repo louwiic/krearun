@@ -1,3 +1,5 @@
+import { ColorAvailabilityProvider } from "@/components/product/ColorAvailabilityProvider";
+import HalloweenSpiders from "@/components/site/HalloweenSpiders";
 import { activeSiteSkin } from "@/lib/site-skins";
 import SeasonalSkinBanner from "@/components/site/SeasonalSkinBanner";
 import ProductTracking from "@/components/analytics/ProductTracking";
@@ -6,7 +8,7 @@ import Navbar from "@/components/site/Navbar";
 import Footer from "@/components/site/Footer";
 import CartDrawer from "@/components/cart/CartDrawer";
 import NewsletterPopup from "@/components/site/NewsletterPopup";
-import { getSettings } from "@/lib/store";
+import { getSettings, getInventoryColors } from "@/lib/store";
 import { getVisibleCategories } from "@/lib/categories";
 
 export default async function SiteLayout({
@@ -14,7 +16,7 @@ export default async function SiteLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const settings = await getSettings();
+  const [settings, inventory] = await Promise.all([getSettings(), getInventoryColors({ includeInactive: true }).catch(() => [])]);
   const categories = getVisibleCategories(settings.categories_json);
   const announcement =
     settings.announcement.includes("Collection") && settings.announcement.includes("60")
@@ -22,7 +24,8 @@ export default async function SiteLayout({
       : settings.announcement;
 
   return (
-    <div className="storefront flex min-h-screen flex-col bg-linen text-ink" data-site-skin={activeSiteSkin(settings)}>
+    <ColorAvailabilityProvider colors={inventory.map(({name,hex,active}) => ({name,hex,active}))}><div className="storefront flex min-h-screen flex-col bg-linen text-ink" data-site-skin={activeSiteSkin(settings)}>
+      {activeSiteSkin(settings) === "halloween" && <HalloweenSpiders />}
       {announcement && (
         <div className="marquee-mask bg-terra py-2 text-ink">
           <div className="marquee-track text-[11px] font-bold uppercase tracking-[0.18em]">
@@ -62,6 +65,6 @@ export default async function SiteLayout({
       />
     <PrivacyPreferences />
     <ProductTracking />
-      </div>
+      </div></ColorAvailabilityProvider>
   );
 }

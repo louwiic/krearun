@@ -1,10 +1,11 @@
+import { colorKey, inventoryColorAvailable, type ColorAvailability } from "@/lib/color-availability";
 import { NOS_SLUG, NOS_TEXT_MAX, nosLogoId } from "@/lib/nos";
 import { parseMetropolitanShipping, shippingZone, metropolitanQuote, shippingQuoteMetadata } from "@/lib/metropolitan-shipping";
 import { MONSTER_GIFT, monsterGiftLabel } from "@/lib/monster-gift";
 import { LEGAL_VERSION } from "@/lib/legal";
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
-import { getProductById, getSettings, getNosLogo } from "@/lib/store";
+import { getProductById, getSettings, getNosLogo, getInventoryColors } from "@/lib/store";
 import { getStripe, stripeConfigured } from "@/lib/stripe";
 import { publicColorName } from "@/lib/colors";
 import { billableProductWeight, hasMissingProductWeight } from "@/lib/free-shipping";
@@ -146,6 +147,7 @@ export async function POST(req: Request) {
   let physicalWeightGrams = 0;
   let missingBillableWeight = false;
 
+  let inventory: ColorAvailability[] | undefined;
   for (const item of items) {
     const product = item.productId === CLICKER_PRODUCT_ID ? CLICKER_PRODUCT : await getProductById(item.productId);
     if (!product || !product.active) {
@@ -175,6 +177,14 @@ export async function POST(req: Request) {
       );
     }
     const orderColor = publicColorName(item.color || "");
+    if (product.category !== "lunette" && product.id !== CLICKER_PRODUCT_ID && product.colors?.length) {
+      const palette = variant?.colors?.length ? variant.colors : product.colors;
+      const selectedColor = palette.find(color => colorKey(color.name) === colorKey(orderColor));
+      if (!selectedColor) return NextResponse.json({ error: `Choisissez un coloris disponible pour « ${product.name} ».` }, { status: 400 });
+      try { inventory ??= await getInventoryColors({ includeInactive: true }); }
+      catch { return NextResponse.json({ error: "Impossible de vérifier la disponibilité des couleurs. Réessayez dans un instant." }, { status: 503 }); }
+      if (!inventoryColorAvailable(selectedColor, inventory)) return NextResponse.json({ error: `Le coloris ${orderColor} est en rupture de stock. Choisissez une autre couleur pour « ${product.name} ».` }, { status: 400 });
+    }
     if (product.slug === NOS_SLUG) {
       if (!product.colors.some(color => publicColorName(color.name) === orderColor)) return NextResponse.json({error:"Choisissez un coloris disponible pour le NOS : noir, rose ou blanc."},{status:400});
       if (product.namePersonalizationEnabled && String(item.customName ?? "").trim().replace(/\s+/g," ").length > NOS_TEXT_MAX) return NextResponse.json({error:`Le texte NOS doit contenir ${NOS_TEXT_MAX} caractères maximum.`},{status:400});

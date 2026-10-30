@@ -1,7 +1,7 @@
 import Link from "next/link";
+import { ProductColorDots } from "./ColorAvailabilityProvider";
 import type { Product } from "@/lib/types";
 import { formatPrice } from "@/lib/format";
-import { publicColorName } from "@/lib/colors";
 import { hasFreeShipping } from "@/lib/free-shipping";
 import { publicProductCopy } from "@/lib/public-copy";
 import { HOLDER_SLUG } from "@/lib/custom-holder";
@@ -87,14 +87,7 @@ export default function ProductCard({
         </div>
         {product.colors.length > 0 && (
           <div className="absolute bottom-3 left-3 flex gap-1 sm:bottom-4 sm:left-4 sm:gap-1.5">
-            {product.colors.map((c) => (
-              <span
-                key={c.name}
-                title={publicColorName(c.name)}
-                className="h-3.5 w-3.5 rounded-full border-2 border-ink sm:h-4 sm:w-4"
-                style={{ backgroundColor: c.hex }}
-              />
-            ))}
+            <ProductColorDots colors={product.colors} ignoreInventory={product.category === "lunette"} />
           </div>
         )}
       </div>

@@ -8,13 +8,14 @@ import * as gift from '../lib/monster-gift.ts';
 import * as metadata from '../lib/checkout-item-metadata.ts';
 import * as legal from '../lib/legal.ts';
 import * as nos from '../lib/nos.ts';
+import * as availability from '../lib/color-availability.ts';
 const require=createRequire(import.meta.url);
-function checkout(slug='porte-canette-monster',weightGrams=180, settings={}, productOverrides={}) {
+function checkout(slug='porte-canette-monster',weightGrams=180, settings={}, productOverrides={}, inventory=[]) {
  const sessions=[];
  const mocks={
-  '@/lib/metropolitan-shipping':metropolitan,'@/lib/nos':nos,
+  '@/lib/color-availability':availability,'@/lib/metropolitan-shipping':metropolitan,'@/lib/nos':nos,
   '@/lib/monster-gift':gift,'@/lib/legal':legal,'@/lib/checkout-item-metadata':metadata,
-  '@/lib/store':{getNosLogo:async id=>id==='abc123def456ghi'?{id}:null,getSettings:async()=>settings,getProductById:async()=>({id:'monster',slug,name:'Produit',active:true,variants:[],stock:10,priceCents:1790,weightGrams,images:[],colors:slug===nos.NOS_SLUG?nos.NOS_COLORS:[],...productOverrides})},
+  '@/lib/store':{getInventoryColors:async()=>inventory,getNosLogo:async id=>id==='abc123def456ghi'?{id}:null,getSettings:async()=>settings,getProductById:async()=>({id:'monster',slug,name:'Produit',active:true,variants:[],stock:10,priceCents:1790,weightGrams,images:[],colors:slug===nos.NOS_SLUG?nos.NOS_COLORS:[],...productOverrides})},
   '@/lib/stripe':{stripeConfigured:()=>true,getStripe:()=>({checkout:{sessions:{create:async data=>{sessions.push(data);return {url:'https://checkout.invalid/test'};}}}})},
   '@/lib/colors':{publicColorName:v=>v},'@/lib/free-shipping':{billableProductWeight:()=>weightGrams,hasMissingProductWeight:()=>weightGrams<=0},
   '@/lib/shipping':{parseShippingRates:()=>[],calculateShippingCents:()=>({priceCents:577,label:'Test'})},
@@ -88,4 +89,14 @@ test('NOS rejects an unavailable color or text longer than 60 characters before 
   const {sessions,post}=checkout(nos.NOS_SLUG,185,{}, {namePersonalizationEnabled:true});
   assert.equal((await post(request(values))).status,400);assert.equal(sessions.length,0);
  }
+});
+
+test('checkout refuses a stale unavailable filament choice before creating a payment session', async () => {
+ const inventory = [{name:'Vert Neon',hex:'#d5ff3d',active:false}];
+ const closed=checkout('porte-canette-monster',180,{}, {colors:[{name:'Vert néon',hex:'#d5ff3d'}]},inventory);
+ assert.equal((await closed.post(request({color:'Vert Neon'}))).status,400);assert.equal(closed.sessions.length,0);
+ const forged=checkout('porte-canette-monster',180,{}, {colors:[{name:'Vert néon',hex:'#d5ff3d'}]},inventory);
+ assert.equal((await forged.post(request({color:'not-in-palette'}))).status,400);assert.equal(forged.sessions.length,0);
+ const glasses=checkout('lunettes',180,{}, {category:'lunette',colors:[{name:'Vert néon',hex:'#d5ff3d'}]},inventory);
+ assert.equal((await glasses.post(request({color:'Vert Neon'}))).status,200);
 });

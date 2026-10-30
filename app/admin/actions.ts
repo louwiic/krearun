@@ -1,5 +1,6 @@
 "use server";
 
+import { setAdminNotice } from "@/lib/admin-notice";
 import { parseMetropolitanShipping } from "@/lib/metropolitan-shipping";
 
 import { revalidatePath } from "next/cache";
@@ -276,6 +277,7 @@ export async function saveProductAction(formData: FormData) {
   };
 
   const product = id ? await updateProduct(id, data) : await createProduct(data);
+  if (!product) { await setAdminNotice("error", "Impossible d’enregistrer le produit. Réessayez."); redirect("/admin/produits"); }
 
   // Les nouvelles photos sont compressées en WebP puis stockées dans R2.
   if (product && newFiles.length > 0) {
@@ -303,6 +305,7 @@ export async function saveProductAction(formData: FormData) {
 
   revalidatePath("/", "layout");
   revalidatePath("/api/partenaires/produits");
+  await setAdminNotice("success", "Produit enregistré.");
   redirect(privateSale && product ? `/admin/produits/${product.id}` : "/admin/produits");
 }
 
@@ -313,6 +316,7 @@ export async function deleteProductAction(formData: FormData) {
     await deleteProduct(id);
   }
   revalidatePath("/", "layout");
+  await setAdminNotice("success", "Suppression du produit terminée.");
   redirect("/admin/produits");
 }
 
@@ -350,6 +354,7 @@ export async function bulkUpdateProductsAction(formData: FormData) {
   revalidatePath("/", "layout");
   revalidatePath("/admin/produits");
   revalidatePath("/api/partenaires/produits");
+  await setAdminNotice("success", "Mise à jour des produits terminée.");
   redirect("/admin/produits");
 }
 
@@ -357,39 +362,33 @@ export async function bulkUpdateProductsAction(formData: FormData) {
 
 export async function saveInventoryColorAction(formData: FormData) {
   await requireAdmin();
-
   const id = String(formData.get("id") ?? "");
   const name = String(formData.get("name") ?? "").trim();
-  const hex = String(formData.get("hex") ?? "#000000").trim() || "#000000";
-  if (!name) redirect("/admin/inventaire");
-
-  const stockGrams = Math.max(0, parseInt(String(formData.get("stockGrams") ?? "0"), 10) || 0);
-  const sortOrder = parseInt(String(formData.get("sortOrder") ?? "0"), 10) || 0;
-  const data = {
-    name,
-    hex,
-    stockGrams,
-    active: formData.get("active") === "on",
-    note: String(formData.get("note") ?? "").trim(),
-    sortOrder,
-  };
-
-  if (id) {
-    await updateInventoryColor(id, data);
-  } else {
-    await createInventoryColor(data);
-  }
-
+  const hex = String(formData.get("hex") ?? "").trim();
+  const stockGrams = Number(formData.get("stockGrams"));
+  const sortOrder = Number(formData.get("sortOrder"));
+  let error = "";
+  try {
+    if (!name || name.length > 100 || !/^#[a-f0-9]{6}$/i.test(hex) || !Number.isSafeInteger(stockGrams) || stockGrams < 0 || !Number.isSafeInteger(sortOrder)) throw new Error("Validation");
+    const data = { name, hex, stockGrams, active: formData.get("active") === "on", note: String(formData.get("note") ?? "").trim(), sortOrder };
+    const saved = id ? await updateInventoryColor(id, data) : await createInventoryColor(data);
+    if (!saved) throw new Error("Persistence");
+  } catch { error = "Impossible d’enregistrer la couleur. Vérifiez le nom, la couleur et les quantités, puis réessayez."; }
+  if (error) { await setAdminNotice("error", error); redirect("/admin/inventaire"); }
+  revalidatePath("/", "layout");
   revalidatePath("/admin/inventaire");
   revalidatePath("/admin/produits", "layout");
-  redirect("/admin/inventaire");
+  await setAdminNotice("success", `${name} : ${id ? "modifications enregistrées" : "couleur ajoutée"}. ${formData.get("active") === "on" ? "Disponible" : "Indisponible sur la boutique"}.`);
+  redirect(`/admin/inventaire${id ? `#couleur-${id}` : ""}`);
 }
 
 export async function toggleInventoryColorAction(formData: FormData) {
   await requireAdmin();
   const id = String(formData.get("id") ?? "");
   const active = formData.get("active") === "on";
-  if (id) await updateInventoryColor(id, { active });
+  const saved = id ? await updateInventoryColor(id, { active }) : null;
+  await setAdminNotice(saved ? "success" : "error", saved ? `Couleur ${active ? "disponible" : "indisponible"} sur la boutique.` : "Impossible de modifier la disponibilité de cette couleur.");
+  revalidatePath("/", "layout");
   revalidatePath("/admin/inventaire");
   revalidatePath("/admin/produits", "layout");
   redirect("/admin/inventaire");
@@ -422,6 +421,7 @@ export async function updateOrderStatusAction(formData: FormData) {
   revalidatePath("/admin/commandes");
   revalidatePath(`/admin/commandes/${id}`);
   revalidatePath("/admin");
+  await setAdminNotice("success", "Statut de la commande enregistré.");
   redirect(`/admin/commandes/${id}`);
 }
 
@@ -518,6 +518,7 @@ export async function setSubscriberIgnoredAction(formData: FormData) {
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error("Contact invalide.");
   await setMailingContactIgnored(email, formData.get("ignored") === "true");
   revalidatePath("/admin/newsletter");
+  await setAdminNotice("success", "Préférence du contact enregistrée.");
 }
 
 export async function deleteSubscriberAction(formData: FormData) {
@@ -527,6 +528,7 @@ export async function deleteSubscriberAction(formData: FormData) {
   const orders = await getOrders();
   await removeNewsletterContact(email, orders.some((order) => order.status !== "cancelled" && order.email.trim().toLowerCase() === email));
   revalidatePath("/admin/newsletter");
+  await setAdminNotice("success", "Contact retiré de la newsletter.");
 }
 
 export async function resendOrderShippedAction(
@@ -587,6 +589,7 @@ export async function approveReviewAction(formData: FormData) {
   if (id) await updateReviewApproval(id, true);
   revalidatePath("/", "layout");
   revalidatePath("/admin/avis");
+  await setAdminNotice("success", "Avis approuvé et publié.");
   redirect("/admin/avis");
 }
 
@@ -596,6 +599,7 @@ export async function hideReviewAction(formData: FormData) {
   if (id) await updateReviewApproval(id, false);
   revalidatePath("/", "layout");
   revalidatePath("/admin/avis");
+  await setAdminNotice("success", "Avis masqué.");
   redirect("/admin/avis");
 }
 
@@ -605,6 +609,7 @@ export async function deleteReviewAction(formData: FormData) {
   if (id) await deleteReview(id);
   revalidatePath("/", "layout");
   revalidatePath("/admin/avis");
+  await setAdminNotice("success", "Avis supprimé.");
   redirect("/admin/avis");
 }
 
@@ -675,6 +680,7 @@ export async function saveSettingsAction(formData: FormData) {
   });
 
   revalidatePath("/", "layout");
+  await setAdminNotice("success", "Réglages enregistrés.");
   redirect("/admin/parametres");
 }
 
@@ -693,5 +699,6 @@ export async function saveCategoriesAction(formData: FormData) {
   await saveSettings({ categories_json: JSON.stringify(categories) });
   revalidatePath("/", "layout");
   revalidatePath("/sitemap.xml");
+  await setAdminNotice("success", "Catégories enregistrées.");
   redirect("/admin/categories");
 }

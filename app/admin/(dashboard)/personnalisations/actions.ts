@@ -1,4 +1,5 @@
 "use server";
+import { setAdminNotice } from "@/lib/admin-notice";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { isAdmin } from "@/lib/auth";
@@ -24,5 +25,6 @@ export async function decideHolderAction(form:FormData) {
     if(saved)try{await sendHolderDecisionNotification(saved);}catch{console.error('[Holder] Decision notification failed');}
   }catch(e){error=e instanceof Error&&!e.message.startsWith('PocketBase')?e.message:"Cette demande vient d’être examinée. Actualisez la liste.";}
   revalidatePath('/admin/personnalisations');revalidatePath('/compte');
+  await setAdminNotice(error ? "error" : "success", error || "Décision enregistrée pour cette personnalisation.");
   redirect(`/admin/personnalisations?${error?`error=${encodeURIComponent(error)}`:'saved=1'}#${id}`);
 }

@@ -1,5 +1,6 @@
 "use server";
 
+import { setAdminNotice } from "@/lib/admin-notice";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { isAdmin } from "@/lib/auth";
@@ -11,7 +12,8 @@ import {
   setPromotionCodeActive,
 } from "@/lib/promotion-codes";
 
-function promoRedirect(type: "success" | "error", message: string): never {
+async function promoRedirect(type: "success" | "error", message: string): Promise<never> {
+  await setAdminNotice(type, message);
   redirect(`/admin/codes-promo?${type}=${encodeURIComponent(message)}`);
 }
 
@@ -74,20 +76,20 @@ export async function createPromotionCodeAction(formData: FormData) {
   const expirationDate = String(formData.get("expires_at") ?? "");
 
   if (!/^[A-Z0-9-]{3,50}$/.test(code)) {
-    promoRedirect("error", "Le code doit contenir entre 3 et 50 lettres, chiffres ou tirets.");
+    return await promoRedirect("error", "Le code doit contenir entre 3 et 50 lettres, chiffres ou tirets.");
   }
   if (!Number.isFinite(value) || value <= 0) {
-    promoRedirect("error", "Indiquez une réduction supérieure à zéro.");
+    return await promoRedirect("error", "Indiquez une réduction supérieure à zéro.");
   }
   if (discountType === "percent" && value > 100) {
-    promoRedirect("error", "Le pourcentage ne peut pas dépasser 100 %.");
+    return await promoRedirect("error", "Le pourcentage ne peut pas dépasser 100 %.");
   }
 
   const expiresAt = expirationDate
     ? Math.floor(new Date(`${expirationDate}T23:59:59+04:00`).getTime() / 1000)
     : undefined;
   if (expiresAt && expiresAt <= Math.floor(Date.now() / 1000)) {
-    promoRedirect("error", "La date d’expiration doit être dans le futur.");
+    return await promoRedirect("error", "La date d’expiration doit être dans le futur.");
   }
 
   try {
@@ -104,11 +106,11 @@ export async function createPromotionCodeAction(formData: FormData) {
       firstTimeOnly: formData.get("first_time_only") === "on",
     });
   } catch (error) {
-    promoRedirect("error", stripeErrorMessage(error));
+    return await promoRedirect("error", stripeErrorMessage(error));
   }
 
   revalidatePath("/admin/codes-promo");
-  promoRedirect("success", `Le code ${code} est actif.`);
+  return await promoRedirect("success", `Le code ${code} est actif.`);
 }
 
 export async function togglePromotionCodeAction(formData: FormData) {
@@ -116,14 +118,14 @@ export async function togglePromotionCodeAction(formData: FormData) {
 
   const id = String(formData.get("id") ?? "");
   const active = formData.get("active") === "true";
-  if (!id.startsWith("promo_")) promoRedirect("error", "Code promotionnel invalide.");
+  if (!id.startsWith("promo_")) return await promoRedirect("error", "Code promotionnel invalide.");
 
   try {
     await setPromotionCodeActive(id, active);
   } catch (error) {
-    promoRedirect("error", stripeErrorMessage(error));
+    return await promoRedirect("error", stripeErrorMessage(error));
   }
 
   revalidatePath("/admin/codes-promo");
-  promoRedirect("success", active ? "Le code est réactivé." : "Le code est désactivé.");
+  return await promoRedirect("success", active ? "Le code est réactivé." : "Le code est désactivé.");
 }

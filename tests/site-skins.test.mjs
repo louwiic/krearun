@@ -37,9 +37,10 @@ test('the public layout renders Halloween only when the saved skin is enabled', 
   const Banner = load('../components/site/SeasonalSkinBanner.tsx').default;
   for (const enabled of [true, false]) {
     const mocks = Object.fromEntries(['@/components/analytics/ProductTracking', '@/components/site/PrivacyPreferences', '@/components/site/Navbar', '@/components/site/Footer', '@/components/cart/CartDrawer', '@/components/site/NewsletterPopup'].map(path => [path, () => null]));
-    const Layout = load('../app/(site)/layout.tsx', { ...mocks, '@/components/site/SeasonalSkinBanner': Banner, '@/lib/site-skins': skins, '@/lib/store': { getSettings: async () => ({ announcement: '', site_skin: 'halloween', site_skin_enabled: enabled }) }, '@/lib/categories': { getVisibleCategories: () => [] } }).default;
+    const Layout = load('../app/(site)/layout.tsx', { ...mocks, '@/components/product/ColorAvailabilityProvider': { ColorAvailabilityProvider: ({children}) => children }, '@/components/site/SeasonalSkinBanner': Banner, '@/components/site/HalloweenSpiders': load('../components/site/HalloweenSpiders.tsx').default, '@/lib/site-skins': skins, '@/lib/store': { getInventoryColors: async () => [], getSettings: async () => ({ announcement: '', site_skin: 'halloween', site_skin_enabled: enabled }) }, '@/lib/categories': { getVisibleCategories: () => [] } }).default;
     const html = renderToStaticMarkup(await Layout({ children: createElement('p', null, 'Catalogue conservé') }));
     assert.ok(html.includes('Catalogue conservé')); assert.ok(html.includes(`data-site-skin="${enabled ? 'halloween' : 'default'}"`));
     assert.equal(html.includes('Halloween à l’atelier'), enabled);
+    assert.equal(html.includes('data-halloween-spiders'), enabled);
   }
 });

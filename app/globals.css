@@ -237,3 +237,47 @@ h2.font-display {
 .storefront[data-site-skin="halloween"] .seasonal-skin-banner p:first-child { color: #ffc184; }
 .storefront[data-site-skin="halloween"] a:focus-visible,
 .storefront[data-site-skin="halloween"] button:focus-visible { outline-color: #943d12; }
+
+/* A single, brief fall on arrival. Decorative SVGs never capture pointer events. */
+.halloween-spiders {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+}
+.halloween-spider {
+  position: absolute;
+  top: 0;
+  opacity: 0;
+  animation: halloween-spider-fall 5.5s linear both;
+}
+.halloween-spider svg { display: block; width: 100%; height: auto; }
+@keyframes halloween-spider-fall {
+  0% { opacity: 0; transform: translate3d(0, -200px, 0) rotate(-8deg); }
+  8% { opacity: 1; }
+  48% { transform: translate3d(12px, 45dvh, 0) rotate(8deg); }
+  82% { opacity: 1; }
+  100% { opacity: 0; transform: translate3d(-8px, calc(100dvh + 200px), 0) rotate(-5deg); }
+}
+@media (max-width: 639px) {
+  .halloween-spider:nth-child(n + 5) { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .halloween-spiders { display: none; }
+  .halloween-spider { animation: none; }
+}
+
+.color-swatch-unavailable::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -12%;
+  width: 124%;
+  height: 2px;
+  background: #28132e;
+  box-shadow: 0 0 0 1px white;
+  transform: rotate(-45deg);
+  pointer-events: none;
+}

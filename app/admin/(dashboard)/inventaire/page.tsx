@@ -1,3 +1,4 @@
+import PendingSubmitButton from "@/components/admin/PendingSubmitButton";
 import { saveInventoryColorAction } from "@/app/admin/actions";
 import { getInventoryColors } from "@/lib/store";
 
@@ -54,9 +55,9 @@ export default async function InventairePage() {
             Disponible
           </label>
           <div className="md:col-span-4">
-            <button className="rounded-full bg-terra px-8 py-3 text-sm font-bold text-cream transition-colors hover:bg-terra-deep">
+            <PendingSubmitButton className="rounded-full bg-terra px-8 py-3 text-sm font-bold text-cream transition-colors hover:bg-terra-deep">
               Ajouter à l&apos;inventaire
-            </button>
+            </PendingSubmitButton>
           </div>
         </form>
       </section>
@@ -72,6 +73,7 @@ export default async function InventairePage() {
             {colors.map((item) => (
               <form
                 key={item.id}
+                id={`couleur-${item.id}`}
                 action={saveInventoryColorAction}
                 className="grid gap-4 rounded-2xl border border-sand bg-linen p-4 md:grid-cols-[1.2fr_0.7fr_0.7fr_0.5fr_auto]"
               >
@@ -98,9 +100,9 @@ export default async function InventairePage() {
                     style={{ backgroundColor: item.hex }}
                     title={item.hex}
                   />
-                  <button className="mb-1 rounded-full bg-ink px-5 py-2.5 text-xs font-bold text-cream hover:bg-ink-soft">
+                  <PendingSubmitButton className="mb-1 rounded-full bg-ink px-5 py-2.5 text-xs font-bold text-cream hover:bg-ink-soft">
                     Enregistrer
-                  </button>
+                  </PendingSubmitButton>
                 </div>
                 <label className="md:col-span-3">
                   <span className={label}>Note</span>
