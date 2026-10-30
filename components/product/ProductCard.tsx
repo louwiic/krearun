@@ -1,124 +1,30 @@
+/* eslint-disable @next/next/no-img-element -- Product media from the existing storage. */
 import Link from "next/link";
 import { ProductColorDots } from "./ColorAvailabilityProvider";
 import type { Product } from "@/lib/types";
 import { formatPrice } from "@/lib/format";
 import { hasFreeShipping } from "@/lib/free-shipping";
-import { publicProductCopy } from "@/lib/public-copy";
 import { HOLDER_SLUG } from "@/lib/custom-holder";
 
-export default function ProductCard({
-  product,
-  className = "",
-  showCta = false,
-  priority = false,
-}: {
-  product: Product;
-  className?: string;
-  showCta?: boolean;
-  priority?: boolean;
-}) {
-  const activeVariants = product.variants.filter((variant) => variant.active);
-  const availableStock = activeVariants.length > 0
-    ? activeVariants.reduce((total, variant) => total + variant.stock, 0)
-    : product.stock;
-  const variantPrices = activeVariants
-    .map((variant) => variant.priceCents || product.priceCents)
-    .filter((price) => price > 0);
-  const displayPrice = variantPrices.length > 0 ? Math.min(...variantPrices) : product.priceCents;
+export default function ProductCard({ product, className = "", showCta = false, priority = false }: { product: Product; className?: string; showCta?: boolean; priority?: boolean }) {
+  const variants = product.variants.filter(variant => variant.active);
+  const stock = variants.length ? variants.reduce((total, variant) => total + variant.stock, 0) : product.stock;
+  const prices = variants.map(variant => variant.priceCents || product.priceCents).filter(price => price > 0);
+  const price = prices.length ? Math.min(...prices) : product.priceCents;
   const personalized = product.slug === HOLDER_SLUG;
-  const soldOut = !personalized && availableStock <= 0 && !product.preorder;
-
-  return (
-    <Link
-      href={`/boutique/${product.slug}`}
-      data-product-impression={product.id}
-      data-product-click={product.id}
-      className={`group block ${className}`}
-    >
-      <div className="relative overflow-hidden rounded-2xl border-2 border-ink bg-cream transition-all duration-200 group-hover:-translate-y-1 group-hover:shadow-hard">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={product.images[0] ?? "/products/hero.svg"}
-          alt={product.name}
-          width={800} height={800} decoding="async" loading={priority ? "eager" : "lazy"}
-          className="aspect-square w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04]"
-        />
-        {product.images[1] && (
-          /* eslint-disable-next-line @next/next/no-img-element */
-          <img
-            src={product.images[1]}
-            alt=""
-            width={800} height={800} decoding="async" loading="lazy"
-            aria-hidden
-            className="absolute inset-0 aspect-square w-full object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-          />
-        )}
-        {product.videoUrl && (
-          <span className="absolute bottom-3 right-3 border border-cream bg-ink px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-cream sm:bottom-4 sm:right-4 sm:px-3 sm:text-[11px]">
-            Vidéo
-          </span>
-        )}
-        <div className="absolute left-3 top-3 flex max-w-[calc(100%-1.5rem)] flex-wrap gap-1.5 sm:left-4 sm:top-4 sm:gap-2">
-          {product.preorder && (
-            <span className="border-2 border-ink bg-terra px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-cream sm:px-3 sm:text-[11px]">
-              Pré-commande
-            </span>
-          )}
-          {product.isNew && !soldOut && !product.preorder && (
-            <span className="border-2 border-ink bg-terra px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-ink sm:px-3 sm:text-[11px]">
-              Nouveau
-            </span>
-          )}
-          {product.compareAtCents && !soldOut && (
-            <span className="border-2 border-ink bg-blush px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-ink sm:px-3 sm:text-[11px]">
-              Petit prix
-            </span>
-          )}
-          {hasFreeShipping(product.slug) && !soldOut && (
-            <span className="border-2 border-ink bg-cream px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-ink sm:px-3 sm:text-[11px]">
-              Livraison offerte
-            </span>
-          )}
-          {soldOut && (
-            <span className="border-2 border-ink bg-ink px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-cream sm:px-3 sm:text-[11px]">
-              Épuisé
-            </span>
-          )}
-        </div>
-        {product.colors.length > 0 && (
-          <div className="absolute bottom-3 left-3 flex gap-1 sm:bottom-4 sm:left-4 sm:gap-1.5">
-            <ProductColorDots colors={product.colors} ignoreInventory={product.category === "lunette"} />
-          </div>
-        )}
-      </div>
-      <div className="mt-3 flex flex-col gap-1 px-0.5 sm:mt-4 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
-        <div className="min-w-0">
-          <h3 className="font-display text-lg uppercase leading-none text-ink transition-colors group-hover:text-terra sm:text-xl">
-            {product.name}
-          </h3>
-          <p className="mt-1.5 line-clamp-2 text-xs leading-snug text-ink-soft sm:text-sm">
-            {publicProductCopy(product.tagline)}
-          </p>
-        </div>
-        <div className="shrink-0 sm:text-right">
-          <p className="inline-block rounded-lg bg-terra px-2 py-1 font-display text-lg leading-none text-ink sm:text-xl">
-            {personalized ? "Sur validation" : <>{variantPrices.length > 1 && "Dès "}{formatPrice(displayPrice)}</>}
-          </p>
-          {product.compareAtCents && (
-            <p className="mt-1 text-xs text-ink-faint line-through">
-              {formatPrice(product.compareAtCents)}
-            </p>
-          )}
-        </div>
-      </div>
-      {showCta && (
-        <span className="mt-3 flex w-full rounded-[10px] items-center justify-center border-2 border-ink bg-ink px-4 py-3 text-xs font-bold uppercase tracking-[0.06em] text-cream transition-all group-hover:bg-terra group-hover:border-terra group-hover:text-ink sm:text-sm">
-          {personalized ? "Personnaliser" : soldOut ? "Voir le produit" : "Choisir ce produit"}
-          <span aria-hidden className="ml-2 transition-transform group-hover:translate-x-1">
-            →
-          </span>
-        </span>
-      )}
-    </Link>
-  );
+  const soldOut = !personalized && stock <= 0 && !product.preorder;
+  return <Link href={`/boutique/${product.slug}`} data-product-impression={product.id} data-product-click={product.id} className={`editorial-product-card group ${className}`}>
+    <div className="editorial-product-image">
+      <img src={product.images[0] ?? "/products/hero.svg"} alt={product.name} width={800} height={800} decoding="async" loading={priority ? "eager" : "lazy"} className="aspect-square h-full w-full object-cover" />
+      {product.images[1] && <img src={product.images[1]} alt="" aria-hidden width={800} height={800} decoding="async" loading="lazy" className="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100" />}
+      {(soldOut || product.preorder || product.isNew) && <span className="editorial-product-badge">{soldOut ? "Épuisé" : product.preorder ? "Précommande" : "Nouveau"}</span>}
+    </div>
+    <div className="pt-4">
+      <h3 className="editorial-product-title">{product.name}</h3>
+      <div className="mt-2 flex flex-wrap items-baseline gap-x-3 gap-y-1 text-xs sm:text-sm"><span>{personalized ? "Sur validation" : `${prices.length > 1 ? "À partir de " : ""}${formatPrice(price)}`}</span>{product.compareAtCents && <span className="text-ink-faint line-through">{formatPrice(product.compareAtCents)}</span>}</div>
+      {hasFreeShipping(product.slug) && <p className="mt-1 text-[10px] uppercase tracking-wide">Livraison offerte</p>}
+      {product.colors.length > 0 && <div className="mt-3 flex flex-wrap gap-1.5"><ProductColorDots colors={product.colors} ignoreInventory={product.category === "lunette"} /></div>}
+      {showCta && <span className="mt-4 inline-block text-xs underline underline-offset-4">{personalized ? "Créer le mien" : "Découvrir"} ↗</span>}
+    </div>
+  </Link>;
 }

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { siteOrigin } from "@/lib/seo";
-import { Bricolage_Grotesque, Manrope } from "next/font/google";
+import { Bricolage_Grotesque, Manrope, Archivo, Space_Mono } from "next/font/google";
 import { CartProvider } from "@/components/cart/CartContext";
 import "./globals.css";
 
@@ -14,6 +14,9 @@ const manrope = Manrope({
   variable: "--font-manrope",
   subsets: ["latin"],
 });
+
+const archivo = Archivo({ variable: "--font-archivo", subsets: ["latin"], weight: ["400", "600", "700", "800"] });
+const spaceMono = Space_Mono({ variable: "--font-space-mono", subsets: ["latin"], weight: ["400", "700"] });
 
 const siteUrl = siteOrigin();
 
@@ -45,7 +48,7 @@ export default function RootLayout({
     <html
       lang="fr"
       data-scroll-behavior="smooth"
-      className={`${bricolage.variable} ${manrope.variable} h-full antialiased`}
+      className={`${bricolage.variable} ${manrope.variable} ${archivo.variable} ${spaceMono.variable} h-full antialiased`}
     >
       <body className="grain min-h-full flex flex-col">
         <CartProvider>{children}</CartProvider>

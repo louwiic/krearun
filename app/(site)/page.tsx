@@ -9,7 +9,6 @@ export const metadata: Metadata = {
   description: "Porte-boissons, lampes, lettres et cadeaux personnalisés : vos idées prennent forme dans notre atelier au Tampon, à La Réunion. Découvrez la boutique Kréarun.",
   alternates: { canonical: "/" },
 };
-import SingleProductHome from "@/components/home/SingleProductHome";
 import HomeReviews from "@/components/home/HomeReviews";
 import ProductCard from "@/components/product/ProductCard";
 import { getApprovedReviews, getProducts, getSettings } from "@/lib/store";
@@ -23,9 +22,15 @@ export default async function HomePage() {
   const visible = products.filter(product => visibleValues.has(product.category));
   const featured = visible.filter(product => product.featured);
   const main = visible.find(product => product.slug === settings.homepage_featured_product_slug) ?? featured[0] ?? visible[0];
-  const second = visible.find(product => product.slug === "porte-canette-red-bull" && product.id !== main?.id) ?? featured.find(product => product.id !== main?.id);
   const selection = [...featured, ...visible.filter(product => !product.featured)].slice(0, 6);
   const spotlight = settings.homepage_mode === "single_product" && main;
+  const collections = [
+    { name: "Porte-boisson", href: "/boutique?categorie=porte-boisson", product: main?.category === "porte-boisson" && main.images?.length ? main : visible.find(product => product.category === "porte-boisson" && product.images?.length) },
+    { name: "Lampes", href: "/boutique?categorie=veilleuses", product: visible.find(product => product.category === "veilleuses" && product.images?.length) },
+    { name: "Lunettes", href: "/boutique?categorie=lunette", product: visible.find(product => product.category === "lunette" && product.images?.length) },
+    { name: "Nouveautés", href: "/boutique?nouveautes=1", product: visible.find(product => product.isNew && product.images?.length && product.id !== main?.id) },
+  ].filter(collection => collection.product);
+  const heroImage = settings.hero_image_url || main?.images?.[0] || "/brand/krearun-hero.webp";
 
   return <>
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString({
@@ -34,17 +39,29 @@ export default async function HomePage() {
       email: BUSINESS.email, telephone: BUSINESS.phoneHref,
       address: { "@type": "PostalAddress", streetAddress: BUSINESS.address, postalCode: BUSINESS.postalCode, addressLocality: BUSINESS.city, addressRegion: "La Réunion", addressCountry: "RE" },
     }) }} />
-    <section className="border-b-2 border-ink bg-linen">
-      <h1 className="sr-only">Découvrez nos produits personnalisés — Kréarun, la personnalisation à fond !</h1>
-      <img src="/brand/krearun-hero.webp" alt="Kréarun — La personnalisation à fond ! Tes idées. Tes couleurs. Ton style. Porte-boisson et porte-clés personnalisés." width={2017} height={780} fetchPriority="high" className="block h-auto w-full" />
+    <section className="editorial-hero">
+      <img src={heroImage} alt={settings.hero_image_alt || "Une création personnalisée Kréarun"} width={1086} height={1448} fetchPriority="high" className="editorial-hero-photo" />
+      <div className="editorial-hero-shade" />
+      <div className="editorial-hero-copy"><p className="editorial-eyebrow">Votre atelier à La Réunion</p><h1>Découvrez nos produits personnalisés.</h1><div className="mt-8 flex flex-wrap items-center gap-6"><Link href="/boutique" className="editorial-pill">Voir la boutique</Link><Link href="/personnaliser" className="text-sm underline underline-offset-4">Créer mon objet ↗</Link></div></div>
     </section>
 
-    {spotlight ? <SingleProductHome product={main} secondaryProduct={second} settings={settings} reviews={reviews} /> : null}
+    <section className="editorial-promises" aria-label="L’atelier Kréarun">
+      {[
+        ["01", "Fabriqué au Tampon", "Vos créations prennent forme dans notre atelier à La Réunion."],
+        ["02", "À votre image", "Un prénom, un logo, vos couleurs : composez votre objet."],
+        ["03", "Préparé avec soin", "Les créations de l’atelier demandent 2 à 4 jours de préparation."],
+        ["04", "On en parle ?", "Une demande particulière ? Échangeons sur votre idée."],
+      ].map(([number,title,text]) => <div key={number}><span className="editorial-promise-number">{number}</span><h2>{title}</h2><p>{text}</p></div>)}
+    </section>
 
-    {selection.length > 0 && <section className="mx-auto max-w-6xl px-5 py-14 sm:px-6 sm:py-20"><div className="mb-8 flex flex-wrap items-end justify-between gap-4"><div><p className="text-xs font-bold uppercase tracking-[0.14em] text-ink-soft">À découvrir dans la boutique</p><h2 className="mt-3 font-display text-3xl sm:text-4xl">Trouvez votre prochain coup de cœur.</h2></div><Link href="/boutique" className="text-sm font-bold underline underline-offset-4">Voir la collection ↗</Link></div><div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:gap-8 lg:grid-cols-3">{selection.map(product => <ProductCard key={product.id} product={product} showCta />)}</div></section>}
+    {collections.length > 0 && <section className="editorial-collections" aria-label="Nos collections">{collections.map(collection => <Link key={collection.name} href={collection.href}><div className="aspect-square overflow-hidden bg-cream"><img src={collection.product!.images[0]} alt={collection.name} loading="lazy" width={700} height={700} className="h-full w-full object-cover transition-transform duration-700 hover:scale-[1.025]" /></div><h2>{collection.name} <span aria-hidden>↗</span></h2></Link>)}</section>}
 
-    <section id="atelier" className="scroll-mt-24 border-y-2 border-ink bg-sage px-5 py-14 sm:px-6 sm:py-20"><div className="mx-auto grid max-w-6xl items-center gap-10 md:grid-cols-[0.3fr_1fr]"><div className="mx-auto w-32 rounded-2xl bg-linen p-4 sm:w-40"><img src="/brand/krearun-nozzle.webp" alt="" width={310} height={410} className="h-auto w-full" /></div><div><p className="text-xs font-bold uppercase tracking-[0.14em]">L’atelier Kréarun</p><h2 className="mt-3 max-w-2xl font-display text-3xl sm:text-4xl">Vos idées prennent forme ici.</h2><p className="mt-5 max-w-2xl text-base text-ink-soft">Au Tampon, à La Réunion, nous préparons vos créations avec soin et échangeons avec vous sur les détails qui comptent. Une couleur, un prénom, un logo ou une idée à imaginer ensemble : parlons-en.</p><Link href="/contact" className="mt-7 inline-flex rounded-[10px] border-2 border-ink bg-ink px-6 py-3 text-sm font-bold text-cream hover:bg-ink-soft">Parler de mon idée ↗</Link></div></div></section>
+    {selection.length > 0 && <section className="editorial-section"><div className="editorial-section-heading"><h2>Des créations qui vous ressemblent.</h2><Link href="/boutique">Tous les objets ↗</Link></div><div className="grid grid-cols-2 gap-x-4 gap-y-10 lg:grid-cols-3 lg:gap-x-6">{selection.map(product => <ProductCard key={product.id} product={product} />)}</div></section>}
 
-    {!spotlight && <HomeReviews reviews={reviews} />}
+    {spotlight && <section className="editorial-feature"><img src={main.images?.[0] || heroImage} alt={main.name} width={1000} height={1000} loading="lazy"/><div><p className="editorial-eyebrow">À découvrir à l’atelier</p><h2>{main.name}</h2><p>Vos couleurs, votre prénom et une création à emporter partout. Découvrez les modèles et les options sur la fiche produit.</p><Link href={`/boutique/${main.slug}`} className="editorial-pill">Découvrir ce modèle</Link></div></section>}
+
+    <section id="atelier" className="editorial-workshop"><img src="/brand/krearun-nozzle.webp" alt="" width={310} height={410} loading="lazy"/><div><p className="editorial-eyebrow">L’atelier Kréarun</p><h2>Une idée ?<br/>On lui donne forme.</h2><p>Au Tampon, à La Réunion, nous préparons vos créations avec soin. Une couleur, un prénom, un logo ou une idée à imaginer ensemble : parlons-en.</p><Link href="/contact" className="editorial-pill">Rencontrer l’atelier ↗</Link></div></section>
+
+    <HomeReviews reviews={reviews} />
   </>;
 }

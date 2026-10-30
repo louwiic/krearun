@@ -1,7 +1,6 @@
+/* eslint-disable @next/next/no-img-element -- Original Kréarun brand asset. */
 "use client";
-
 import Link from "next/link";
-import BrandLogo from "./BrandLogo";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useCart } from "@/components/cart/CartContext";
@@ -13,111 +12,28 @@ export default function Navbar({ categories }: { categories: StoreCategory[] }) 
   const [mobileOpen, setMobileOpen] = useState(false);
   const links = [
     { href: "/boutique", label: "Boutique" },
+    { href: "/boutique?nouveautes=1", label: "Nouveautés" },
+    ...(categories.some(category => category.value === "veilleuses") ? [{ href: "/boutique?categorie=veilleuses", label: "Lampes" }] : []),
+    ...(categories.some(category => category.value === "porte-boisson") ? [{ href: "/boutique?categorie=porte-boisson", label: "Porte-boisson" }] : []),
     { href: "/personnaliser", label: "Personnaliser" },
-    { href: "/#atelier", label: "L’atelier" },
-    { href: "/contact", label: "Contact" },
   ];
-
-  const isActive = (href: string) => href === "/personnaliser"
-    ? ["/personnaliser", "/boutique/porte-boisson-500ml-personnalise", "/clicker-studio", "/lettre-personnalisee"].includes(pathname)
-    : !href.includes("#") && pathname === href;
-
-  return (
-    <header className="sticky top-0 z-40 border-b-2 border-ink bg-linen/90 backdrop-blur-md">
-      <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
-        <Link
-          href="/"
-          className="block shrink-0 rounded-xl bg-linen px-2 py-2" aria-label="Kréarun — accueil"
-        >
-          <BrandLogo className="w-36 sm:w-44" />
-        </Link>
-
-        <ul className="hidden items-center gap-7 lg:flex">
-          {links.map((l) => (
-            <li key={l.href}>
-              <Link
-                href={l.href}
-                data-active={isActive(l.href)}
-                aria-current={isActive(l.href) ? "page" : undefined}
-                className="nav-link text-[13px] font-bold uppercase tracking-[0.08em] text-ink-soft transition-colors hover:text-ink"
-              >
-                {l.label}
-              </Link>
-            </li>
-          ))}
-        </ul>
-
-        <div className="flex items-center gap-1">
-          <Link href="/compte" aria-label="Mon compte" className="flex h-10 w-10 items-center justify-center transition-colors hover:bg-ink hover:text-cream">
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.5 20.1a7.5 7.5 0 0115 0A17.9 17.9 0 0112 21.75a17.9 17.9 0 01-7.5-1.65z" /></svg>
-          </Link>
-          <button
-            onClick={openCart}
-            aria-label="Ouvrir le panier"
-            className="relative flex h-10 w-10 items-center justify-center transition-colors hover:bg-ink hover:text-cream"
-          >
-            <svg
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={1.8}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007z"
-              />
-            </svg>
-            {count > 0 && (
-              <span className="absolute -right-0.5 -top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-terra text-[11px] font-bold text-cream">
-                {count}
-              </span>
-            )}
-          </button>
-
-          <button
-            onClick={() => setMobileOpen((v) => !v)}
-            aria-label="Menu"
-            className="flex h-10 w-10 items-center justify-center transition-colors hover:bg-ink hover:text-cream lg:hidden"
-          >
-            <svg
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={1.8}
-            >
-              {mobileOpen ? (
-                <path strokeLinecap="round" d="M6 18L18 6M6 6l12 12" />
-              ) : (
-                <path strokeLinecap="round" d="M4 7h16M4 12h16M4 17h16" />
-              )}
-            </svg>
-          </button>
-        </div>
-      </nav>
-
-      {mobileOpen && (
-        <div className="max-h-[80vh] overflow-y-auto border-t-2 border-ink bg-linen px-6 py-4 lg:hidden">
-          <ul className="flex flex-col divide-y divide-sand">
-            {links.map((l) => (
-              <li key={l.href}>
-                <Link
-                  href={l.href}
-                  onClick={() => setMobileOpen(false)}
-                  aria-current={isActive(l.href) ? "page" : undefined}
-                  className="block py-3 font-display text-lg uppercase tracking-tight text-ink hover:text-terra"
-                >
-                  {l.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-          <p className="mt-4 text-xs font-bold text-ink-soft">Nos collections</p>
-          <div className="mt-2 grid grid-cols-2 gap-2">{categories.map(category => <Link key={category.value} href={`/boutique?categorie=${category.value}`} onClick={()=>setMobileOpen(false)} className="py-2 text-sm">{category.label}</Link>)}</div>
-        </div>
-      )}
-    </header>
-  );
+  const close = () => setMobileOpen(false);
+  return <header className="editorial-header">
+    <nav className="editorial-navigation" aria-label="Navigation principale">
+      <Link href="/" onClick={close} aria-label="Kréarun — accueil" className="editorial-brand"><img src="/brand/krearun-badge.webp" alt="Kréarun" width={320} height={320} className="h-full w-full object-contain" /></Link>
+      <ul className="hidden items-center gap-5 xl:gap-8 lg:flex">{links.map(link => <li key={link.href}><Link href={link.href} className="editorial-nav-link" aria-current={link.href === pathname && link.href !== "/boutique" ? "page" : undefined}>{link.label}</Link></li>)}</ul>
+      <div className="flex items-center gap-3 sm:gap-5">
+        <Link href="/compte" aria-label="Mon compte" className="editorial-nav-link hidden sm:block">Connexion</Link>
+        <button type="button" onClick={openCart} aria-label="Ouvrir le panier" className="relative p-2">
+          <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.6}><path strokeLinecap="round" strokeLinejoin="round" d="M6 8h12l1 13H5L6 8Zm3 0V5a3 3 0 0 1 6 0v3"/></svg>
+          {count > 0 && <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-terra px-1 text-[10px] font-bold text-ink">{count}</span>}
+        </button>
+        <button type="button" onClick={() => setMobileOpen(value => !value)} aria-label={mobileOpen ? "Fermer le menu" : "Ouvrir le menu"} aria-expanded={mobileOpen} aria-controls="store-mobile-menu" className="editorial-nav-link p-2 lg:hidden">{mobileOpen ? "Fermer" : "Menu"}</button>
+      </div>
+    </nav>
+    {mobileOpen && <div id="store-mobile-menu" className="editorial-mobile-menu lg:hidden">
+      <ul>{links.map(link => <li key={link.href}><Link href={link.href} onClick={close}>{link.label}</Link></li>)}<li><Link href="/compte" onClick={close}>Mon compte</Link></li></ul>
+      <div className="mt-6 grid grid-cols-2 gap-4 border-t border-sand pt-5">{categories.map(category => <Link key={category.value} href={`/boutique?categorie=${category.value}`} onClick={close} className="text-sm">{category.label}</Link>)}<Link href="/#atelier" onClick={close}>L’atelier</Link><Link href="/contact" onClick={close}>Contact</Link></div>
+    </div>}
+  </header>;
 }

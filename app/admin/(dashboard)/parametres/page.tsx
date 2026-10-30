@@ -64,7 +64,7 @@ export default async function AdminParametresPage() {
                   defaultValue={settings.homepage_mode}
                   className={field}
                 >
-                  <option value="single_product">Mono-produit</option>
+                  <option value="single_product">Produit vedette</option>
                   <option value="catalog">Vitrine classique</option>
                 </select>
               </label>
@@ -84,8 +84,8 @@ export default async function AdminParametresPage() {
               </label>
             </div>
             <p className="text-xs leading-relaxed text-ink-faint">
-              En mode mono-produit, l’accueil affiche directement le prix, les coloris,
-              l’ajout au panier, puis la vidéo et la description du produit sélectionné.
+              En mode produit vedette, l’accueil met en avant le modèle sélectionné dans
+              un grand bloc photo avec un lien vers sa fiche et ses options.
             </p>
             {settings.hero_image_url ? (
               <div>

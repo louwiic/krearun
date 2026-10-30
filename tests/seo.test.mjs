@@ -43,3 +43,11 @@ test('sitemap includes customizers and reviews, excludes private, inactive, hidd
   for (const path of ['/clicker-studio', '/lettre-personnalisee', '/avis', '/boutique/example']) assert.ok(urls.some(url => url.pathname === path));
   for (const path of ['/boutique/private', '/boutique/inactive', '/boutique/hidden', '/suivi', '/compte', '/panier']) assert.ok(!urls.some(url => url.pathname === path));
 });
+test('new arrivals have a canonical URL and exclude products that are not new', async () => {
+  const { renderToStaticMarkup } = require('react-dom/server');
+  const { createElement } = require('react');
+  const Page = load('../app/(site)/boutique/page.tsx', { 'next/link': ({children,...props}) => createElement('a',props,children), '@/components/product/ProductCard': ({product}) => createElement('span',null,product.name), '@/lib/seo': seo, '@/lib/store': { getSettings: async () => ({}), getProducts: async () => [{id:'new', name:'New creation', category:'deco', isNew:true}, {id:'old', name:'Older creation', category:'deco', isNew:false}] }, '@/lib/categories': { getVisibleCategories: () => [{value:'deco',label:'Décoration'}] } });
+  const props = { searchParams: Promise.resolve({nouveautes:'1'}) };
+  assert.equal((await Page.generateMetadata(props)).alternates.canonical, '/boutique?nouveautes=1');
+  const html=renderToStaticMarkup(await Page.default(props));assert.ok(html.includes('New creation'));assert.ok(!html.includes('Older creation'));
+});

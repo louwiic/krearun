@@ -392,7 +392,7 @@ export default function CheckoutForm({
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={item.image}
+                src={item.image || "/products/sur-mesure.svg"}
                 alt={item.name}
                 className="h-16 w-16 shrink-0 rounded-2xl object-cover"
               />

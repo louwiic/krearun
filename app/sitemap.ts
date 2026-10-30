@@ -47,5 +47,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
     }));
 
-  return [...staticPages, ...categoryPages, ...productPages];
+  return [...staticPages, ...(products.some(product => product.isNew && product.active && !product.privateSale && visibleValues.has(product.category)) ? [{ url: `${base}/boutique?nouveautes=1`, changeFrequency: "weekly" as const, priority: 0.7 }] : []), ...categoryPages, ...productPages];
 }

@@ -37,7 +37,7 @@ export default function AddToCart({ product }: { product: Product }) {
   const colorsSoldOut = availableColors.length > 0 && !selectedColor;
   const selectedStock = selectedVariant?.stock ?? product.stock;
   const selectedWeight = selectedVariant?.weightGrams || product.weightGrams;
-  const selectedImage = selectedColor?.image || selectedVariant?.image || product.images[0] || "";
+  const selectedImage = selectedColor?.image || selectedVariant?.image || product.images[0] || (product.privateSale ? "/products/sur-mesure.svg" : "/products/hero.svg");
   const maxQuantity = product.preorder ? 20 : selectedStock;
   const soldOut = colorsSoldOut || (selectedStock <= 0 && !product.preorder);
   const normalizedCustomName = customName.trim().replace(/\s+/g, " ");
