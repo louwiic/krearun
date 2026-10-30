@@ -14,6 +14,7 @@ export const CATEGORY_DESCRIPTIONS: Record<string, string> = {
   deco: "Découvrez les objets de décoration Kréarun et trouvez une idée cadeau pour votre intérieur. Des créations préparées dans notre atelier à La Réunion.",
   "porte-boisson": "Porte-canettes Monster, Red Bull, NOS et porte-boisson personnalisé : choisissez votre modèle et vos couleurs. Fabrication dans notre atelier à La Réunion.",
   lunette: "Découvrez nos lunettes et choisissez votre monture préférée. La paire à 15,90 € avec livraison offerte : retrouvez les modèles disponibles en boutique.",
+  noel: "Préparez Noël avec nos décorations thermoformées : choisissez un kit créatif avec moules réutilisables ou une décoration déjà mise en forme dans notre atelier.",
 };
 export const SHOP_DESCRIPTION = "Découvrez la boutique Kréarun à La Réunion : porte-boissons, lampes personnalisées, décoration et accessoires. Choisissez votre création ou une idée cadeau.";
 

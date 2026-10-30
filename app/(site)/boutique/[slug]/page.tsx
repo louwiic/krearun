@@ -147,6 +147,13 @@ export default async function ProductPage({
           <div className="mt-6 sm:mt-8">
             <AddToCart product={product} />
           </div>
+          {product.category === "noel" && product.slug.startsWith("noel-thermoforme-") && <aside className="mt-6 rounded-2xl border border-sand p-5 text-sm leading-relaxed">
+            <h2 className="font-display text-xl font-bold">Deux façons de créer Noël.</h2>
+            <p className="mt-3"><strong>Kit complet :</strong> pièces plates, moules réutilisables, connecteurs et cordon. Sèche-cheveux non fourni.</p>
+            <p className="mt-2"><strong>Déjà thermoformée :</strong> décoration mise en forme et assemblée à l’atelier, avec son cordon. Moules non inclus.</p>
+            <Link href="/tutoriels/boules-noel-thermoformees" className="mt-4 inline-block font-bold underline underline-offset-4">Voir le tutoriel de fabrication ↗</Link>
+            <p className="mt-4 text-xs text-ink-soft">Visuel d’illustration du résultat final. Les teintes et le maillage peuvent varier selon l’impression. Décoration vendue vide, sans bonbons ni guirlande.</p>
+          </aside>}
 
           <div className="mt-8 space-y-4 border-t border-sand/70 pt-6 sm:mt-10 sm:pt-8">
             {publicProductCopy(product.description).split("\n\n").map((para, i) => (

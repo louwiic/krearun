@@ -18,6 +18,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/clicker-studio`, changeFrequency: "monthly", priority: 0.8 },
     { url: `${base}/lettre-personnalisee`, changeFrequency: "monthly", priority: 0.8 },
     { url: `${base}/avis`, changeFrequency: "weekly", priority: 0.6 },
+    { url: `${base}/tutoriels/boules-noel-thermoformees`, changeFrequency: "monthly", priority: 0.6 },
     { url: `${base}/cgu`, changeFrequency: "yearly", priority: 0.2 },
     { url: `${base}/retractation`, changeFrequency: "yearly", priority: 0.3 },
     { url: `${base}/cgv`, changeFrequency: "yearly", priority: 0.2 },

@@ -1,7 +1,7 @@
 import type { LetterConfiguration } from "./custom-letter-settings";
 
 export type Category =
-  "veilleuses" | "vases" | "bureau" | "rangement" | "salle-de-bain" | "deco" | "porte-boisson" | "lunette";
+  "veilleuses" | "vases" | "bureau" | "rangement" | "salle-de-bain" | "deco" | "porte-boisson" | "lunette" | "noel";
 
 export const CATEGORIES: { value: Category; label: string }[] = [
   { value: "veilleuses", label: "Veilleuses & Lampes" },
@@ -12,6 +12,7 @@ export const CATEGORIES: { value: Category; label: string }[] = [
   { value: "deco", label: "Décoration" },
   { value: "porte-boisson", label: "Porte-boisson" },
   { value: "lunette", label: "Lunette" },
+  { value: "noel", label: "Noël" },
 ];
 
 export interface ProductColor {
