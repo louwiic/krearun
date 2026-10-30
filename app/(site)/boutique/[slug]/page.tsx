@@ -97,7 +97,7 @@ export default async function ProductPage({
         <span className="text-ink-soft">{product.name}</span>
       </nav>
 
-      <div className="grid gap-8 md:grid-cols-[0.9fr_1.1fr] md:gap-10">
+      <div className="grid grid-cols-1 gap-8 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] md:gap-10">
         {product.slug === NOS_SLUG ? <NosProductGallery images={product.images} videoUrl={product.videoUrl} name={product.name} initialColor={product.colors[0] || NOS_COLORS[0]} /> : <Gallery
           images={[
             ...(product.images.length ? product.images : product.privateSale ? ["/products/sur-mesure.svg"] : []),

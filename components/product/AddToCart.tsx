@@ -58,13 +58,13 @@ export default function AddToCart({ product }: { product: Product }) {
   if (product.slug === HOLDER_SLUG) return <Link href={`/boutique/${HOLDER_SLUG}`} className="inline-flex rounded-full bg-terra px-6 py-4 font-bold text-white">Personnaliser et demander une validation →</Link>;
 
   return (
-    <div className="space-y-5">
+    <div className="min-w-0 space-y-5">
       {activeVariants.length > 0 && (
         <div className="space-y-3">
           <p className="text-sm font-bold">
             Modèle — <span className="font-semibold text-ink-soft">{selectedVariant?.name}</span>
           </p>
-          <div className="grid gap-2 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {activeVariants.map((variant) => (
               <button
                 key={variant.id}
