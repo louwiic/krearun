@@ -29,7 +29,7 @@ html:has(.crm-modal[open]) {
   }
 }
 
-@theme inline {
+@theme {
   /* Charte Kréarun · Atelier pop · octobre 2026 */
   --color-linen: #f6f3ee;
   --color-linen-deep: #eae4db;
@@ -45,8 +45,6 @@ html:has(.crm-modal[open]) {
   --color-terra: #ff6b35;
   --color-terra-deep: #a63713;
   --color-lavande: #b9dff2;
-  --font-display: var(--font-bricolage), sans-serif;
-  --font-body: var(--font-manrope), sans-serif;
   --radius-blob: 1rem;
   --shadow-soft: 0 3px 14px rgb(23 23 23 / 0.04);
   --shadow-lifted: 0 6px 22px rgb(23 23 23 / 0.08);
@@ -94,6 +92,11 @@ html:has(.crm-modal[open]) {
       transform: translateX(-50%);
     }
   }
+}
+
+@theme inline {
+  --font-display: var(--font-bricolage), sans-serif;
+  --font-body: var(--font-manrope), sans-serif;
 }
 
 html {
@@ -206,3 +209,31 @@ h2.font-display {
   html { scroll-behavior: auto; }
   .reveal, .marquee-track { animation: none; }
 }
+
+/* Seasonal skins are scoped to the storefront (and its explicit admin preview). */
+.storefront[data-site-skin="halloween"] {
+  --color-linen: #f9eddf;
+  --color-linen-deep: #eed8c4;
+  --color-cream: #fff9f0;
+  --color-sand: #ddc7b3;
+  --color-ink: #28132e;
+  --color-ink-soft: #58445c;
+  --color-ink-faint: #725b70;
+  --color-terra: #ff9b46;
+  --color-terra-deep: #943d12;
+  --color-sage: #d9c6ec;
+  --color-sage-deep: #58346f;
+  --color-blush: #ffe0be;
+  --color-blush-deep: #923b1c;
+  --color-lavande: #d9c6ec;
+  background-image: radial-gradient(ellipse at top right, #ff9b461a, transparent 45%);
+}
+.storefront[data-site-skin="halloween"] .seasonal-skin-banner {
+  background: #28132e;
+  color: #fff9f0;
+  border-bottom: 2px solid #ff9b46;
+}
+.storefront[data-site-skin="halloween"] .seasonal-skin-banner svg { color: #28132e; }
+.storefront[data-site-skin="halloween"] .seasonal-skin-banner p:first-child { color: #ffc184; }
+.storefront[data-site-skin="halloween"] a:focus-visible,
+.storefront[data-site-skin="halloween"] button:focus-visible { outline-color: #943d12; }

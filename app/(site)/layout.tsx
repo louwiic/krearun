@@ -1,3 +1,5 @@
+import { activeSiteSkin } from "@/lib/site-skins";
+import SeasonalSkinBanner from "@/components/site/SeasonalSkinBanner";
 import ProductTracking from "@/components/analytics/ProductTracking";
 import PrivacyPreferences from "@/components/site/PrivacyPreferences";
 import Navbar from "@/components/site/Navbar";
@@ -20,7 +22,7 @@ export default async function SiteLayout({
       : settings.announcement;
 
   return (
-    <div className="storefront flex min-h-screen flex-col">
+    <div className="storefront flex min-h-screen flex-col bg-linen text-ink" data-site-skin={activeSiteSkin(settings)}>
       {announcement && (
         <div className="marquee-mask bg-terra py-2 text-ink">
           <div className="marquee-track text-[11px] font-bold uppercase tracking-[0.18em]">
@@ -38,6 +40,7 @@ export default async function SiteLayout({
         </div>
       )}
       <Navbar categories={categories} />
+      {activeSiteSkin(settings) === "halloween" && <SeasonalSkinBanner />}
       <main className="flex-1">{children}</main>
       <Footer
         instagram={settings.instagram}

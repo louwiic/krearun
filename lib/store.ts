@@ -974,6 +974,8 @@ export async function addSubscriber(email: string, consent?: {version: string; a
 // ─── Réglages ───────────────────────────────────────────────
 
 const DEFAULT_SETTINGS: Settings = {
+  site_skin: "default",
+  site_skin_enabled: false,
   announcement: "",
   categories_json: JSON.stringify(DEFAULT_STORE_CATEGORIES),
   homepage_mode: "single_product",

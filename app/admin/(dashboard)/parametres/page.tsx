@@ -1,3 +1,4 @@
+import SiteSkinSettings from "@/components/admin/SiteSkinSettings";
 import { DEFAULT_METROPOLITAN_SHIPPING } from "@/lib/metropolitan-shipping";
 import { getProducts, getSettings } from "@/lib/store";
 import { saveSettingsAction } from "@/app/admin/actions";
@@ -26,6 +27,8 @@ export default async function AdminParametresPage() {
   return (
     <div className="mx-auto max-w-3xl">
       <h1 className="mb-8 font-display text-3xl font-semibold">Réglages</h1>
+
+      <SiteSkinSettings skin={settings.site_skin} enabled={settings.site_skin_enabled} />
 
       <form action={saveSettingsAction} className="space-y-6">
         <div className="rounded-blob bg-cream p-7 shadow-soft">
