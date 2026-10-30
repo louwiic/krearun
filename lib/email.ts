@@ -10,6 +10,9 @@ import { holderSiteUrl } from "./custom-holder-http";
 import { publicColorName } from "./colors";
 import { formatPrice } from "./format";
 import { normalizeNewsletterUrls } from "./newsletter-urls";
+import { createResendSender } from "./resend-delivery";
+
+const sendResend = createResendSender();
 
 const SMTP_HOST = process.env.SMTP_HOST || "mail95.lwspanel.com";
 const SMTP_PORT = Number(process.env.SMTP_PORT || "465");
@@ -46,24 +49,15 @@ async function sendEmail(to: string, subject: string, html: string) {
   const resendKey = process.env.RESEND_API_KEY;
   if (resendKey) {
     try {
-      const response = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${resendKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+      const result = await sendResend(resendKey, {
           from: FROM,
           to: [to],
           reply_to: BUSINESS.email,
           subject,
           html,
-        }),
       });
-      if (!response.ok) {
-        throw new Error(`Resend ${response.status}: ${await response.text()}`);
-      }
-      return true;
+      if (!result.accepted) console.error("Resend : envoi refusé après traitement :", result.reason);
+      return result.accepted;
     } catch (e) {
       console.error("Resend : échec de l'envoi :", e);
       return false;

@@ -433,6 +433,7 @@ export type SendOrderEmailResult = {
 export type SendNewsletterResult = {
   success?: string;
   error?: string;
+  failedEmails?: string[];
 };
 
 export async function uploadNewsletterImageAction(formData: FormData): Promise<{
@@ -491,25 +492,18 @@ export async function sendNewsletterAction(
   }
 
   let sent = 0;
-  for (let index = 0; index < recipients.length; index += 3) {
-    const results = await Promise.all(
-      recipients
-        .slice(index, index + 3)
-        .map((recipient) => sendNewsletterEmail(recipient, subject, html)),
-    );
-    sent += results.filter(Boolean).length;
+  const failedEmails: string[] = [];
+  for (const recipient of recipients) {
+    if (await sendNewsletterEmail(recipient, subject, html)) sent++;
+    else failedEmails.push(recipient);
   }
 
   if (sent === 0) {
-    return { error: "Aucun e-mail n’a été envoyé. Vérifiez la configuration SMTP ou Resend." };
+    return { error: "Aucun e-mail n’a été accepté par le service d’envoi. Vérifiez la configuration et les quotas SMTP ou Resend.", failedEmails };
   }
   if (mode === "test") return { success: `E-mail de test envoyé à ${recipients[0]}.` };
-  return {
-    success:
-      sent === recipients.length
-        ? `Newsletter envoyée à ${sent} contact${sent > 1 ? "s" : ""}.`
-        : `Newsletter envoyée à ${sent} contact${sent > 1 ? "s" : ""} sur ${recipients.length}.`,
-  };
+  if (failedEmails.length) return { error: `${sent} envois acceptés sur ${recipients.length}. ${failedEmails.length} refus : vous pouvez préparer une relance uniquement pour ces contacts.`, failedEmails };
+  return { success: `Newsletter prise en charge pour ${sent} contact${sent > 1 ? "s" : ""} par le service d’envoi.` };
 }
 
 export async function setSubscriberIgnoredAction(formData: FormData) {

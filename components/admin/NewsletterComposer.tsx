@@ -256,7 +256,7 @@ export default function NewsletterComposer({ contacts, segmentCounts }: { contac
               </label>
             ) : (
               <label className="mt-3 flex items-start gap-2 text-xs leading-relaxed text-ink-soft">
-                <input name="confirmed" type="checkbox" required className="mt-0.5 accent-terra" />
+                <input key={`${mode}-${selected.join(",")}`} name="confirmed" type="checkbox" required className="mt-0.5 accent-terra" />
                 Je confirme l&apos;envoi de cette newsletter aux {mode === "all" ? subscriberCount : mode === "recent" ? segmentCounts.recent : mode === "older" ? segmentCounts.older : selected.length} contacts sélectionnés.
               </label>
             )}
@@ -264,6 +264,11 @@ export default function NewsletterComposer({ contacts, segmentCounts }: { contac
 
           {state.success && <p role="status" className="rounded-2xl bg-sage/15 px-4 py-3 text-sm font-bold text-sage-deep">{state.success}</p>}
           {state.error && <p role="alert" className="rounded-2xl bg-blush/30 px-4 py-3 text-sm font-bold text-terra-deep">{state.error}</p>}
+          {state.failedEmails && state.failedEmails.length > 0 && <div className="rounded-2xl border border-sand p-4 text-xs text-ink-soft">
+            <details><summary className="cursor-pointer font-bold">Voir les {state.failedEmails.length} contacts en échec</summary><ul className="mt-2 max-h-40 overflow-y-auto">{state.failedEmails.map(email => <li key={email}>{email}</li>)}</ul></details>
+            <button type="button" disabled={pending} onClick={() => { setMode("custom"); setSelected(state.failedEmails || []); setContactFilter("all"); }} className="mt-3 rounded-full border border-terra px-4 py-2 font-bold text-terra">Préparer la relance des contacts en échec</button>
+            <p className="mt-2">Aucun nouvel envoi au clic : vérifiez la sélection puis confirmez l’envoi. Les contacts déjà pris en charge ne sont pas sélectionnés.</p>
+          </div>}
           <button disabled={pending || (mode !== "test" && (mode === "all" ? subscriberCount : mode === "recent" ? segmentCounts.recent : mode === "older" ? segmentCounts.older : selected.length) === 0)} className="rounded-full bg-terra px-6 py-3.5 text-sm font-bold text-cream transition-colors hover:bg-terra-deep disabled:cursor-not-allowed disabled:opacity-40">
             {pending ? "Envoi en cours…" : mode === "test" ? "Envoyer le test" : "Envoyer la newsletter"}
           </button>
