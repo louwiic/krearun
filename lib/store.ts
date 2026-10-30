@@ -25,6 +25,7 @@ import { DEFAULT_REUNION_SHIPPING_RATES } from "./shipping";
 import { DEFAULT_PICKUP_POINTS } from "./pickup";
 import { DEFAULT_STORE_CATEGORIES } from "./categories";
 import { normalizeQuantityDiscounts } from "./quantity-discounts";
+import { validatePrintFile, type ProductPrintFile } from "./print-files";
 import { isPaymentStatus, publicHttpUrl } from "./order-management";
 
 const PB_URL = (process.env.POCKETBASE_URL ?? "").replace(/\/$/, "");
@@ -82,6 +83,48 @@ async function pb<T = unknown>(
 
 function escapeFilter(value: string): string {
   return value.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+}
+
+// Manufacturing originals are protected PocketBase files, never public media.
+export async function getProductPrintFiles(productId: string): Promise<ProductPrintFile[]> {
+  if (!/^[a-z0-9]{15}$/.test(productId)) return [];
+  const result = await pb<ListResult<ProductPrintFile>>(`/collections/product_print_files/records?perPage=500&sort=originalName&filter=${encodeURIComponent(`productId='${productId}'`)}`);
+  return result.items;
+}
+
+export async function addProductPrintFile(productId: string, name: string, bytes: Buffer, notes: string) {
+  if (!await getProductById(productId)) throw new Error("Produit introuvable.");
+  validatePrintFile(name, bytes);
+  const sha256 = crypto.createHash("sha256").update(bytes).digest("hex");
+  const existing = (await getProductPrintFiles(productId)).find(file => file.sha256 === sha256);
+  if (existing) return existing;
+  const form = new FormData();
+  form.set("productId", productId);
+  form.set("originalName", name.slice(0, 240));
+  form.set("sha256", sha256);
+  form.set("sizeBytes", String(bytes.length));
+  form.set("notes", notes.slice(0, 10000));
+  form.set("file", new Blob([new Uint8Array(bytes)], { type: "application/octet-stream" }), name);
+  const send = async () => fetch(`${PB_URL}/api/collections/product_print_files/records`, { method: "POST", headers: { Authorization: await getToken() }, body: form, cache: "no-store" });
+  let response = await send();
+  if (response.status === 401) { cachedToken = null; response = await send(); }
+  if (!response.ok) {
+    const duplicate = (await getProductPrintFiles(productId)).find(file => file.sha256 === sha256);
+    if (duplicate) return duplicate;
+    throw new Error("L’enregistrement du 3MF a échoué. Réessaie.");
+  }
+  return await response.json() as ProductPrintFile;
+}
+
+export async function downloadProductPrintFile(id: string): Promise<{ record: ProductPrintFile; response: Response } | null> {
+  if (!/^[a-z0-9]{15}$/.test(id)) return null;
+  const list = await pb<ListResult<ProductPrintFile>>(`/collections/product_print_files/records?perPage=1&filter=${encodeURIComponent(`id='${id}'`)}`);
+  const record = list.items[0];
+  if (!record) return null;
+  const { token } = await pb<{ token: string }>("/files/token", { method: "POST" });
+  const response = await fetch(`${PB_URL}/api/files/product_print_files/${record.id}/${encodeURIComponent(record.file)}?token=${encodeURIComponent(token)}`, { cache: "no-store" });
+  if (!response.ok || !response.body) throw new Error("Téléchargement du 3MF indisponible.");
+  return { record, response };
 }
 
 // Custom holder assets stay protected in PocketBase, never on public R2.

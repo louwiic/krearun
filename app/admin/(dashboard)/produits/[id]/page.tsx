@@ -3,7 +3,8 @@ import { notFound } from "next/navigation";
 import ProductForm from "@/components/admin/ProductForm";
 import { PrivateSaleShare } from "@/components/admin/PrivateSaleShare";
 import DeleteProductButton from "@/components/admin/DeleteProductButton";
-import { getInventoryColors, getProductById } from "@/lib/store";
+import { getInventoryColors, getProductById, getProductPrintFiles } from "@/lib/store";
+import ProductPrintFiles from "@/components/admin/ProductPrintFiles";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +19,7 @@ export default async function EditProduitPage({
     getInventoryColors({ includeInactive: true }),
   ]);
   if (!product) notFound();
+  const printFiles = await getProductPrintFiles(id);
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -38,6 +40,7 @@ export default async function EditProduitPage({
       </h1>
       {product.privateSale && <PrivateSaleShare slug={product.slug} active={product.active} />}
       <Link href={`/admin/produits/statistiques?produit=${product.id}`} className="mb-6 inline-block text-sm font-semibold underline">Voir les impressions, clics et vues de ce produit ↗</Link>
+      <ProductPrintFiles productId={id} files={printFiles} />
       <ProductForm product={product} inventoryColors={inventoryColors} />
       <div className="mt-10 border-t border-sand/70 pt-6">
         <DeleteProductButton id={product.id} name={product.name} />
