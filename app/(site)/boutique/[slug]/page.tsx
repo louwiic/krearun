@@ -204,7 +204,7 @@ export default async function ProductPage({
       )}
 
       {!product.privateSale && <section className="mt-16 grid gap-8 sm:mt-24 lg:grid-cols-[1fr_0.9fr]">
-        <div>
+        <div className="min-w-0">
           <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.14em] text-terra sm:text-xs sm:tracking-[0.18em]">
             Avis clients
           </p>
@@ -218,7 +218,7 @@ export default async function ProductPage({
                   <div className="mb-3 text-terra" aria-label={`${review.rating} sur 5`}>
                     {"✿ ".repeat(review.rating).trim()}
                   </div>
-                  <blockquote className="text-sm leading-relaxed text-ink-soft">
+                  <blockquote className="break-words text-base leading-relaxed text-ink-soft">
                     « {review.message} »
                   </blockquote>
                   {review.imageUrl && (

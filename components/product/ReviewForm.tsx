@@ -50,7 +50,7 @@ export default function ReviewForm({
   }
 
   return (
-    <form onSubmit={submit} className="grid gap-4 rounded-blob bg-cream p-5 shadow-soft sm:p-6">
+    <form onSubmit={submit} className="grid min-w-0 gap-4 rounded-blob bg-cream p-5 shadow-soft sm:p-6">
       <div>
         <h3 className="font-display text-xl font-semibold">Laisser un avis</h3>
         <p className="mt-1 text-sm text-ink-soft">
@@ -59,31 +59,31 @@ export default function ReviewForm({
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
-        <label className="grid gap-1.5 text-sm font-semibold text-ink-soft">
+        <label className="grid min-w-0 gap-1.5 text-sm font-semibold text-ink-soft">
           Prénom
           <input
             name="authorName"
             required
-            className="rounded-2xl border border-sand bg-linen px-4 py-3 font-normal text-ink outline-none focus:border-terra"
+            className="min-w-0 w-full max-w-full rounded-2xl border border-sand bg-linen px-4 py-3 font-normal text-ink outline-none focus:border-terra"
           />
         </label>
-        <label className="grid gap-1.5 text-sm font-semibold text-ink-soft">
+        <label className="grid min-w-0 gap-1.5 text-sm font-semibold text-ink-soft">
           E-mail
           <input
             name="email"
             type="email"
             required
-            className="rounded-2xl border border-sand bg-linen px-4 py-3 font-normal text-ink outline-none focus:border-terra"
+            className="min-w-0 w-full max-w-full rounded-2xl border border-sand bg-linen px-4 py-3 font-normal text-ink outline-none focus:border-terra"
           />
         </label>
       </div>
 
-      <label className="grid gap-1.5 text-sm font-semibold text-ink-soft">
+      <label className="grid min-w-0 gap-1.5 text-sm font-semibold text-ink-soft">
         Note
         <select
           name="rating"
           defaultValue="5"
-          className="rounded-2xl border border-sand bg-linen px-4 py-3 font-normal text-ink outline-none focus:border-terra"
+          className="min-w-0 w-full max-w-full rounded-2xl border border-sand bg-linen px-4 py-3 font-normal text-ink outline-none focus:border-terra"
         >
           <option value="5">5 / 5</option>
           <option value="4">4 / 5</option>
@@ -93,20 +93,20 @@ export default function ReviewForm({
         </select>
       </label>
 
-      <label className="grid gap-1.5 text-sm font-semibold text-ink-soft">
+      <label className="grid min-w-0 gap-1.5 text-sm font-semibold text-ink-soft">
         Votre avis
         <textarea
           name="message"
           required
           minLength={20}
           rows={4}
-          className="resize-none rounded-2xl border border-sand bg-linen px-4 py-3 font-normal text-ink outline-none focus:border-terra"
+          className="min-w-0 w-full max-w-full resize-none rounded-2xl border border-sand bg-linen px-4 py-3 font-normal text-ink outline-none focus:border-terra"
         />
       </label>
 
-      <label className="grid gap-1.5 text-sm font-semibold text-ink-soft">
+      <label className="grid min-w-0 gap-1.5 text-sm font-semibold text-ink-soft">
         Ajouter une photo (facultatif)
-        <input name="photo" type="file" accept="image/jpeg,image/png,image/webp" className="rounded-2xl border border-sand bg-linen px-4 py-3 font-normal text-ink outline-none focus:border-terra" />
+        <input name="photo" type="file" accept="image/jpeg,image/png,image/webp" className="min-w-0 w-full max-w-full rounded-2xl border border-sand bg-linen px-4 py-3 font-normal text-ink outline-none focus:border-terra" />
         <span className="text-xs font-normal text-ink-faint">Une photo JPEG, PNG ou WebP, 5 Mo maximum.</span>
       </label>
 

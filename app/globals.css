@@ -383,3 +383,5 @@ h2.font-display {
 /* Legible newsletter controls and consent within the storefront footer. */
 .editorial-footer input[type="email"], .editorial-footer button[type="submit"] { font-size: 16px; }
 .editorial-footer form label, .editorial-footer form > p { font-size: 14px; line-height: 1.65; }
+
+.storefront main p.text-sm { font-size: 16px; line-height: 1.65; }
