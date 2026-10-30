@@ -1,4 +1,4 @@
-import { colorKey, inventoryColorAvailable, type ColorAvailability } from "@/lib/color-availability";
+import { colorKey, inventoryColorAvailable, availableInventoryPalette, usesInventoryPalette, type ColorAvailability } from "@/lib/color-availability";
 import { NOS_SLUG, NOS_TEXT_MAX, nosLogoId } from "@/lib/nos";
 import { parseMetropolitanShipping, shippingZone, metropolitanQuote, shippingQuoteMetadata } from "@/lib/metropolitan-shipping";
 import { MONSTER_GIFT, monsterGiftLabel } from "@/lib/monster-gift";
@@ -178,12 +178,12 @@ export async function POST(req: Request) {
       );
     }
     const orderColor = publicColorName(item.color || "");
-    if (product.category !== "lunette" && product.id !== CLICKER_PRODUCT_ID && product.colors?.length) {
-      const palette = variant?.colors?.length ? variant.colors : product.colors;
-      const selectedColor = palette.find(color => colorKey(color.name) === colorKey(orderColor));
-      if (!selectedColor) return NextResponse.json({ error: `Choisissez un coloris disponible pour « ${product.name} ».` }, { status: 400 });
+    if (product.category !== "lunette" && product.id !== CLICKER_PRODUCT_ID && (product.colors?.length || usesInventoryPalette(product))) {
       try { inventory ??= await getInventoryColors({ includeInactive: true }); }
       catch { return NextResponse.json({ error: "Impossible de vérifier la disponibilité des couleurs. Réessayez dans un instant." }, { status: 503 }); }
+      const palette = usesInventoryPalette(product) ? availableInventoryPalette(inventory) : variant?.colors?.length ? variant.colors : product.colors;
+      const selectedColor = palette.find(color => colorKey(color.name) === colorKey(orderColor));
+      if (!selectedColor) return NextResponse.json({ error: `Choisissez un coloris disponible pour « ${product.name} ».` }, { status: 400 });
       if (!inventoryColorAvailable(selectedColor, inventory)) return NextResponse.json({ error: `Le coloris ${orderColor} est en rupture de stock. Choisissez une autre couleur pour « ${product.name} ».` }, { status: 400 });
     }
     if (product.slug === NOS_SLUG) {

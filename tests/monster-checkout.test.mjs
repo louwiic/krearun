@@ -113,3 +113,17 @@ test('Halloween fixed discount checks articles only before creating the Stripe p
   else {assert.deepEqual(sessions[0].discounts,[{promotion_code:'promo_halloween'}]);assert.equal(sessions[0].line_items[0].price_data.unit_amount,priceCents);}
  }
 });
+
+test('Christmas kit colours come from live inventory even when the product has no saved palette',async()=>{
+ const inventory=[{name:'PLA Rouge',hex:'#e00000',active:true},{name:'Vert Neon',hex:'#d5ff3d',active:false}];
+ const product={category:'noel',colors:[],priceCents:1490};
+ const good=checkout('noel-thermoforme-2072645',100,{},product,inventory);
+ assert.equal((await good.post(request({color:'Rouge'}))).status,200);
+ assert.equal(JSON.parse(metadata.readCheckoutItems(good.sessions[0].metadata))[0].c,'Rouge');
+ for(const color of ['Vert Neon','Inconnu','']){
+  const bad=checkout('noel-thermoforme-2072645',100,{},product,inventory);
+  assert.equal((await bad.post(request({color}))).status,400);assert.equal(bad.sessions.length,0);
+ }
+ const empty=checkout('noel-thermoforme-2072645',100,{},product,[]);
+ assert.equal((await empty.post(request({color:'Rouge'}))).status,400);assert.equal(empty.sessions.length,0);
+});

@@ -1,6 +1,6 @@
 "use client";
 
-import { useColorAvailability } from "./ColorAvailabilityProvider";
+import { useColorAvailability, useProductColors } from "./ColorAvailabilityProvider";
 import NosPersonalization from "./NosPersonalization";
 import { NOS_SLUG } from "@/lib/nos";
 import { MONSTER_GIFT } from "@/lib/monster-gift";
@@ -21,9 +21,10 @@ import { discountedUnitPriceCents, quantityDiscountPercent } from "@/lib/quantit
 export default function AddToCart({ product }: { product: Product }) {
   const { addItem } = useCart();
   const isColorAvailable = useColorAvailability(product.category === "lunette");
+  const { colors: productColors, required: inventoryPalette } = useProductColors(product);
   const activeVariants = product.variants.filter((variant) => variant.active);
   const [variantId, setVariantId] = useState(activeVariants[0]?.id ?? "");
-  const [requestedColor, setColor] = useState(product.colors.find(isColorAvailable)?.name ?? "");
+  const [requestedColor, setColor] = useState(productColors.find(isColorAvailable)?.name ?? "");
   const [addPersonalization, setAddPersonalization] = useState(false);
   const [customName, setCustomName] = useState("");
   const personalizedLamp = isPersonalizedLamp(product.slug);
@@ -31,10 +32,10 @@ export default function AddToCart({ product }: { product: Product }) {
   const lampDetails = buildLampPersonalization(product.slug, lamp);
   const [quantity, setQuantity] = useState(1);
   const selectedVariant = activeVariants.find((variant) => variant.id === variantId);
-  const availableColors = selectedVariant?.colors?.length ? selectedVariant.colors : product.colors;
+  const availableColors = !inventoryPalette && selectedVariant?.colors?.length ? selectedVariant.colors : productColors;
   const selectedColor = availableColors.find((item) => item.name === requestedColor && isColorAvailable(item)) ?? availableColors.find(isColorAvailable);
   const color = selectedColor?.name ?? "";
-  const colorsSoldOut = availableColors.length > 0 && !selectedColor;
+  const colorsSoldOut = (inventoryPalette || availableColors.length > 0) && !selectedColor;
   const selectedStock = selectedVariant?.stock ?? product.stock;
   const selectedWeight = selectedVariant?.weightGrams || product.weightGrams;
   const selectedImage = selectedColor?.image || selectedVariant?.image || product.images[0] || (product.privateSale ? "/products/sur-mesure.svg" : "/products/hero.svg");
@@ -69,7 +70,7 @@ export default function AddToCart({ product }: { product: Product }) {
                 key={variant.id}
                 type="button"
                 onClick={() => {
-                  const variantColors = variant.colors?.length ? variant.colors : product.colors;
+                  const variantColors = !inventoryPalette && variant.colors?.length ? variant.colors : productColors;
                   const nextColor =
                     variantColors.find((item) => item.name === color && isColorAvailable(item)) ?? variantColors.find(isColorAvailable);
                   setVariantId(variant.id);
@@ -186,6 +187,7 @@ export default function AddToCart({ product }: { product: Product }) {
           {availableColors.some(c => !isColorAvailable(c)) && <p className="text-xs font-semibold text-ink-soft">Coloris barrés : rupture de stock.</p>}
         </div>
       )}
+      {inventoryPalette && <p className="text-xs leading-relaxed text-ink-soft">Choisissez la couleur principale de votre décoration parmi les coloris disponibles à l’atelier. Les détails du motif gardent leurs couleurs ; les moules du kit sont fournis dans un coloris d’atelier.</p>}
 
       {product.slug === NOS_SLUG && <p className="text-xs text-ink-soft">L’aperçu 3D suit votre choix de couleur. La photo réelle présente le modèle bleu.</p>}
 

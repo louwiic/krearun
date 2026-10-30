@@ -5,6 +5,7 @@ import type { Product } from "@/lib/types";
 import { formatPrice } from "@/lib/format";
 import { hasFreeShipping } from "@/lib/free-shipping";
 import { HOLDER_SLUG } from "@/lib/custom-holder";
+import { usesInventoryPalette } from "@/lib/color-availability";
 
 export default function ProductCard({ product, className = "", showCta = false, priority = false }: { product: Product; className?: string; showCta?: boolean; priority?: boolean }) {
   const variants = product.variants.filter(variant => variant.active);
@@ -23,7 +24,7 @@ export default function ProductCard({ product, className = "", showCta = false, 
       <h3 className="editorial-product-title">{product.name}</h3>
       <div className="mt-2 flex flex-wrap items-baseline gap-x-3 gap-y-1 text-xs sm:text-sm"><span>{personalized ? "Sur validation" : `${prices.length > 1 ? "À partir de " : ""}${formatPrice(price)}`}</span>{product.compareAtCents && <span className="text-ink-faint line-through">{formatPrice(product.compareAtCents)}</span>}</div>
       {hasFreeShipping(product.slug) && <p className="mt-1 text-[10px] uppercase tracking-wide">Livraison offerte</p>}
-      {product.colors.length > 0 && <div className="mt-3 flex flex-wrap gap-1.5"><ProductColorDots colors={product.colors} ignoreInventory={product.category === "lunette"} /></div>}
+      {(product.colors.length > 0 || usesInventoryPalette(product)) && <div className="mt-3 flex flex-wrap gap-1.5"><ProductColorDots colors={product.colors} ignoreInventory={product.category === "lunette"} fromInventory={usesInventoryPalette(product)} /></div>}
       {showCta && <span className="mt-4 inline-block text-xs underline underline-offset-4">{personalized ? "Créer le mien" : "Découvrir"} ↗</span>}
     </div>
   </Link>;

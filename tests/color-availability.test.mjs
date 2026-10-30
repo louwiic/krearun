@@ -41,3 +41,11 @@ test('inventory writes emit success only after persistence, and refresh storefro
  saved=null;await assert.rejects(mod.exports.saveInventoryColorAction(form),/redirect/);assert.equal(notices.at(-1).kind,'error');
  admin=false;const count=writes.length;await assert.rejects(mod.exports.saveInventoryColorAction(form),/unauthorized/);assert.equal(writes.length,count);
 });
+
+test('Christmas palettes use only active inventory colours, deduplicate spool aliases and retain newly added colours',()=>{
+ const source=[{name:'PLA Rouge',hex:'#e00000',active:true},{name:'Rouge',hex:'#e00000',active:true},{name:'Vert Neon',hex:'#d5ff3d',active:false},{name:'Nouveau bleu',hex:'#123abc',active:true}];
+ assert.deepEqual(availability.availableInventoryPalette(source),[{name:'Rouge',hex:'#e00000'},{name:'Nouveau bleu',hex:'#123abc'}]);
+ assert.equal(availability.usesInventoryPalette({category:'noel',slug:'noel-thermoforme-2072645'}),true);
+ assert.equal(availability.usesInventoryPalette({category:'lunette',slug:'lunettes'}),false);
+ assert.deepEqual(availability.availableInventoryPalette(source.map(c=>({...c,active:false}))),[]);
+});
