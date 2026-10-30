@@ -96,7 +96,7 @@ export default async function PromotionCodesPage({
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <label>
-                  <span className={label}>Date d’expiration</span>
+                <span className={label}>Expiration (23 h 59, heure de La Réunion)</span>
                   <input name="expires_at" type="date" className={field} />
                 </label>
                 <label>
@@ -105,8 +105,9 @@ export default async function PromotionCodesPage({
                 </label>
               </div>
               <label>
-                <span className={label}>Montant minimum du panier (€)</span>
+                <span className={label}>Minimum d’articles hors livraison (€)</span>
                 <input name="minimum_amount" type="number" min="0" step="0.01" className={field} placeholder="Aucun minimum" />
+                <span className="mt-1 block text-xs text-ink-soft">Calculé après les remises automatiques. Exemple : 40 € pour offrir 5 € dès 40 € d’achat.</span>
               </label>
               <label className="flex items-center gap-3 rounded-2xl border border-sand bg-linen px-4 py-3 text-sm font-semibold">
                 <input name="first_time_only" type="checkbox" className="h-4 w-4 accent-terra" />

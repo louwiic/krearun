@@ -9,14 +9,15 @@ import * as metadata from '../lib/checkout-item-metadata.ts';
 import * as legal from '../lib/legal.ts';
 import * as nos from '../lib/nos.ts';
 import * as availability from '../lib/color-availability.ts';
+import * as promotionDetails from '../lib/promotion-details.ts';
 const require=createRequire(import.meta.url);
-function checkout(slug='porte-canette-monster',weightGrams=180, settings={}, productOverrides={}, inventory=[]) {
+function checkout(slug='porte-canette-monster',weightGrams=180, settings={}, productOverrides={}, inventory=[], promotion=null) {
  const sessions=[];
  const mocks={
-  '@/lib/color-availability':availability,'@/lib/metropolitan-shipping':metropolitan,'@/lib/nos':nos,
+  '@/lib/promotion-details':promotionDetails,'@/lib/color-availability':availability,'@/lib/metropolitan-shipping':metropolitan,'@/lib/nos':nos,
   '@/lib/monster-gift':gift,'@/lib/legal':legal,'@/lib/checkout-item-metadata':metadata,
   '@/lib/store':{getInventoryColors:async()=>inventory,getNosLogo:async id=>id==='abc123def456ghi'?{id}:null,getSettings:async()=>settings,getProductById:async()=>({id:'monster',slug,name:'Produit',active:true,variants:[],stock:10,priceCents:1790,weightGrams,images:[],colors:slug===nos.NOS_SLUG?nos.NOS_COLORS:[],...productOverrides})},
-  '@/lib/stripe':{stripeConfigured:()=>true,getStripe:()=>({checkout:{sessions:{create:async data=>{sessions.push(data);return {url:'https://checkout.invalid/test'};}}}})},
+  '@/lib/stripe':{stripeConfigured:()=>true,getStripe:()=>({promotionCodes:{list:async()=>({data:promotion?[promotion]:[]})},checkout:{sessions:{create:async data=>{sessions.push(data);return {url:'https://checkout.invalid/test'};}}}})},
   '@/lib/colors':{publicColorName:v=>v},'@/lib/free-shipping':{billableProductWeight:()=>weightGrams,hasMissingProductWeight:()=>weightGrams<=0},
   '@/lib/shipping':{parseShippingRates:()=>[],calculateShippingCents:()=>({priceCents:577,label:'Test'})},
   '@/lib/pickup':{getPickupPoint:()=>null},'@/lib/quantity-discounts':{discountedUnitPriceCents:p=>p},
@@ -28,7 +29,7 @@ function checkout(slug='porte-canette-monster',weightGrams=180, settings={}, pro
  const compiled={exports:{}};new Function('require','module','exports',outputText)(name=>mocks[name]??require(name),compiled,compiled.exports);
  return {sessions,post:compiled.exports.POST};
 }
-function request(extra={},terms=true,customer={}) {return new Request('https://krearun.re/api/checkout',{method:'POST',body:JSON.stringify({termsAccepted:terms,termsVersion:legal.LEGAL_VERSION,items:[{productId:'monster',quantity:1,color:'Blanc',...extra}],customer:{email:'test@example.invalid',firstName:'Test',lastName:'Client',phone:'0000000000',addressLine1:'Test',postalCode:'97430',city:'Test',country:'RE',...customer}})});}
+function request(extra={},terms=true,customer={},body={}) {return new Request('https://krearun.re/api/checkout',{method:'POST',body:JSON.stringify({termsAccepted:terms,termsVersion:legal.LEGAL_VERSION,items:[{productId:'monster',quantity:1,color:'Blanc',...extra}],customer:{email:'test@example.invalid',firstName:'Test',lastName:'Client',phone:'0000000000',addressLine1:'Test',postalCode:'97430',city:'Test',country:'RE',...customer},...body})});}
 test('Monster gift is included without a selector and replaces stale cart choices at checkout',async()=>{
  for(const value of [undefined,'1','2','forged']) {const {sessions,post}=checkout();const response=await post(request({keychainChoice:value}));assert.equal(response.status,200);const packed=JSON.parse(metadata.readCheckoutItems(sessions[0].metadata));assert.equal(packed[0].k,gift.MONSTER_GIFT);assert.match(sessions[0].line_items[0].price_data.product_data.name,/Porte-clés griffes — Blanc/);assert.equal(sessions[0].line_items[0].price_data.unit_amount,1790);}
 });
@@ -99,4 +100,16 @@ test('checkout refuses a stale unavailable filament choice before creating a pay
  assert.equal((await forged.post(request({color:'not-in-palette'}))).status,400);assert.equal(forged.sessions.length,0);
  const glasses=checkout('lunettes',180,{}, {category:'lunette',colors:[{name:'Vert néon',hex:'#d5ff3d'}]},inventory);
  assert.equal((await glasses.post(request({color:'Vert Neon'}))).status,200);
+});
+
+
+test('Halloween fixed discount checks articles only before creating the Stripe payment session',async()=>{
+ const promotion={id:'promo_halloween',active:true,expires_at:Date.now()/1000+3600,max_redemptions:null,times_redeemed:0,restrictions:{minimum_amount:4000,minimum_amount_currency:'eur'},promotion:{coupon:{valid:true,amount_off:500,currency:'eur'}}};
+ for (const priceCents of [3999,4000,4500]) {
+  const {post,sessions}=checkout('other',180,{}, {priceCents},[],promotion);
+  const response=await post(request({},true,{}, {promoCode:'HALLOWEEN5'}));
+  assert.equal(response.status,priceCents<4000?400:200);
+  if(priceCents<4000){assert.equal(sessions.length,0);assert.match((await response.json()).error,/hors frais de port/);}
+  else {assert.deepEqual(sessions[0].discounts,[{promotion_code:'promo_halloween'}]);assert.equal(sessions[0].line_items[0].price_data.unit_amount,priceCents);}
+ }
 });

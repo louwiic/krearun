@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { promotionDetails } from "../lib/promotion-details.ts";
+import { promotionDetails, promotionCheckoutError } from "../lib/promotion-details.ts";
 
 const deadline = Date.parse("2027-06-19T19:59:59Z") / 1000;
 function promo(overrides = {}) {
@@ -43,4 +43,14 @@ test("unlimited fixed discounts keep their currency and lack of expiry", () => {
   assert.equal(details.expiresAt, null);
   assert.match(details.conditions.join(" "), /Sans date d’expiration/);
   assert.match(details.conditions.join(" "), /non limité/);
+});
+
+test("fixed Halloween discount requires 40 euros of articles, with the exact boundary accepted", () => {
+  const code = promo({ restrictions: { minimum_amount: 4000, minimum_amount_currency: "eur" }, max_redemptions: null,
+    promotion: { coupon: { valid: true, amount_off: 500, currency: "eur" } } });
+  assert.match(promotionCheckoutError(code, 3999, 0), /40,00/);
+  assert.match(promotionCheckoutError(code, 3999, 0), /hors frais de port/);
+  assert.equal(promotionCheckoutError(code, 4000, 0), null);
+  assert.equal(promotionCheckoutError(code, 4500, 0), null);
+  assert.match(promotionCheckoutError(code, 4500, deadline * 1000), /expiré/);
 });

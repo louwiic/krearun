@@ -43,3 +43,14 @@ export function promotionDetails(code: Stripe.PromotionCode, now = Date.now()) {
     usable: Boolean(code.active && coupon?.valid && !expired && !exhausted),
   };
 }
+
+export function promotionCheckoutError(code: Stripe.PromotionCode, subtotalCents: number, now = Date.now()): string | null {
+  const details = promotionDetails(code, now);
+  if (!details.usable) return "Ce code promo est inactif, expiré ou épuisé.";
+  const minimum = code.restrictions.minimum_amount;
+  if (minimum && subtotalCents < minimum) {
+    const amount = new Intl.NumberFormat("fr-FR", { style: "currency", currency: code.restrictions.minimum_amount_currency || "eur" }).format(minimum / 100);
+    return `Ce code promo nécessite au moins ${amount} d’articles, hors frais de port et après les remises automatiques.`;
+  }
+  return null;
+}

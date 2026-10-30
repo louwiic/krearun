@@ -7,6 +7,7 @@ import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { getProductById, getSettings, getNosLogo, getInventoryColors } from "@/lib/store";
 import { getStripe, stripeConfigured } from "@/lib/stripe";
+import { promotionCheckoutError } from "@/lib/promotion-details";
 import { publicColorName } from "@/lib/colors";
 import { billableProductWeight, hasMissingProductWeight } from "@/lib/free-shipping";
 import { calculateShippingCents, parseShippingRates } from "@/lib/shipping";
@@ -274,6 +275,7 @@ export async function POST(req: Request) {
         code: promoCode,
         active: true,
         limit: 1,
+        expand: ["data.promotion.coupon"],
       });
       const promotionCode = promotionCodes.data[0];
       if (!promotionCode) {
@@ -282,6 +284,8 @@ export async function POST(req: Request) {
           { status: 400 }
         );
       }
+      const promotionError = promotionCheckoutError(promotionCode, subtotalCents);
+      if (promotionError) return NextResponse.json({ error: promotionError }, { status: 400 });
       discounts.push({ promotion_code: promotionCode.id });
     }
 

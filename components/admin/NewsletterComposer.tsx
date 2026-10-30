@@ -7,6 +7,7 @@ import {
   type SendNewsletterResult,
 } from "@/app/admin/actions";
 import type { RecipientMode } from "@/lib/newsletter-targeting";
+import { HALLOWEEN_OFFER, halloweenNewsletterHtml } from "@/lib/halloween-newsletter";
 
 type ContactOption = { email: string; ignored: boolean; subscribed: boolean; hasOrdered: boolean };
 
@@ -59,6 +60,12 @@ function brandedTemplate({
 }
 
 const templates = [
+  {
+    id: "halloween-2026",
+    label: "Halloween · −5 € dès 40 €",
+    subject: HALLOWEEN_OFFER.subject,
+    html: halloweenNewsletterHtml(),
+  },
   {
     id: "nouveautes",
     label: "Nouveautés",
@@ -181,6 +188,7 @@ export default function NewsletterComposer({ contacts, segmentCounts }: { contac
                 </button>
               ))}
             </div>
+            {template === "halloween-2026" && <p className="mt-3 text-xs leading-relaxed text-ink-soft">Code HALLOWEEN5 · 5 € dès 40 € d’articles, hors frais de port · du 30 octobre au 1er novembre 2026 inclus (heure de La Réunion). Le texte reste modifiable ci-dessous. Vérifiez les conditions du code avant l’envoi.</p>}
           </div>
 
           <label className="grid gap-1.5 text-xs font-bold text-ink-soft">
