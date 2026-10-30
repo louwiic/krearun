@@ -6,7 +6,7 @@ import { siteOrigin, jsonLdString } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: { absolute: "Objets personnalisés à La Réunion · Kréarun" },
-  description: "Porte-boissons, lampes, lettres et cadeaux personnalisés : vos idées prennent forme dans notre atelier au Tampon, à La Réunion. Découvrez la boutique Kréarun.",
+  description: "Porte-boissons, lampes, lettres et cadeaux personnalisés : vos idées prennent forme dans notre atelier de fabrication artisanale à La Réunion. Découvrez la boutique Kréarun.",
   alternates: { canonical: "/" },
 };
 import HomeReviews from "@/components/home/HomeReviews";
@@ -39,15 +39,14 @@ export default async function HomePage() {
       email: BUSINESS.email, telephone: BUSINESS.phoneHref,
       address: { "@type": "PostalAddress", streetAddress: BUSINESS.address, postalCode: BUSINESS.postalCode, addressLocality: BUSINESS.city, addressRegion: "La Réunion", addressCountry: "RE" },
     }) }} />
-    <section className="editorial-hero">
-      <img src={heroImage} alt={settings.hero_image_alt || "Une création personnalisée Kréarun"} width={1086} height={1448} fetchPriority="high" className="editorial-hero-photo" />
-      <div className="editorial-hero-shade" />
-      <div className="editorial-hero-copy"><p className="editorial-eyebrow">Votre atelier à La Réunion</p><h1>Découvrez nos produits personnalisés.</h1><div className="mt-8 flex flex-wrap items-center gap-6"><Link href="/boutique" className="editorial-pill">Voir la boutique</Link><Link href="/personnaliser" className="text-sm underline underline-offset-4">Créer mon objet ↗</Link></div></div>
+    <section className="border-b-2 border-ink bg-linen">
+      <h1 className="sr-only">Découvrez nos produits personnalisés — Kréarun, la personnalisation à fond !</h1>
+      <img src="/brand/krearun-hero.webp" alt="Kréarun — La personnalisation à fond ! Tes idées. Tes couleurs. Ton style. Porte-boisson et porte-clés personnalisés." width={2017} height={780} fetchPriority="high" className="block h-auto w-full" />
     </section>
 
     <section className="editorial-promises" aria-label="L’atelier Kréarun">
       {[
-        ["01", "Fabriqué au Tampon", "Vos créations prennent forme dans notre atelier à La Réunion."],
+        ["01", "Fabrication artisanale", "Vos créations prennent forme avec soin dans notre atelier."],
         ["02", "À votre image", "Un prénom, un logo, vos couleurs : composez votre objet."],
         ["03", "Préparé avec soin", "Les créations de l’atelier demandent 2 à 4 jours de préparation."],
         ["04", "On en parle ?", "Une demande particulière ? Échangeons sur votre idée."],
@@ -60,7 +59,7 @@ export default async function HomePage() {
 
     {spotlight && <section className="editorial-feature"><img src={main.images?.[0] || heroImage} alt={main.name} width={1000} height={1000} loading="lazy"/><div><p className="editorial-eyebrow">À découvrir à l’atelier</p><h2>{main.name}</h2><p>Vos couleurs, votre prénom et une création à emporter partout. Découvrez les modèles et les options sur la fiche produit.</p><Link href={`/boutique/${main.slug}`} className="editorial-pill">Découvrir ce modèle</Link></div></section>}
 
-    <section id="atelier" className="editorial-workshop"><img src="/brand/krearun-nozzle.webp" alt="" width={310} height={410} loading="lazy"/><div><p className="editorial-eyebrow">L’atelier Kréarun</p><h2>Une idée ?<br/>On lui donne forme.</h2><p>Au Tampon, à La Réunion, nous préparons vos créations avec soin. Une couleur, un prénom, un logo ou une idée à imaginer ensemble : parlons-en.</p><Link href="/contact" className="editorial-pill">Rencontrer l’atelier ↗</Link></div></section>
+    <section id="atelier" className="editorial-workshop"><img src="/brand/krearun-nozzle.webp" alt="" width={310} height={410} loading="lazy"/><div><p className="editorial-eyebrow">L’atelier Kréarun</p><h2>Une idée ?<br/>On lui donne forme.</h2><p>Dans notre atelier de fabrication artisanale, nous préparons vos créations avec soin. Une couleur, un prénom, un logo ou une idée à imaginer ensemble : parlons-en.</p><Link href="/contact" className="editorial-pill">Rencontrer l’atelier ↗</Link></div></section>
 
     <HomeReviews reviews={reviews} />
   </>;
