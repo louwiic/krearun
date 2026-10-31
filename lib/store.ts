@@ -1169,3 +1169,34 @@ export async function getProductDailyStats():Promise<import("./product-events").
     return rows;
   }catch{console.error("[Product stats] Dashboard unavailable");return null;}
 }
+
+// Thirty-day, consent-based purchase journeys. No contact details or custom text.
+let lastJourneyPrune = 0;
+async function prunePurchaseJourneys() {
+  if (Date.now() - lastJourneyPrune < 86400000) return;
+  const cutoff = new Date(Date.now() - 30 * 86400000).toISOString();
+  for (;;) {
+    const old = await pb<ListResult<{id:string}>>(`/collections/purchase_events/records?perPage=100&fields=id&filter=${encodeURIComponent(`created<'${cutoff}'`)}`);
+    if (!old.items.length) break;
+    await Promise.all(old.items.map(row => pb(`/collections/purchase_events/records/${row.id}`, { method: "DELETE" })));
+  }
+  lastJourneyPrune = Date.now();
+}
+export async function recordPurchaseEvent(event: import("./purchase-journey").JourneyEvent) {
+  const path = `/collections/purchase_events/records?perPage=1&filter=${encodeURIComponent(`eventId='${event.eventId}'`)}`;
+  if ((await pb<ListResult<{id:string}>>(path)).items.length) return;
+  try { await pb("/collections/purchase_events/records", { method: "POST", body: event }); }
+  catch (error) { if (!(await pb<ListResult<{id:string}>>(path)).items.length) throw error; }
+  // Cleanup failures must not interrupt shopping or hide newly recorded events.
+  try { await prunePurchaseJourneys(); } catch { console.error("[Purchase journeys] Retention cleanup unavailable"); }
+}
+export async function getPurchaseEvents(): Promise<import("./purchase-journey").JourneyEvent[]> {
+  try { await prunePurchaseJourneys(); } catch { console.error("[Purchase journeys] Retention cleanup unavailable"); }
+  const rows: import("./purchase-journey").JourneyEvent[] = [];
+  const cutoff = new Date(Date.now() - 30 * 86400000).toISOString();
+  for (let page = 1;; page++) {
+    const list = await pb<ListResult<import("./purchase-journey").JourneyEvent>>(`/collections/purchase_events/records?perPage=500&page=${page}&sort=-created&filter=${encodeURIComponent(`created>='${cutoff}'`)}`);
+    rows.push(...list.items); if (page >= list.totalPages) break;
+  }
+  return rows;
+}

@@ -35,3 +35,14 @@ export function parseStoreCategories(raw: string): StoreCategory[] {
 export function getVisibleCategories(raw: string): StoreCategory[] {
   return parseStoreCategories(raw).filter((category) => category.active);
 }
+
+/** Navigation families keep the existing category URLs and catalogue filters. */
+export function groupStoreCategories(categories: StoreCategory[]) {
+  const families = [
+    { id: "maison", label: "Maison & décoration", values: ["veilleuses", "vases", "deco", "salle-de-bain"] },
+    { id: "bureau", label: "Bureau & rangement", values: ["bureau", "rangement"] },
+    { id: "accessoires", label: "Accessoires", values: ["porte-boisson", "lunette"] },
+    { id: "collections", label: "Collections", values: ["noel"] },
+  ];
+  return families.map(family => ({ id: family.id, label: family.label, categories: categories.filter(category => category.active && family.values.includes(category.value)) })).filter(family => family.categories.length);
+}

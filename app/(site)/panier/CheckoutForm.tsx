@@ -1,5 +1,6 @@
 "use client";
 
+import { journeySessionId, trackJourney } from "@/lib/journey-tracking";
 import { parseMetropolitanShipping, shippingZone, metropolitanQuote } from "@/lib/metropolitan-shipping";
 
 import { monsterGiftLabel } from "@/lib/monster-gift";
@@ -119,6 +120,7 @@ export default function CheckoutForm({
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (shippingError) { setError(shippingError); return; }
+    trackJourney("begin_checkout", items);
     setLoading(true);
     setError("");
     try {
@@ -127,6 +129,7 @@ export default function CheckoutForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           customer,
+          journeySessionId: journeySessionId(),
           termsAccepted, termsVersion: LEGAL_VERSION,
           promoCode,
           note: orderNote,
@@ -149,6 +152,7 @@ export default function CheckoutForm({
       if (!data.url) throw new Error("Le service de paiement n'a pas renvoyé de lien.");
       window.location.href = data.url;
     } catch (e) {
+      trackJourney("checkout_error", items);
       setError(e instanceof Error ? e.message : "Une erreur est survenue.");
       setLoading(false);
     }

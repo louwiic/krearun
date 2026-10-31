@@ -15,6 +15,7 @@ const nav = [
   { href: "/admin/inventaire", label: "Inventaire", icon: "inventory" },
   { href: "/admin/calculateur", label: "Calculateur", icon: "calculator" },
   { href: "/admin/generateur-3d", label: "Prénoms 3D", icon: "nozzle" },
+  { href: "/admin/parcours-achat", label: "Parcours d’achat", icon: "journey" },
   { href: "/admin/commandes", label: "Commandes", icon: "orders" },
   { href: "/admin/personnalisations", label: "Personnalisations", icon: "customize" },
   { href: "/admin/retractations", label: "Rétractations", icon: "orders" },

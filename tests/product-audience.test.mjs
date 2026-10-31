@@ -77,7 +77,7 @@ test('impressions need one second of visible exposure and consent withdrawal can
  global.document={visibilityState:'visible',body:{},querySelectorAll:()=>[card],addEventListener:(name,fn)=>listeners.set(name,fn),removeEventListener:name=>listeners.delete(name)};
  global.Element=class{closest(){return {getAttribute:()=>payload.productId};}};
  try{
-  const Tracker=load('../components/analytics/ProductTracking.tsx',{'react':{useEffect:setup=>{cleanup=setup();}},'next/navigation':{usePathname:()=>'/boutique'},'@/lib/privacy':{hasAudienceConsent:()=>consent},'@/lib/product-tracking':{trackProductEvent:(...args)=>calls.push(args),clearProductTracking:()=>clears++}}).default;
+  const Tracker=load('../components/analytics/ProductTracking.tsx',{'@/lib/journey-tracking':{trackJourney:()=>{}},'react':{useEffect:setup=>{cleanup=setup();}},'next/navigation':{usePathname:()=>'/boutique'},'@/lib/privacy':{hasAudienceConsent:()=>consent},'@/lib/product-tracking':{trackProductEvent:(...args)=>calls.push(args),clearProductTracking:()=>clears++}}).default;
   Tracker();assert.equal(observer,undefined);
   consent=true;win.dispatchEvent(new Event('krearun:privacy-change'));observer=instances.at(-1);assert.ok(observer);
   observer.callback([{target:card,isIntersecting:true,intersectionRatio:.5}]);

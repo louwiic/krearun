@@ -2,6 +2,7 @@ import { ColorAvailabilityProvider } from "@/components/product/ColorAvailabilit
 import HalloweenSpiders from "@/components/site/HalloweenSpiders";
 import { activeSiteSkin } from "@/lib/site-skins";
 import SeasonalSkinBanner from "@/components/site/SeasonalSkinBanner";
+import PurchaseTracking from "@/components/analytics/PurchaseTracking";
 import ProductTracking from "@/components/analytics/ProductTracking";
 import PrivacyPreferences from "@/components/site/PrivacyPreferences";
 import Navbar from "@/components/site/Navbar";
@@ -64,7 +65,7 @@ export default async function SiteLayout({
         storeName={settings.store_name}
       />
     <PrivacyPreferences />
-    <ProductTracking />
+    <ProductTracking /><PurchaseTracking />
       </div></ColorAvailabilityProvider>
   );
 }

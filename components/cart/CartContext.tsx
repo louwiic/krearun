@@ -19,6 +19,7 @@ interface CartContextValue {
   subtotalCents: number;
   totalWeightGrams: number;
   isOpen: boolean;
+  hydrated: boolean;
   openCart: () => void;
   closeCart: () => void;
   addItem: (item: Omit<CartItem, "quantity">, quantity?: number) => void;
@@ -158,6 +159,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       subtotalCents: items.reduce((n, i) => n + cartUnitPriceCents(i) * i.quantity, 0),
       totalWeightGrams: items.reduce((n, i) => n + (i.weightGrams ?? 0) * i.quantity, 0),
       isOpen,
+      hydrated,
       openCart: () => setIsOpen(true),
       closeCart: () => setIsOpen(false),
       addItem,
@@ -165,7 +167,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       setQuantity,
       clearCart,
     }),
-    [items, isOpen, addItem, removeItem, setQuantity, clearCart]
+    [items, isOpen, hydrated, addItem, removeItem, setQuantity, clearCart]
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

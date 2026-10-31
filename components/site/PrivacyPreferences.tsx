@@ -35,7 +35,7 @@ export default function PrivacyPreferences() {
     {current === "accepted" && <Script defer data-domain="krearun.re" src="https://analytics.peibox.fr/js/script.js" strategy="afterInteractive" />}
     {(current === "unset" || opened) && <section role="dialog" aria-label="Vos préférences de confidentialité" className="fixed inset-x-3 bottom-3 z-[90] mx-auto max-w-xl rounded-2xl border-2 border-ink bg-cream p-5 shadow-lifted sm:inset-x-6 sm:p-6">
       <h2 className="font-display text-xl">Votre confidentialité</h2>
-      <p className="mt-3 text-sm leading-relaxed text-ink-soft">Les cookies techniques servent au panier et à votre session. Avec votre accord, nous activons aussi une mesure d’audience pour comprendre la fréquentation du site. Vous pouvez refuser et modifier votre choix à tout moment.</p>
+      <p className="mt-3 text-sm leading-relaxed text-ink-soft">Les cookies techniques servent au panier et à votre session. Avec votre accord, nous activons aussi une mesure d’audience pour comprendre la fréquentation du site et les étapes du parcours jusqu’au panier et au paiement. Vous pouvez refuser et modifier votre choix à tout moment.</p>
       <Link href="/confidentialite" className="mt-3 inline-block text-sm font-bold underline">En savoir plus</Link>
       <div className="mt-4 grid grid-cols-2 gap-3"><button type="button" className="rounded-[10px] border-2 border-ink bg-cream px-4 py-3 text-sm font-bold" onClick={() => choose("rejected")}>Refuser</button><button type="button" className="rounded-[10px] border-2 border-ink bg-cream px-4 py-3 text-sm font-bold" onClick={() => choose("accepted")}>Accepter</button></div>
     </section>}

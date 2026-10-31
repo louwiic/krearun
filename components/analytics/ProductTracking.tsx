@@ -1,4 +1,5 @@
 "use client";
+import {trackJourney} from "@/lib/journey-tracking";
 import {useEffect} from "react";
 import {usePathname} from "next/navigation";
 import {hasAudienceConsent} from "@/lib/privacy";
@@ -28,7 +29,7 @@ export default function ProductTracking(){
             if(!entry.target.isConnected)return;
             const kind=entry.target.hasAttribute("data-product-view")?"view":"impression";
             const id=entry.target.getAttribute(kind==="view"?"data-product-view":"data-product-impression");
-            if(id)trackProductEvent(id,kind);
+            if(id){trackProductEvent(id,kind);if(kind==="view")trackJourney("product_view",[],id);}
             observer?.unobserve(entry.target);
           },1000));
         }

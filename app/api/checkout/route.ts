@@ -1,3 +1,6 @@
+import { UUID } from "@/lib/purchase-journey";
+import { recordPurchaseEvent } from "@/lib/store";
+import { isAdmin } from "@/lib/auth";
 import { colorKey, inventoryColorAvailable, availableInventoryPalette, usesInventoryPalette, type ColorAvailability } from "@/lib/color-availability";
 import { NOS_SLUG, NOS_TEXT_MAX, nosLogoId } from "@/lib/nos";
 import { parseMetropolitanShipping, shippingZone, metropolitanQuote, shippingQuoteMetadata } from "@/lib/metropolitan-shipping";
@@ -32,6 +35,7 @@ interface CheckoutItem {
 }
 
 interface CheckoutBody {
+  journeySessionId?: string;
   termsAccepted?: boolean;
   termsVersion?: string;
   items: CheckoutItem[];
@@ -95,12 +99,14 @@ export async function POST(req: Request) {
   let items: CheckoutItem[];
   let customer: CheckoutCustomer;
   let promoCode = "";
+  let journeyId: string | undefined;
   let orderNote = "";
   let fulfillmentMethod: FulfillmentMethod = "delivery";
   let pickupPointId = "";
   try {
     const body = (await req.json()) as CheckoutBody;
     if (body.termsAccepted !== true || body.termsVersion !== LEGAL_VERSION) throw new Error("Acceptez les conditions générales de vente à jour avant de continuer.");
+    journeyId = typeof body.journeySessionId === "string" && UUID.test(body.journeySessionId) ? body.journeySessionId : undefined;
     items = body.items;
     if (!Array.isArray(items) || items.length === 0) throw new Error();
     fulfillmentMethod = body.fulfillmentMethod === "pickup" ? "pickup" : "delivery";
@@ -341,6 +347,15 @@ export async function POST(req: Request) {
       cancel_url: `${siteUrl}/commande/annulee`,
     });
 
+    if (journeyId) {
+      try {
+        if (!await isAdmin()) {
+        await recordPurchaseEvent({ eventId: crypto.randomUUID(), sessionId: journeyId, kind: "payment_started", checkoutId: session.id,
+          items: metadataItems.map(i => ({ productId: i.p, quantity: i.q, unitPriceCents: i.u, ...(i.v ? {variantId:i.v} : {}) })),
+        });
+        }
+      } catch { console.error("[Purchase journeys] Checkout attribution unavailable"); }
+    }
     return NextResponse.json({ url: session.url });
   } catch (e) {
     console.error("Stripe checkout :", e);
