@@ -1,5 +1,6 @@
 "use client";
 
+import { colorSwatchStyle } from "@/lib/color-swatches";
 import NoelKitOptions from "./NoelKitOptions";
 import { noelKitCount, noelKitVariants, variantQuantityDiscounts } from "@/lib/noel-kits";
 import { useColorAvailability, useProductColors } from "./ColorAvailabilityProvider";
@@ -122,7 +123,7 @@ export default function AddToCart({ product }: { product: Product }) {
             <p className="flex items-center gap-1.5 text-[10px] font-semibold text-ink-soft">
               <span
                 className="h-3 w-3 rounded-full border border-ink/20"
-                style={{ backgroundColor: selectedColor.hex }}
+                style={colorSwatchStyle(selectedColor)}
               />
               Assortis au coloris choisi
             </p>
@@ -186,7 +187,7 @@ export default function AddToCart({ product }: { product: Product }) {
                     ? "scale-110 border-terra shadow-soft"
                     : "border-sand hover:border-ink-faint"
                 }`}
-                style={{ backgroundColor: c.hex }}
+                style={colorSwatchStyle(c)}
               />
             ))}
           </div>

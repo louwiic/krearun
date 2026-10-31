@@ -1,3 +1,4 @@
+import { colorSwatchStyle } from "@/lib/color-swatches";
 import PendingSubmitButton from "@/components/admin/PendingSubmitButton";
 import { saveInventoryColorAction } from "@/app/admin/actions";
 import { getInventoryColors } from "@/lib/store";
@@ -54,6 +55,7 @@ export default async function InventairePage() {
             <input type="checkbox" name="active" defaultChecked className="h-4 w-4 accent-terra" />
             Disponible
           </label>
+          <label className="md:col-span-4"><span className={label}>Photo de la pastille (URL, facultatif)</span><input name="swatchImage" type="url" className={field} placeholder="https://…/reference-matiere.png" /></label>
           <div className="md:col-span-4">
             <PendingSubmitButton className="rounded-full bg-terra px-8 py-3 text-sm font-bold text-cream transition-colors hover:bg-terra-deep">
               Ajouter à l&apos;inventaire
@@ -97,13 +99,14 @@ export default async function InventairePage() {
                 <div className="flex items-end gap-3">
                   <span
                     className="mb-2 h-9 w-9 shrink-0 rounded-full border border-ink/10 shadow-soft"
-                    style={{ backgroundColor: item.hex }}
+                    style={colorSwatchStyle(item)}
                     title={item.hex}
                   />
                   <PendingSubmitButton className="mb-1 rounded-full bg-ink px-5 py-2.5 text-xs font-bold text-cream hover:bg-ink-soft">
                     Enregistrer
                   </PendingSubmitButton>
                 </div>
+                <label className="md:col-span-5"><span className={label}>Photo de la pastille (URL, facultatif)</span><input name="swatchImage" type="url" defaultValue={item.swatchImage ?? ""} className={field} /></label>
                 <label className="md:col-span-3">
                   <span className={label}>Note</span>
                   <input name="note" defaultValue={item.note} className={field} />

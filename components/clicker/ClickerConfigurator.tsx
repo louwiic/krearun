@@ -1,5 +1,6 @@
 "use client";
 
+import { colorSwatchStyle } from "@/lib/color-swatches";
 import dynamic from "next/dynamic";
 import { useState } from "react";
 import type { InventoryColor } from "@/lib/types";
@@ -36,7 +37,7 @@ function ColorPicker({ label, colors, value, onChange }: { label: string; colors
       <legend className="mb-3 text-sm font-bold uppercase tracking-[0.08em] text-ink-soft">{label}</legend>
       <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
         {colors.map((color) => (
-          <button key={color.id} type="button" title={publicColorName(color.name)} onClick={() => onChange(color)} aria-label={`${label} : ${publicColorName(color.name)}`} aria-pressed={value.id === color.id} style={{ backgroundColor: color.hex }} className={`group flex min-h-14 min-w-0 items-center justify-center overflow-hidden rounded-lg border p-2 text-center transition ${value.id === color.id ? "border-ink shadow-hard" : "border-black/10 hover:-translate-y-0.5 hover:border-ink"}`}>
+          <button key={color.id} type="button" title={publicColorName(color.name)} onClick={() => onChange(color)} aria-label={`${label} : ${publicColorName(color.name)}`} aria-pressed={value.id === color.id} style={colorSwatchStyle(color)} className={`group flex min-h-14 min-w-0 items-center justify-center overflow-hidden rounded-lg border p-2 text-center transition ${value.id === color.id ? "border-ink shadow-hard" : "border-black/10 hover:-translate-y-0.5 hover:border-ink"}`}>
           </button>
         ))}
       </div>
@@ -95,11 +96,11 @@ function ClickerSteps({ colors }: { colors: InventoryColor[] }) {
         </div>
         <div className="rounded-xl border border-sand bg-[#fff3f7] p-3">
           <div className="flex items-center gap-3"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blush font-display text-xl text-white">2</span><div><p className="text-xs font-bold uppercase">Couleur des caps</p><p className="text-[11px] text-ink-soft">Les touches colorées du dessus</p></div></div>
-          <div className="mt-3 flex flex-wrap gap-2">{palette.map((color) => <span key={`cap-${color.id}`} title={publicColorName(color.name)} className="h-7 w-7 rounded-lg border border-black/10" style={{ backgroundColor: color.hex }} />)}</div>
+          <div className="mt-3 flex flex-wrap gap-2">{palette.map((color) => <span key={`cap-${color.id}`} title={publicColorName(color.name)} className="h-7 w-7 rounded-lg border border-black/10" style={colorSwatchStyle(color)} />)}</div>
         </div>
         <div className="rounded-xl border border-sand bg-[#f2f7ff] p-3">
           <div className="flex items-center gap-3"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#55a84f] font-display text-xl text-white">3</span><div><p className="text-xs font-bold uppercase">Couleur de la base</p><p className="text-[11px] text-ink-soft">Le corps inférieur du clicker</p></div></div>
-          <div className="mt-3 flex flex-wrap gap-2">{palette.map((color) => <span key={`base-${color.id}`} title={publicColorName(color.name)} className="h-7 w-7 rounded-lg border border-black/10" style={{ backgroundColor: color.hex }} />)}</div>
+          <div className="mt-3 flex flex-wrap gap-2">{palette.map((color) => <span key={`base-${color.id}`} title={publicColorName(color.name)} className="h-7 w-7 rounded-lg border border-black/10" style={colorSwatchStyle(color)} />)}</div>
         </div>
       </div>
     </div>

@@ -19,6 +19,7 @@ export interface ProductColor {
   name: string;
   hex: string;
   image?: string;
+  swatchImage?: string;
 }
 
 export interface ProductVariant {

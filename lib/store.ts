@@ -518,6 +518,7 @@ export async function deleteReview(id: string): Promise<void> {
 // ─── Inventaire matière ────────────────────────────────────
 
 interface PbInventoryColor {
+  swatchImage?: string;
   id: string;
   name: string;
   hex: string;
@@ -534,6 +535,7 @@ function mapInventoryColor(r: PbInventoryColor): InventoryColor {
     id: r.id,
     name: r.name ?? "",
     hex: r.hex ?? "#000000",
+    ...(r.swatchImage ? { swatchImage: r.swatchImage } : {}),
     stockGrams: r.stockGrams ?? 0,
     active: Boolean(r.active),
     note: r.note ?? "",

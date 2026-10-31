@@ -1,5 +1,5 @@
 import type { ProductColor } from "./types";
-export type ColorAvailability = { name: string; hex: string; active: boolean };
+export type ColorAvailability = { name: string; hex: string; active: boolean; swatchImage?: string };
 export function usesInventoryPalette(product: { category: string; slug: string }): boolean {
   return product.category === "noel" && product.slug.startsWith("noel-thermoforme-");
 }
@@ -10,7 +10,7 @@ export function availableInventoryPalette(inventory: ColorAvailability[]): Produ
     if (!color.active || !key || !/^#[0-9a-f]{6}$/i.test(color.hex) || seen.has(key)) return false;
     seen.add(key);
     return true;
-  }).map(({ name, hex }) => ({ name: name.replace(/^PLA\s+/i, "").trim(), hex }));
+  }).map(({ name, hex, swatchImage }) => ({ name: name.replace(/^PLA\s+/i, "").trim(), hex, ...(swatchImage ? { swatchImage } : {}) }));
 }
 export function colorKey(value: string): string {
   return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/^PLA\s+/i, "").toLowerCase().replace(/[^a-z0-9]/g, "");

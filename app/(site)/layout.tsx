@@ -25,7 +25,7 @@ export default async function SiteLayout({
       : settings.announcement;
 
   return (
-    <ColorAvailabilityProvider colors={inventory.map(({name,hex,active}) => ({name,hex,active}))}><div className="storefront flex min-h-screen flex-col bg-linen text-ink" data-site-skin={activeSiteSkin(settings)}>
+    <ColorAvailabilityProvider colors={inventory.map(({name,hex,active,swatchImage}) => ({name,hex,active,swatchImage}))}><div className="storefront flex min-h-screen flex-col bg-linen text-ink" data-site-skin={activeSiteSkin(settings)}>
       {activeSiteSkin(settings) === "halloween" && <HalloweenSpiders />}
       {announcement && (
         <div className="marquee-mask bg-terra py-2 text-ink">

@@ -1,3 +1,4 @@
+import { colorSwatchStyle } from "@/lib/color-swatches";
 import { saveProductAction } from "@/app/admin/actions";
 import { CATEGORIES, type InventoryColor, type Product } from "@/lib/types";
 import ProductVariantsEditor from "./ProductVariantsEditor";
@@ -234,7 +235,7 @@ export default function ProductForm({
                     />
                     <span
                       className="h-7 w-7 shrink-0 rounded-full border border-ink/10 shadow-soft"
-                      style={{ backgroundColor: item.hex }}
+                      style={colorSwatchStyle(item)}
                     />
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-ink">{item.name}</span>

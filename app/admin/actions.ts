@@ -232,7 +232,7 @@ export async function saveProductAction(formData: FormData) {
     inventoryColorIds.length > 0
       ? (await getInventoryColors({ includeInactive: true }))
           .filter((color) => inventoryColorIds.includes(color.id))
-          .map((color) => ({ name: color.name, hex: color.hex }))
+          .map((color) => ({ name: color.name, hex: color.hex, ...(color.swatchImage ? {swatchImage:color.swatchImage} : {}) }))
       : [];
 
   const data = {
@@ -367,10 +367,12 @@ export async function saveInventoryColorAction(formData: FormData) {
   const hex = String(formData.get("hex") ?? "").trim();
   const stockGrams = Number(formData.get("stockGrams"));
   const sortOrder = Number(formData.get("sortOrder"));
+  const swatchImage = String(formData.get("swatchImage") ?? "").trim();
   let error = "";
   try {
     if (!name || name.length > 100 || !/^#[a-f0-9]{6}$/i.test(hex) || !Number.isSafeInteger(stockGrams) || stockGrams < 0 || !Number.isSafeInteger(sortOrder)) throw new Error("Validation");
-    const data = { name, hex, stockGrams, active: formData.get("active") === "on", note: String(formData.get("note") ?? "").trim(), sortOrder };
+    if (swatchImage && (swatchImage.length > 1000 || !/^https:\/\//i.test(swatchImage))) throw new Error("Image invalide");
+    const data = { name, hex, ...(formData.has("swatchImage") ? {swatchImage} : {}), stockGrams, active: formData.get("active") === "on", note: String(formData.get("note") ?? "").trim(), sortOrder };
     const saved = id ? await updateInventoryColor(id, data) : await createInventoryColor(data);
     if (!saved) throw new Error("Persistence");
   } catch { error = "Impossible d’enregistrer la couleur. Vérifiez le nom, la couleur et les quantités, puis réessayez."; }

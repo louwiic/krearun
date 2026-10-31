@@ -12,6 +12,6 @@ export default async function CustomHolderProduct() {
     <h1 className="mt-3 font-display text-4xl uppercase sm:text-5xl">{HOLDER_NAME}</h1>
     <p className="mt-4 max-w-2xl leading-7 text-ink-soft">Le format porte-canette avec poignée, pensé pour les canettes 500 ml. Choisissez un corps noir ou blanc, puis personnalisez les couleurs du logo. Importez votre logo ou choisissez OM / Arsenal pour voir le résultat en 3D.</p>
     <ol className="my-8 grid gap-3 text-sm font-bold sm:grid-cols-3"><li className="rounded-xl bg-cream p-4">01 · Personnalisez et envoyez</li><li className="rounded-xl bg-cream p-4">02 · Nous validons le logo et le prix</li><li className="rounded-xl bg-cream p-4">03 · Payez dans votre espace client</li></ol>
-    <HolderConfigurator colors={colors.map(({name,hex})=>({name,hex}))} signedIn={!!session}/>
+    <HolderConfigurator colors={colors.map(({name,hex,swatchImage})=>({name,hex,swatchImage}))} signedIn={!!session}/>
   </div>;
 }
