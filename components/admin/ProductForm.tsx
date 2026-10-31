@@ -74,6 +74,8 @@ export default function ProductForm({
         </div>
       </div>
 
+      {product?.slug.startsWith("noel-thermoforme-") && <p className="rounded-xl border border-sand bg-cream p-4 text-sm leading-6">Kits de Noël : chaque variante de kit fixe le nombre de décorations du même motif, le prix du lot et son poids emballé. Un seul jeu de moules est inclus par kit. Les prix dégressifs généraux ci-dessous s’appliquent uniquement à la formule déjà thermoformée ; les tarifs des kits se règlent dans leurs variantes.</p>}
+
       <ProductVariantsEditor
         initialVariants={product?.variants ?? []}
         basePriceCents={product?.priceCents ?? 0}

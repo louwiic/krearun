@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { ProductPrintFile } from "@/lib/print-files";
 
-export default function ProductPrintFiles({ productId, files }: { productId: string; files: ProductPrintFile[] }) {
+export default function ProductPrintFiles({ productId, files, noelKit = false }: { productId: string; files: ProductPrintFile[]; noelKit?: boolean }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
@@ -24,6 +24,7 @@ export default function ProductPrintFiles({ productId, files }: { productId: str
   return <section id="impression" className="mb-8 rounded-2xl border border-sand bg-cream p-6">
     <h2 className="font-display text-2xl font-semibold">Fichiers d’impression 3MF</h2>
     <p className="mt-2 text-sm text-ink-soft">Réservés à l’admin. Télécharge le projet, ouvre-le dans Bambu Studio, puis vérifie les plateaux et le filament avant de lancer l’impression.</p>
+    {noelKit && <p className="mt-3 rounded-xl bg-linen p-3 text-sm leading-6"><strong>Kit avec plusieurs décorations :</strong> répète les plateaux des pièces et connecteurs pour chaque décoration du kit. Imprime un seul jeu de moules par kit complet commandé, quelle que soit la quantité de décorations choisie.</p>}
     <ul className="my-5 space-y-4">
       {files.map(file => <li key={file.id} className="min-w-0 rounded-xl border border-sand bg-white p-4">
         <p className="break-words font-semibold">{file.originalName.replaceAll("+", " ")}</p>

@@ -1,3 +1,4 @@
+import { variantQuantityDiscounts } from "@/lib/noel-kits";
 import { UUID } from "@/lib/purchase-journey";
 import { recordPurchaseEvent } from "@/lib/store";
 import { isAdmin } from "@/lib/auth";
@@ -220,7 +221,7 @@ export async function POST(req: Request) {
       keychainChoice ? `Porte-clés offert : ${monsterGiftLabel(keychainChoice, publicColorName(item.color))}` : "",
     ].filter(Boolean);
     const unitAmount =
-      discountedUnitPriceCents(selectedPrice, product.quantityDiscounts, quantity) +
+      discountedUnitPriceCents(selectedPrice, variantQuantityDiscounts(product, variant?.id), quantity) +
       (customName && !personalizedLamp ? product.namePersonalizationPriceCents : 0);
     subtotalCents += unitAmount * quantity;
     const pricedProduct = { ...product, weightGrams: selectedWeight };

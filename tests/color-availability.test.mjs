@@ -5,6 +5,7 @@ import { createRequire } from 'node:module';
 import ts from 'typescript';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
+import * as noelKits from '../lib/noel-kits.ts';
 import * as availability from '../lib/color-availability.ts';
 const require=createRequire(import.meta.url);
 function load(path,mocks={}){const {outputText}=ts.transpileModule(readFileSync(new URL(path,import.meta.url),'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,esModuleInterop:true}});const mod={exports:{}};new Function('require','module','exports',outputText)(name=>mocks[name]??require(name),mod,mod.exports);return mod.exports;}
@@ -18,7 +19,7 @@ test('inventory matching handles PLA prefixes, accents, aliases and duplicate sp
 });
 test('unavailable product colours are crossed out and disabled; initial selection falls back to an available colour',()=>{
  const provider=load('../components/product/ColorAvailabilityProvider.tsx',{'@/lib/color-availability':availability});
- const Add=load('../components/product/AddToCart.tsx',{
+ const Add=load('../components/product/AddToCart.tsx',{'@/lib/noel-kits':noelKits,'./NoelKitOptions':()=>null,
  './ColorAvailabilityProvider':provider,'@/components/cart/CartContext':{useCart:()=>({addItem(){}})},
  './NosPersonalization':()=>null,'@/lib/nos':{},'@/lib/monster-gift':{},'@/lib/nos-preview':{},'next/link':()=>null,'@/lib/custom-holder':{},'@/lib/colors':{publicColorName:v=>v},'@/lib/format':{formatPrice:v=>String(v)},'./LampPersonalization':()=>null,'@/lib/lamp-personalization':{isPersonalizedLamp:()=>false,buildLampPersonalization:()=>''},'./MonsterGiftPreview':()=>null,'./MonsterClawPreview':()=>null,'@/lib/quantity-discounts':{quantityDiscountPercent:()=>0,discountedUnitPriceCents:v=>v}
  }).default;

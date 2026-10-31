@@ -40,7 +40,7 @@ export default async function EditProduitPage({
       </h1>
       {product.privateSale && <PrivateSaleShare slug={product.slug} active={product.active} />}
       <Link href={`/admin/produits/statistiques?produit=${product.id}`} className="mb-6 inline-block text-sm font-semibold underline">Voir les impressions, clics et vues de ce produit ↗</Link>
-      <ProductPrintFiles productId={id} files={printFiles} />
+      <ProductPrintFiles productId={id} files={printFiles} noelKit={product.slug.startsWith("noel-thermoforme-")} />
       <ProductForm product={product} inventoryColors={inventoryColors} />
       <div className="mt-10 border-t border-sand/70 pt-6">
         <DeleteProductButton id={product.id} name={product.name} />

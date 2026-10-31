@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {createRequire} from 'node:module';
 import ts from 'typescript';
+import * as quantityPricing from '../lib/quantity-discounts.ts';
+import * as noelKits from '../lib/noel-kits.ts';
 import * as metropolitan from '../lib/metropolitan-shipping.ts';
 import * as gift from '../lib/monster-gift.ts';
 import * as metadata from '../lib/checkout-item-metadata.ts';
@@ -14,6 +16,7 @@ const require=createRequire(import.meta.url);
 function checkout(slug='porte-canette-monster',weightGrams=180, settings={}, productOverrides={}, inventory=[], promotion=null) {
  const sessions=[];
  const mocks={
+  "@/lib/noel-kits":noelKits,
   "@/lib/auth":{isAdmin:async()=>false},
   "@/lib/purchase-journey":{UUID:/^[0-9a-f-]{36}$/i},
   '@/lib/promotion-details':promotionDetails,'@/lib/color-availability':availability,'@/lib/metropolitan-shipping':metropolitan,'@/lib/nos':nos,
@@ -22,7 +25,7 @@ function checkout(slug='porte-canette-monster',weightGrams=180, settings={}, pro
   '@/lib/stripe':{stripeConfigured:()=>true,getStripe:()=>({promotionCodes:{list:async()=>({data:promotion?[promotion]:[]})},checkout:{sessions:{create:async data=>{sessions.push(data);return {url:'https://checkout.invalid/test'};}}}})},
   '@/lib/colors':{publicColorName:v=>v},'@/lib/free-shipping':{billableProductWeight:()=>weightGrams,hasMissingProductWeight:()=>weightGrams<=0},
   '@/lib/shipping':{parseShippingRates:()=>[],calculateShippingCents:()=>({priceCents:577,label:'Test'})},
-  '@/lib/pickup':{getPickupPoint:()=>null},'@/lib/quantity-discounts':{discountedUnitPriceCents:p=>p},
+  '@/lib/pickup':{getPickupPoint:()=>null},'@/lib/quantity-discounts':quantityPricing,
   '@/lib/clicker':{CLICKER_PRODUCT_ID:'clicker'},'@/lib/custom-holder':{HOLDER_SLUG:'holder'},
   '@/lib/lamp-personalization':{isPersonalizedLamp:()=>false},
  };
@@ -128,4 +131,18 @@ test('Christmas kit colours come from live inventory even when the product has n
  }
  const empty=checkout('noel-thermoforme-2072645',100,{},product,[]);
  assert.equal((await empty.post(request({color:'Rouge'}))).status,400);assert.equal(empty.sessions.length,0);
+});
+
+
+test('Christmas bundle checkout charges the selected stored lot price, includes its count and rejects forged lots',async()=>{
+ const inventory=[{name:'Blanc',hex:'#ffffff',active:true}];
+ const slug='noel-thermoforme-2072645';
+ const variants=[{id:'noel-2072645-kit',name:'Kit complet · 1 décoration + 1 jeu de moules',active:true,stock:10,priceCents:2190,weightGrams:200},{id:'noel-2072645-kit-5',name:'Kit complet · 5 décorations + 1 jeu de moules',active:true,stock:10,priceCents:3230,weightGrams:300}];
+ const product={category:'noel',variants,quantityDiscounts:[{minQuantity:2,percent:50}]};
+ const good=checkout(slug,200,{},product,inventory);
+ assert.equal((await good.post(request({variantId:variants[1].id,quantity:2,priceCents:1}))).status,200);
+ const line=good.sessions[0].line_items[0];assert.equal(line.price_data.unit_amount,3230);assert.equal(line.quantity,2);assert.ok(line.price_data.product_data.name.includes('5 décorations + 1 jeu de moules'));
+ assert.equal(JSON.parse(metadata.readCheckoutItems(good.sessions[0].metadata))[0].v,variants[1].id);
+ const invalid=checkout(slug,200,{},product,inventory);
+ assert.equal((await invalid.post(request({variantId:'noel-2072645-kit-99'}))).status,400);assert.equal(invalid.sessions.length,0);
 });

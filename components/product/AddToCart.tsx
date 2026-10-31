@@ -1,5 +1,7 @@
 "use client";
 
+import NoelKitOptions from "./NoelKitOptions";
+import { noelKitCount, noelKitVariants, variantQuantityDiscounts } from "@/lib/noel-kits";
 import { useColorAvailability, useProductColors } from "./ColorAvailabilityProvider";
 import NosPersonalization from "./NosPersonalization";
 import { NOS_SLUG } from "@/lib/nos";
@@ -50,16 +52,20 @@ export default function AddToCart({ product }: { product: Product }) {
     : 0;
   const modelPriceCents = selectedVariant?.priceCents || product.priceCents;
   const configuredPriceCents = modelPriceCents + personalizationPriceCents;
-  const quantityDiscount = quantityDiscountPercent(product.quantityDiscounts, quantity);
+  const priceDiscounts = variantQuantityDiscounts(product, selectedVariant?.id);
+  const kitCount = noelKitCount(product.slug, selectedVariant?.id);
+  const hasNoelKits = noelKitVariants(product).length > 0;
+  const quantityDiscount = quantityDiscountPercent(priceDiscounts, quantity);
   const discountedConfiguredPriceCents =
-    discountedUnitPriceCents(modelPriceCents, product.quantityDiscounts, quantity) +
+    discountedUnitPriceCents(modelPriceCents, priceDiscounts, quantity) +
     personalizationPriceCents;
 
   if (product.slug === HOLDER_SLUG) return <Link href={`/boutique/${HOLDER_SLUG}`} className="inline-flex rounded-full bg-terra px-6 py-4 font-bold text-white">Personnaliser et demander une validation →</Link>;
 
   return (
     <div className="min-w-0 space-y-5">
-      {activeVariants.length > 0 && (
+      {hasNoelKits && <NoelKitOptions product={product} selected={selectedVariant} onSelect={variant=>{setVariantId(variant.id);setQuantity(1);}} />}
+      {!hasNoelKits && activeVariants.length > 0 && (
         <div className="space-y-3">
           <p className="text-sm font-bold">
             Modèle — <span className="font-semibold text-ink-soft">{selectedVariant?.name}</span>
@@ -252,11 +258,11 @@ export default function AddToCart({ product }: { product: Product }) {
         </div>
       )}
 
-      {product.quantityDiscounts.length > 0 && (
+      {priceDiscounts.length > 0 && (
         <div className="rounded-xl border border-terra/25 bg-terra/5 px-3 py-2.5">
           <p className="text-xs font-bold text-terra-deep">Prix dégressif automatique</p>
           <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-[11px] font-semibold text-ink-soft">
-            {product.quantityDiscounts.map((discount) => (
+            {priceDiscounts.map((discount) => (
               <span key={discount.minQuantity}>
                 {discount.minQuantity} pièces : −{discount.percent} %
               </span>
@@ -265,6 +271,7 @@ export default function AddToCart({ product }: { product: Product }) {
         </div>
       )}
 
+      {kitCount && <p className="text-sm font-semibold">Nombre de kits complets à commander — chaque kit comprend son jeu de moules.</p>}
       <div className="grid gap-3 sm:flex sm:items-center sm:gap-4">
         <div className="flex w-max items-center rounded-full border border-sand bg-cream">
           <button
@@ -305,7 +312,7 @@ export default function AddToCart({ product }: { product: Product }) {
                 weightGrams: selectedWeight,
                 preorder: product.preorder,
                 personalizationPriceCents,
-                quantityDiscounts: product.quantityDiscounts,
+                quantityDiscounts: priceDiscounts,
               },
               quantity
             )
