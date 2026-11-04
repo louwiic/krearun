@@ -81,11 +81,11 @@ const tools = [
   tool("prepare_product", "Préparer un changement de produit existant ou un nouveau brouillon (productId=null). Ne modifie rien avant confirmation humaine. Montants en centimes. Null signifie inchangé. Ne jamais inventer de prix, poids ou stock.", {
     productId: nullable("string"), name: nullable("string"), description: nullable("string"),
     priceCents: nullable("integer"), stock: nullable("integer"), weightGrams: nullable("integer"), active: nullable("boolean"),
-    category: { enum: [...CATEGORIES.map(c => c.value), null] },
+    category: { type: ["string", "null"], enum: [...CATEGORIES.map(c => c.value), null] },
     inventoryColorIds: { anyOf: [{ type: "array", items: { type: "string" }, maxItems: 20 }, { type: "null" }] },
   }),
   tool("prepare_inventory", "Préparer un nouveau stock de filament ou sa disponibilité après consultation de l’inventaire. Confirmation obligatoire.", { id: { type: "string" }, stockGrams: nullable("integer"), active: nullable("boolean") }),
-  tool("prepare_order_status", "Préparer un changement de statut de production, sans email ni modification du paiement. Expédition exige le numéro de suivi. Confirmation obligatoire.", { id: { type: "string" }, status: { enum: ["pending", "preparing", "ready", "shipped", "delivered"] }, trackingNumber: nullable("string") }),
+  tool("prepare_order_status", "Préparer un changement de statut de production, sans email ni modification du paiement. Expédition exige le numéro de suivi. Confirmation obligatoire.", { id: { type: "string" }, status: { type: "string", enum: ["pending", "preparing", "ready", "shipped", "delivered"] }, trackingNumber: nullable("string") }),
 ];
 async function proposal(actor: string, kind: string, target: string, patch: Record<string, unknown>, before: Record<string, unknown>, summary: string) {
   return assistantInsert<Action>("assistant_actions", { actor, kind, target, patch, before, summary, status: "pending", expiresAt: new Date(Date.now() + 30 * 60000).toISOString() });
