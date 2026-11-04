@@ -1,6 +1,7 @@
 /** Original SVG pictograms: rounded ink strokes and gently irregular contours,
  * inspired by the nozzle illustration in the Kréarun brand guide. */
 const drawings = {
+  assistant: ["M5 7.5 19 7.2l.4 12-14.8.3L5 7.5ZM12 7.3V3.8M10.5 3.5h3M8 12h.2M15.8 12h.2M9 16l6-.1M2.5 11v5M21.5 11v5"],
   journey: ["M4 5h16l-6 7v7l-4 2v-9L4 5Z", "M8 3h8"],
   dashboard: ['M3.5 13.2 12 4l8.5 8.7M5.4 11.4l.3 9 12.7-.3.2-8.5', 'M9.4 20v-6.3l5.2.2-.1 6.1'],
   products: ['M3.8 7.5 12 3.2l8.2 4.6-.3 9L12 21l-8-4.6-.2-8.9Z', 'm4 7.7 8 4.5 8-4.4M12 12.2V21M8 5.5l8.3 4.6'],

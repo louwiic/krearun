@@ -10,6 +10,7 @@ import AdminIcon, { type AdminIconName } from "@/components/admin/AdminIcon";
 
 const nav = [
   { href: "/admin", label: "Tableau de bord", icon: "dashboard" },
+  { href: "/admin/assistant", label: "Assistant IA", icon: "assistant" },
   { href: "/admin/produits", label: "Produits", icon: "products" },
   { href: "/admin/categories", label: "Catégories", icon: "categories" },
   { href: "/admin/inventaire", label: "Inventaire", icon: "inventory" },

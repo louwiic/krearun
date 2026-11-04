@@ -85,6 +85,29 @@ function escapeFilter(value: string): string {
   return value.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
 }
 
+// Server-only assistant persistence, restricted to its three private collections.
+type AssistantCollection = "assistant_runs" | "assistant_actions" | "assistant_locks";
+export async function assistantList<T>(collection: AssistantCollection, filter = "", perPage = 50, sort = "-created", page = 1): Promise<ListResult<T>> {
+  return pb(`/collections/${collection}/records?perPage=${perPage}&page=${page}&sort=${encodeURIComponent(sort)}&filter=${encodeURIComponent(filter)}`);
+}
+export async function assistantInsert<T>(collection: AssistantCollection, body: unknown): Promise<T> {
+  return pb(`/collections/${collection}/records`, { method: "POST", body });
+}
+export async function assistantPatch<T>(collection: AssistantCollection, id: string, body: unknown): Promise<T> {
+  if (!/^[a-z0-9]{15}$/.test(id)) throw new Error("Identifiant invalide.");
+  return pb(`/collections/${collection}/records/${id}`, { method: "PATCH", body });
+}
+export async function assistantDelete(collection: AssistantCollection, id: string) {
+  if (!/^[a-z0-9]{15}$/.test(id)) throw new Error("Identifiant invalide.");
+  await pb(`/collections/${collection}/records/${id}`, { method: "DELETE" });
+}
+export async function assistantFindOrders(query: string): Promise<Order[]> {
+  const q = escapeFilter(query.trim().slice(0, 100));
+  const filter = /^#?\d+$/.test(query.trim()) ? `number=${Number(query.replace("#", ""))}` : q ? `(name~'${q}' || email~'${q}' || trackingNumber~'${q}')` : "";
+  const list = await pb<ListResult<PbOrder>>(`/collections/orders/records?perPage=12&sort=-created&filter=${encodeURIComponent(filter)}`);
+  return list.items.map(mapOrder);
+}
+
 // Manufacturing originals are protected PocketBase files, never public media.
 export async function getProductPrintFiles(productId: string): Promise<ProductPrintFile[]> {
   if (!/^[a-z0-9]{15}$/.test(productId)) return [];
