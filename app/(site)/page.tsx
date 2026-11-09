@@ -11,6 +11,10 @@ export const metadata: Metadata = {
 };
 import HomeReviews from "@/components/home/HomeReviews";
 import ProductCard from "@/components/product/ProductCard";
+import Gallery from "@/components/product/Gallery";
+import AddToCart from "@/components/product/AddToCart";
+import { formatPrice } from "@/lib/format";
+import { publicProductCopy } from "@/lib/public-copy";
 import { getApprovedReviews, getProducts, getSettings } from "@/lib/store";
 import { getVisibleCategories } from "@/lib/categories";
 
@@ -30,7 +34,8 @@ export default async function HomePage() {
     { name: "Lunettes", href: "/boutique?categorie=lunette", product: visible.find(product => product.category === "lunette" && product.images?.length) },
     { name: "Nouveautés", href: "/boutique?nouveautes=1", product: visible.find(product => product.isNew && product.images?.length && product.id !== main?.id) },
   ].filter(collection => collection.product);
-  const heroImage = settings.hero_image_url || main?.images?.[0] || "/brand/krearun-hero.webp";
+  const variantPrices = main?.variants.filter(variant => variant.active).map(variant => variant.priceCents || main.priceCents) ?? [];
+  const displayPrice = main ? (variantPrices.length ? Math.min(...variantPrices) : main.priceCents) : 0;
 
   return <>
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString({
@@ -44,6 +49,24 @@ export default async function HomePage() {
       <img src="/brand/krearun-hero.webp" alt="Kréarun — La personnalisation à fond ! Tes idées. Tes couleurs. Ton style. Porte-boisson et porte-clés personnalisés." width={2017} height={780} fetchPriority="high" className="block h-auto w-full" />
     </section>
 
+    {spotlight && <section id="choisir-mon-modele" className="editorial-section" aria-labelledby="home-product-title">
+      <div className="grid min-w-0 grid-cols-1 gap-8 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] md:gap-10">
+        <Gallery
+          images={[...main.images, ...main.variants.map(variant => variant.image), ...main.colors.map(color => color.image)].filter((image, index, images): image is string => Boolean(image) && images.indexOf(image) === index)}
+          videoUrl={main.videoUrl}
+          name={main.name}
+        />
+        <div className="min-w-0">
+          <p className="editorial-eyebrow">Vos couleurs, votre style</p>
+          <h2 id="home-product-title" data-product-impression={main.id} className="mt-3 font-display text-3xl font-bold tracking-tight sm:text-4xl">{main.name}</h2>
+          <p className="mt-3 text-base italic text-ink-soft sm:text-lg">{publicProductCopy(main.tagline)}</p>
+          <p className="mt-5 font-display text-2xl font-semibold sm:text-3xl">{variantPrices.length > 1 && <span className="mr-2 text-base text-ink-soft">Dès</span>}{formatPrice(displayPrice)}</p>
+          <div className="mt-6 sm:mt-8"><AddToCart product={main} /></div>
+          <Link href={`/boutique/${main.slug}`} className="mt-5 inline-block text-sm underline underline-offset-4">Voir la fiche complète</Link>
+        </div>
+      </div>
+    </section>}
+
     <section className="editorial-promises" aria-label="L’atelier Kréarun">
       {[
         ["01", "Fabrication artisanale", "Vos créations prennent forme avec soin dans notre atelier."],
@@ -56,8 +79,6 @@ export default async function HomePage() {
     {collections.length > 0 && <section className="editorial-collections" aria-label="Nos collections">{collections.map(collection => <Link key={collection.name} href={collection.href}><div className="aspect-square overflow-hidden bg-cream"><img src={collection.product!.images[0]} alt={collection.name} loading="lazy" width={700} height={700} className="h-full w-full object-cover transition-transform duration-700 hover:scale-[1.025]" /></div><h2>{collection.name} <span aria-hidden>↗</span></h2></Link>)}</section>}
 
     {selection.length > 0 && <section className="editorial-section"><div className="editorial-section-heading"><h2>Des créations qui vous ressemblent.</h2><Link href="/boutique">Tous les objets ↗</Link></div><div className="grid grid-cols-2 gap-x-4 gap-y-10 lg:grid-cols-3 lg:gap-x-6">{selection.map(product => <ProductCard key={product.id} product={product} />)}</div></section>}
-
-    {spotlight && <section className="editorial-feature"><img src={main.images?.[0] || heroImage} alt={main.name} width={1000} height={1000} loading="lazy"/><div><p className="editorial-eyebrow">À découvrir à l’atelier</p><h2>{main.name}</h2><p>Vos couleurs, votre prénom et une création à emporter partout. Découvrez les modèles et les options sur la fiche produit.</p><Link href={`/boutique/${main.slug}`} className="editorial-pill">Découvrir ce modèle</Link></div></section>}
 
     <section id="atelier" className="editorial-workshop"><img src="/brand/krearun-nozzle.webp" alt="" width={310} height={410} loading="lazy"/><div><p className="editorial-eyebrow">L’atelier Kréarun</p><h2>Une idée ?<br/>On lui donne forme.</h2><p>Dans notre atelier de fabrication artisanale, nous préparons vos créations avec soin. Une couleur, un prénom, un logo ou une idée à imaginer ensemble : parlons-en.</p><Link href="/contact" className="editorial-pill">Rencontrer l’atelier ↗</Link></div></section>
 
