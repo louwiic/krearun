@@ -1044,6 +1044,13 @@ export async function addSubscriber(email: string, consent?: {version: string; a
 const DEFAULT_SETTINGS: Settings = {
   site_skin: "default",
   site_skin_enabled: false,
+  cart_name_gift_enabled: true,
+  express_offer_enabled: false,
+  express_offer_title: "",
+  express_offer_description: "",
+  express_offer_image: "",
+  express_offer_cta: "Je choisis mon cadeau",
+  express_offer_href: "/boutique",
   announcement: "",
   categories_json: JSON.stringify(DEFAULT_STORE_CATEGORIES),
   homepage_mode: "single_product",
@@ -1090,6 +1097,14 @@ export async function getSettings(): Promise<Settings> {
 }
 
 export async function saveSettings(patch: Partial<Settings>): Promise<Settings> {
+  if (Object.keys(patch).some(key => key.startsWith("express_offer_") || key === "cart_name_gift_enabled")) {
+    const schema = await pb<{ fields: { name: string; [key: string]: unknown }[] }>("/collections/settings");
+    const fields = [...schema.fields];
+    for (const name of ["cart_name_gift_enabled", "express_offer_enabled", "express_offer_title", "express_offer_description", "express_offer_image", "express_offer_cta", "express_offer_href"]) {
+      if (!fields.some(field => field.name === name)) fields.push({ name, type: (name === "express_offer_enabled" || name === "cart_name_gift_enabled") ? "bool" : "text" });
+    }
+    if (fields.length !== schema.fields.length) await pb("/collections/settings", { method: "PATCH", body: { fields } });
+  }
   const record = await getSettingsRecord();
   const saved = record
     ? await pb<PbSettings>(`/collections/settings/records/${record.id}`, {

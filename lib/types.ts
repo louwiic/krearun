@@ -205,6 +205,13 @@ export type CreateOrderInput = Omit<
 export interface Settings {
   site_skin: "default" | "halloween";
   site_skin_enabled: boolean;
+  cart_name_gift_enabled: boolean;
+  express_offer_enabled: boolean;
+  express_offer_title: string;
+  express_offer_description: string;
+  express_offer_image: string;
+  express_offer_cta: string;
+  express_offer_href: string;
   announcement: string;
   categories_json: string;
   homepage_mode: "catalog" | "single_product";

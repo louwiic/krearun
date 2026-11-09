@@ -6,6 +6,7 @@ import { parseMetropolitanShipping, shippingZone, metropolitanQuote } from "@/li
 import { monsterGiftLabel } from "@/lib/monster-gift";
 
 import Link from "next/link";
+import CartNameGift from "@/components/cart/CartNameGift";
 import TermsAcceptance from "@/components/legal/TermsAcceptance";
 import { LEGAL_VERSION } from "@/lib/legal";
 import { useMemo, useRef, useState, type Ref } from "react";
@@ -58,12 +59,16 @@ function Field({
 }
 
 export default function CheckoutForm({
+  nameGiftEnabled,
+  nameGiftContent,
   freeShippingThresholdCents,
   shippingFlatCents,
   shippingRatesJson,
   metropolitanShippingRatesJson,
   pickupPointsJson,
 }: {
+  nameGiftEnabled: boolean;
+  nameGiftContent: { title: string; description: string; image: string; cta: string };
   freeShippingThresholdCents: number;
   shippingFlatCents: number;
   shippingRatesJson: string;
@@ -78,6 +83,7 @@ export default function CheckoutForm({
   const [error, setError] = useState("");
   const [promoCode, setPromoCode] = useState("");
   const [orderNote, setOrderNote] = useState("");
+  const [giftName, setGiftName] = useState("");
   const pickupPoints = useMemo(() => parsePickupPoints(pickupPointsJson), [pickupPointsJson]);
   const [fulfillmentMethod, setFulfillmentMethod] = useState<FulfillmentMethod>("delivery");
   const [pickupPointId, setPickupPointId] = useState(pickupPoints[0]?.id ?? "");
@@ -133,6 +139,7 @@ export default function CheckoutForm({
           termsAccepted, termsVersion: LEGAL_VERSION,
           promoCode,
           note: orderNote,
+          giftName: nameGiftEnabled ? giftName : "",
           fulfillmentMethod,
           pickupPointId: isPickup ? selectedPickupPoint.id : "",
           items: items.map((item) => ({
@@ -177,6 +184,7 @@ export default function CheckoutForm({
 
   return (
     <form onSubmit={submit} className="mt-10 grid gap-8 lg:grid-cols-[minmax(0,1fr)_400px]">
+      {nameGiftEnabled && <CartNameGift value={giftName} onChange={setGiftName} {...nameGiftContent} />}
       <section className="space-y-6 bg-cream p-5 shadow-soft sm:p-8">
         <div>
           <h2 className="font-display text-2xl font-semibold">Coordonnées</h2>
@@ -533,6 +541,7 @@ export default function CheckoutForm({
           Le paiement sera confirmé sur la page sécurisée Stripe. La commande implique le paiement du total présenté.
         </p>
       </aside>
+      {nameGiftEnabled && <div aria-hidden="true" className="h-64 lg:col-span-2 sm:h-48" />}
       <dialog
         ref={countryNotice}
         aria-labelledby="country-postal-title"

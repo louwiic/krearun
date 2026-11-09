@@ -19,6 +19,13 @@ export default async function CartPage() {
       </p>
 
       <CheckoutForm
+        nameGiftEnabled={settings.cart_name_gift_enabled}
+        nameGiftContent={{
+          title: settings.express_offer_title || "Finalisez votre achat : votre porte-clés prénom est offert !",
+          description: settings.express_offer_description || "Un porte-clés personnalisé offert par commande payée, ajouté à votre colis.",
+          image: settings.express_offer_image || "/offers/porte-cles-prenom.png",
+          cta: settings.express_offer_cta || "Je choisis mon cadeau",
+        }}
         freeShippingThresholdCents={settings.free_shipping_threshold_cents}
         shippingFlatCents={settings.shipping_flat_cents}
         shippingRatesJson={settings.shipping_rates_json}

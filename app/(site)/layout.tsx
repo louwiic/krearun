@@ -1,3 +1,4 @@
+import ExpressOfferBanner from "@/components/site/ExpressOfferBanner";
 import { ColorAvailabilityProvider } from "@/components/product/ColorAvailabilityProvider";
 import HalloweenSpiders from "@/components/site/HalloweenSpiders";
 import { activeSiteSkin } from "@/lib/site-skins";
@@ -64,6 +65,7 @@ export default async function SiteLayout({
         text={settings.newsletter_popup_text}
         storeName={settings.store_name}
       />
+    <ExpressOfferBanner enabled={settings.express_offer_enabled} title={settings.express_offer_title} description={settings.express_offer_description} image={settings.express_offer_image} cta={settings.express_offer_cta} href={settings.express_offer_href} />
     <PrivacyPreferences />
     <ProductTracking /><PurchaseTracking />
       </div></ColorAvailabilityProvider>

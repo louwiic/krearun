@@ -41,6 +41,7 @@ interface CheckoutBody {
   termsVersion?: string;
   items: CheckoutItem[];
   customer?: Partial<CheckoutCustomer>;
+  giftName?: string;
   promoCode?: string;
   note?: string;
   fulfillmentMethod?: FulfillmentMethod;
@@ -102,6 +103,7 @@ export async function POST(req: Request) {
   let promoCode = "";
   let journeyId: string | undefined;
   let orderNote = "";
+  let giftName = "";
   let fulfillmentMethod: FulfillmentMethod = "delivery";
   let pickupPointId = "";
   try {
@@ -115,6 +117,8 @@ export async function POST(req: Request) {
     customer = validateCustomer(body.customer, fulfillmentMethod);
     promoCode = text(body.promoCode, 80);
     orderNote = text(body.note, 500);
+    giftName = text(body.giftName, 100);
+    if (giftName && (giftName.length > 24 || !/^[\p{L}\p{M} '’‐-]+$/u.test(giftName))) throw new Error("Le prénom du cadeau doit contenir 1 à 24 lettres, espaces ou tirets.");
   } catch (e) {
     return NextResponse.json(
       {
@@ -128,6 +132,7 @@ export async function POST(req: Request) {
   }
 
   const settings = await getSettings();
+  if (giftName && !settings.cart_name_gift_enabled) return NextResponse.json({ error: "L’offre de porte-clés prénom est terminée. Actualisez votre panier pour continuer." }, { status: 400 });
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
   const pickupPoint =
     fulfillmentMethod === "pickup"
@@ -342,6 +347,7 @@ export async function POST(req: Request) {
         pickupPointSchedule: pickupPoint?.schedule ?? "",
         promoCode,
         orderNote,
+        ...(giftName ? { giftName, giftOffer: "name_keychain_v1" } : {}),
       },
       discounts: discounts.length ? discounts : undefined,
       success_url: `${siteUrl}/commande/succes?session_id={CHECKOUT_SESSION_ID}`,

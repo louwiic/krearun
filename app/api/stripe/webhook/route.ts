@@ -154,6 +154,8 @@ export async function POST(req: Request) {
     const orderNote = [
       customerNote ? `Note du client : ${customerNote}` : "",
       pickupNote,
+      session.metadata?.giftOffer === "name_keychain_v1" && session.metadata?.giftName
+        ? `CADEAU OFFERT — 1 porte-clés prénom : ${session.metadata.giftName}` : "",
     ]
       .filter(Boolean)
       .join("\n\n");

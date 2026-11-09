@@ -32,6 +32,25 @@ export default async function AdminParametresPage() {
 
       <form action={saveSettingsAction} className="space-y-6">
         <div className="rounded-blob bg-cream p-7 shadow-soft">
+          <h2 className="mb-3 font-display text-lg font-semibold">Bandeau bas — Offre express</h2>
+          <p className="mb-5 text-sm text-ink-soft">Présentez un code promo, un cadeau ou une offre sur plusieurs articles. Les champs ci-dessous personnalisent aussi l’offre porte-clés dans le panier. Le cadeau prénom est enregistré automatiquement dans la commande payée ; les autres remises restent à configurer dans les outils de vente correspondants.</p>
+          <div className="grid gap-5">
+            <label className="flex items-center gap-3 text-sm font-bold"><input type="checkbox" name="cart_name_gift_enabled" defaultChecked={settings.cart_name_gift_enabled} />Offrir un porte-clés prénom dans le panier (un par commande payée)</label>
+            <label className="flex items-center gap-3 text-sm font-bold"><input type="checkbox" name="express_offer_enabled" defaultChecked={settings.express_offer_enabled} />Afficher le bandeau sur le site</label>
+            <label><span className={label}>Titre / texte de l’offre</span><input name="express_offer_title" maxLength={100} defaultValue={settings.express_offer_title} className={field} placeholder="Votre offre express" /></label>
+            <label><span className={label}>Description</span><textarea name="express_offer_description" maxLength={300} rows={3} defaultValue={settings.express_offer_description} className={field} placeholder="Conditions, code promo ou détails du cadeau" /></label>
+            <div className="grid gap-5 sm:grid-cols-2">
+              <label><span className={label}>Texte du bouton (CTA)</span><input name="express_offer_cta" maxLength={60} defaultValue={settings.express_offer_cta} className={field} /></label>
+              <label><span className={label}>Lien du bouton</span><input name="express_offer_href" defaultValue={settings.express_offer_href} className={field} placeholder="/boutique ou /panier" /></label>
+            </div>
+            <label><span className={label}>URL de la petite photo (vide = sans photo)</span><input name="express_offer_image" defaultValue={settings.express_offer_image} className={field} /></label>
+            <label><span className={label}>Importer / remplacer la photo</span><input type="file" name="express_offer_image_file" accept="image/*" className={field} /></label>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            {settings.express_offer_image && <img src={settings.express_offer_image} alt="Photo du bandeau actuel" className="h-20 w-20 rounded-xl object-cover" />}
+          </div>
+        </div>
+
+        <div className="rounded-blob bg-cream p-7 shadow-soft">
           <h2 className="mb-5 font-display text-lg font-semibold">Boutique</h2>
           <div className="grid gap-5 sm:grid-cols-2">
             <label>
@@ -85,7 +104,7 @@ export default async function AdminParametresPage() {
             </div>
             <p className="text-xs leading-relaxed text-ink-faint">
               En mode produit vedette, l’accueil met en avant le modèle sélectionné dans
-              un grand bloc photo avec un lien vers sa fiche et ses options.
+              un grand bloc photo avec ses options et l’ajout direct au panier.
             </p>
             {settings.hero_image_url ? (
               <div>

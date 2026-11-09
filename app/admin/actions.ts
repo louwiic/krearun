@@ -651,7 +651,21 @@ export async function saveSettingsAction(formData: FormData) {
     }
   }
 
+  let offerImage = String(formData.get("express_offer_image") ?? "").trim();
+  const offerFile = formData.get("express_offer_image_file");
+  if (offerFile instanceof File && offerFile.size > 0) {
+    const [optimized] = await toWebp([offerFile]);
+    offerImage = await uploadSiteImageToR2("offers", optimized);
+  }
+
   await saveSettings({
+    cart_name_gift_enabled: formData.get("cart_name_gift_enabled") === "on",
+    express_offer_enabled: formData.get("express_offer_enabled") === "on",
+    express_offer_title: String(formData.get("express_offer_title") ?? "").trim().slice(0, 100),
+    express_offer_description: String(formData.get("express_offer_description") ?? "").trim().slice(0, 300),
+    express_offer_image: offerImage,
+    express_offer_cta: String(formData.get("express_offer_cta") ?? "").trim().slice(0, 60),
+    express_offer_href: String(formData.get("express_offer_href") ?? "").trim(),
     store_name: String(formData.get("store_name") ?? "").trim(),
     announcement: String(formData.get("announcement") ?? "").trim(),
     homepage_mode:
