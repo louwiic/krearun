@@ -1,3 +1,5 @@
+import NewArrivalsCarousel from "@/components/home/NewArrivalsCarousel";
+import { hasFreeShipping } from "@/lib/free-shipping";
 import ExpressOfferBanner from "@/components/site/ExpressOfferBanner";
 /* eslint-disable @next/next/no-img-element -- Product media and original brand artwork. */
 import Link from "next/link";
@@ -28,6 +30,14 @@ export default async function HomePage() {
   const featured = visible.filter(product => product.featured);
   const main = visible.find(product => product.slug === settings.homepage_featured_product_slug) ?? featured[0] ?? visible[0];
   const selection = [...featured, ...visible.filter(product => !product.featured)].slice(0, 6);
+  const newArrivals = visible
+    .filter(product => product.active && !product.privateSale && product.isNew && product.id !== main?.id && product.images?.length)
+    .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))
+    .slice(0, 12)
+    .map(product => {
+      const prices = product.variants.filter(variant => variant.active).map(variant => variant.priceCents || product.priceCents);
+      return { id: product.id, slug: product.slug, name: product.name, image: product.images[0], priceCents: prices.length ? Math.min(...prices) : product.priceCents, fromPrice: prices.length > 1, freeShipping: hasFreeShipping(product.slug) };
+    });
   const spotlight = settings.homepage_mode === "single_product" && main;
   const collections = [
     { name: "Porte-boisson", href: "/boutique?categorie=porte-boisson", product: main?.category === "porte-boisson" && main.images?.length ? main : visible.find(product => product.category === "porte-boisson" && product.images?.length) },
@@ -49,6 +59,8 @@ export default async function HomePage() {
       <h1 className="sr-only">Découvrez nos produits personnalisés — Kréarun, la personnalisation à fond !</h1>
       <img src="/brand/krearun-hero.webp" alt="Kréarun — La personnalisation à fond ! Tes idées. Tes couleurs. Ton style. Porte-boisson et porte-clés personnalisés." width={2017} height={780} fetchPriority="high" className="block h-auto w-full" />
     </section>
+
+    <NewArrivalsCarousel items={newArrivals} />
 
     <ExpressOfferBanner enabled={settings.express_offer_enabled} title={settings.express_offer_title} description={settings.express_offer_description} image={settings.express_offer_image} cta={settings.express_offer_cta} href={settings.express_offer_href} />
 
