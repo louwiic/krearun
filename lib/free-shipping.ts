@@ -1,6 +1,7 @@
 import type { CartItem, Product } from "./types";
 
 const FREE_SHIPPING_SLUGS = new Set([
+  "porte-cles-prenom",
   "porte-cle-coupe-du-monde-fifa",
   "decapsuleur-a-levier",
   "lunettes-ecaille-bourbon",

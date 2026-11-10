@@ -1,3 +1,5 @@
+import KeychainConfigurator from "@/components/keychains/KeychainConfigurator";
+import { KEYCHAIN_SLUG } from "@/lib/name-keychain";
 import Link from "next/link";
 import { productDescription, productStructuredData, productBreadcrumb, jsonLdString } from "@/lib/seo";
 import { notFound } from "next/navigation";
@@ -8,7 +10,7 @@ import Gallery from "@/components/product/Gallery";
 import AddToCart from "@/components/product/AddToCart";
 import ProductCard from "@/components/product/ProductCard";
 import ReviewForm from "@/components/product/ReviewForm";
-import { getApprovedReviews, getProductBySlug, getProducts, getSettings } from "@/lib/store";
+import { getInventoryColors, getApprovedReviews, getProductBySlug, getProducts, getSettings } from "@/lib/store";
 import { formatPrice } from "@/lib/format";
 import { hasFreeShipping } from "@/lib/free-shipping";
 import { publicProductCopy } from "@/lib/public-copy";
@@ -57,6 +59,8 @@ export default async function ProductPage({
     !product.active ||
     (!product.privateSale && !categories.some((category) => category.value === product.category))
   ) notFound();
+
+  if (slug === KEYCHAIN_SLUG) return <div className="mx-auto max-w-6xl px-5 py-10 sm:px-8"><Link href="/boutique" className="text-sm underline">Retour à la boutique</Link><h1 className="mt-6 font-display text-3xl font-bold sm:text-4xl">Porte-clés prénom personnalisé</h1><p className="mb-8 mt-3 max-w-2xl text-ink-soft">Chewy, lettres épaisses ou écriture cursive : choisissez votre style et les coloris disponibles à l’atelier.</p><KeychainConfigurator inventory={await getInventoryColors({ includeInactive: true })}/></div>;
 
   if (slug === HOLDER_SLUG) return <><div data-product-view={product.id} aria-hidden className="h-px"/><CustomHolderProduct /></>;
 

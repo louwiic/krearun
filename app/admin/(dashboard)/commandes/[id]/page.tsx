@@ -5,7 +5,7 @@ import { notFound, redirect } from "next/navigation";
 import { isAdmin } from "@/lib/auth";
 import StatusBadge from "@/components/admin/StatusBadge";
 import { updateOrderStatusAction } from "@/app/admin/actions";
-import { getOrderById, getColissimoShipment, getProducts, getInventoryColors } from "@/lib/store";
+import { listKeychainFiles, getOrderById, getColissimoShipment, getProducts, getInventoryColors } from "@/lib/store";
 import { colissimoConfig } from "@/lib/colissimo-server";
 import { orderDateKey } from "@/lib/order-list";
 import ColissimoPanel from "@/components/admin/ColissimoPanel";
@@ -30,6 +30,7 @@ export default async function CommandeDetailPage({
   const [products, colors] = await Promise.all([
     getProducts({ includeInactive: true }), getInventoryColors({ includeInactive: true }),
   ]);
+  const keychainFiles = order.items.some(item=>item.keychainConfiguration) ? await listKeychainFiles(order.id) : [];
   const colorCatalog = buildOrderColorCatalog(products, colors);
   const shipmentResult = await getColissimoShipment(id)
     .then((shipment) => ({ shipment, storageError: false }))
@@ -67,6 +68,7 @@ export default async function CommandeDetailPage({
                   )}
                   <div className="flex-1">
                     <p className="text-sm font-bold">{item.name}</p>
+                    {item.keychainConfiguration && <div className="mt-2 space-y-1 text-xs"><p>Fond : {item.keychainConfiguration.baseColorName} · Lettres : {item.keychainConfiguration.textColorName}</p>{keychainFiles.find(file=>file.itemIndex===i)?<a href={`/api/admin/keychains/${keychainFiles.find(file=>file.itemIndex===i)!.id}`} className="inline-block font-bold text-terra underline">Télécharger le 3MF de ce prénom</a>:<Link href="/admin/porte-cles" className="inline-block font-bold text-terra underline">Fichier en préparation — ouvrir le générateur</Link>}</div>}
                     {item.holderRequestId&&<Link href={`/admin/personnalisations#${item.holderRequestId}`} className="mt-2 inline-flex text-xs font-bold text-terra">Voir le logo et la personnalisation validée ↗</Link>}
                     {item.variantName && <p className="text-xs text-ink-soft">Modèle : {item.variantName}</p>}
                     {item.keychainChoice && (

@@ -1,3 +1,5 @@
+import { parseKeychainConfiguration, KEYCHAIN_ID, keychainLabel, type KeychainConfiguration } from "@/lib/name-keychain";
+import { fulfillOrderKeychains } from "@/lib/name-keychain-fulfillment";
 import { readShippingQuote } from "@/lib/metropolitan-shipping";
 import { readCheckoutItems } from "@/lib/checkout-item-metadata";
 import { NextResponse } from "next/server";
@@ -70,7 +72,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Signature invalide" }, { status: 400 });
   }
 
-  if (event.type === "checkout.session.completed") {
+  if (event.type === "checkout.session.completed" || event.type === "checkout.session.async_payment_succeeded") {
     const session = event.data.object as Stripe.Checkout.Session;
 
     if (session.metadata?.customHolderRequest) {
@@ -79,13 +81,18 @@ export async function POST(req: Request) {
       return NextResponse.json({received:true});
     }
 
+    if (session.payment_status !== "paid" && session.payment_status !== "no_payment_required") return NextResponse.json({ received: true });
+
     // Idempotence : ne pas recréer la commande si le webhook rejoue
-    if (await getOrderByStripeSession(session.id)) {
+    const existingOrder = await getOrderByStripeSession(session.id);
+    if (existingOrder) {
+      try { await fulfillOrderKeychains(existingOrder); }
+      catch { return NextResponse.json({ error: "Fichier porte-clés à régénérer." }, { status: 500 }); }
       return NextResponse.json({ received: true });
     }
 
     const raw = readCheckoutItems(session.metadata);
-    const parsed: { p: string; q: number; c: string; u?: number; n?: string; v?: string; k?: string; d?: string }[] = raw
+    const parsed: { p: string; q: number; c: string; u?: number; n?: string; v?: string; k?: string; d?: string; h?: KeychainConfiguration }[] = raw
       ? JSON.parse(raw)
       : [];
 
@@ -106,6 +113,7 @@ export async function POST(req: Request) {
       if (it.d) {
         try { clickerConfiguration = JSON.parse(it.d) as ClickerConfiguration; } catch { clickerConfiguration = undefined; }
       }
+      const keychainConfiguration = it.p === KEYCHAIN_ID ? parseKeychainConfiguration(it.h) : undefined;
       items.push({
         productId: it.p,
         name: product?.name ?? "Article",
@@ -122,6 +130,7 @@ export async function POST(req: Request) {
         variantName: variant?.name,
         keychainChoice: it.k,
         clickerConfiguration,
+        ...(keychainConfiguration ? { keychainConfiguration, customName: keychainLabel(keychainConfiguration) } : {}),
         image: variant?.image || product?.images[0] || "",
       });
     }
@@ -159,6 +168,11 @@ export async function POST(req: Request) {
     ]
       .filter(Boolean)
       .join("\n\n");
+
+    try {
+      const { stopCartReminderAfterPurchase } = await import("@/lib/cart-reminder-service");
+      await stopCartReminderAfterPurchase(customer?.email ?? session.customer_details?.email ?? session.customer_email ?? "");
+    } catch { console.error("[Cart reminder] Purchase cancellation unavailable"); }
 
     const order = await createOrder({
       email: customer?.email ?? session.customer_details?.email ?? "",
@@ -204,6 +218,9 @@ export async function POST(req: Request) {
     } catch (e) {
       console.error("E-mails de commande :", e);
     }
+
+    try { await fulfillOrderKeychains(order); }
+    catch { return NextResponse.json({ error: "Fichier porte-clés à régénérer." }, { status: 500 }); }
   }
 
   return NextResponse.json({ received: true });

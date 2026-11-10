@@ -6,7 +6,7 @@ export function parseProductEvent(value:unknown):ProductEvent|null {
   if(!value||typeof value!=="object")return null;
   const {eventId,productId,kind,consent} = value as Record<string,unknown>;
   if(consent!==true||typeof eventId!=="string"||! /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(eventId))return null;
-  if(typeof productId!=="string"||!/^([a-z0-9]{15}|clicker-studio)$/.test(productId)||!PRODUCT_EVENT_KINDS.includes(kind as ProductEvent["kind"]))return null;
+  if(typeof productId!=="string"||!/^([a-z0-9]{15}|clicker-studio|name-keychain)$/.test(productId)||!PRODUCT_EVENT_KINDS.includes(kind as ProductEvent["kind"]))return null;
   return {eventId,productId,kind:kind as ProductEvent["kind"]};
 }
 export function productDay(date=new Date()):string{return new Date(date.getTime()+4*3600000).toISOString().slice(0,10);}

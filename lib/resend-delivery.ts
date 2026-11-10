@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-type Email = { from: string; to: string[]; reply_to: string; subject: string; html: string };
+type Email = { from: string; to: string[]; reply_to: string; subject: string; html: string; headers?: Record<string, string> };
 type Delivery = { accepted: true } | { accepted: false; reason: string };
 
 // One queue per server process also paces transactional messages sharing the API key.

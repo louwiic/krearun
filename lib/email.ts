@@ -44,7 +44,7 @@ function getTransporter() {
   return transporter;
 }
 
-async function sendEmail(to: string, subject: string, html: string) {
+async function sendEmail(to: string, subject: string, html: string, headers?: Record<string, string>) {
   if (!to) return false;
   const resendKey = process.env.RESEND_API_KEY;
   if (resendKey) {
@@ -55,6 +55,7 @@ async function sendEmail(to: string, subject: string, html: string) {
           reply_to: BUSINESS.email,
           subject,
           html,
+          ...(headers ? { headers } : {}),
       });
       if (!result.accepted) console.error("Resend : envoi refusé après traitement :", result.reason);
       return result.accepted;
@@ -77,6 +78,7 @@ async function sendEmail(to: string, subject: string, html: string) {
       replyTo: BUSINESS.email,
       subject,
       html,
+      ...(headers ? { headers } : {}),
     });
     return true;
   } catch (e) {
@@ -366,4 +368,16 @@ export async function sendWithdrawalMail(record: import("./withdrawal").Withdraw
 function legalEmailHtml() {
   const p = (text: string) => `<p style="white-space:pre-line;line-height:1.6">${escapeHtml(text)}</p>`;
   return `<section style="margin-top:32px;border-top:2px solid #171717;padding-top:20px;font-size:12px"><h2>Vos conditions générales de vente — version ${LEGAL_VERSION}</h2><p>${escapeHtml(BUSINESS.name)} — ${escapeHtml(BUSINESS_ADDRESS)} — ${escapeHtml(BUSINESS.email)}</p>${LEGAL_SECTIONS.map(s=>`<h3>${escapeHtml(s.title)}</h3>${s.paragraphs.map(p).join("")}`).join("")}<div style="border:2px solid #171717;padding:12px"><h3>Garanties légales — annexe à l’article D. 211-2 du Code de la consommation</h3>${GUARANTEE_PARAGRAPHS.map(p).join("")}</div><h3>Formulaire type de rétractation</h3>${p(WITHDRAWAL_TEMPLATE)}<p>Déclaration en ligne : <a href="https://krearun.re/retractation">https://krearun.re/retractation</a></p></section>`;
+}
+
+
+export async function sendCartReminderEmail(email: string, mode: "confirm" | "remind", urls: { confirm: string; resume: string; unsubscribe: string; oneClick: string }) {
+  const confirm = mode === "confirm";
+  const subject = confirm ? "Confirmez votre demande de rappel panier — Kréarun" : "Votre panier Kréarun vous attend";
+  const content = confirm
+    ? `<h1>Confirmez votre demande</h1><p>Une demande de rappel pour un panier Kréarun a été faite avec cette adresse.</p><p><a href="${escapeHtml(urls.confirm)}">Confirmer mon rappel panier</a></p><p>Après confirmation, vous recevrez un seul rappel environ une heure plus tard si votre achat n’est pas confirmé. Ce lien de confirmation expire dans 24 heures. Cette demande ne vous inscrit pas à la newsletter.</p><p>Si vous n’avez rien demandé, ignorez cet email ou annulez avec le lien ci-dessous.</p>`
+    : `<h1>Votre panier vous attend</h1><p>Vous avez demandé un rappel pour reprendre votre panier Kréarun.</p><p><a href="${escapeHtml(urls.resume)}">Reprendre mon panier</a></p><p>Les prix et disponibilités seront vérifiés à votre retour. Aucun autre rappel ne sera envoyé pour cette demande.</p>`;
+  return sendEmail(email, subject, layout(`${content}<p><a href="${escapeHtml(urls.unsubscribe)}">Annuler le rappel / se désabonner</a></p><p>${escapeHtml(BUSINESS.tradeName)} · ${escapeHtml(BUSINESS_ADDRESS)}</p>`), {
+    "List-Unsubscribe": `<${urls.oneClick}>`, "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+  });
 }

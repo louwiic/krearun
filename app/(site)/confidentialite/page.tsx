@@ -1,4 +1,4 @@
-import { BUSINESS, BUSINESS_ADDRESS, LEGAL_DATE } from "@/lib/legal";
+import { BUSINESS, BUSINESS_ADDRESS } from "@/lib/legal";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/confidentialite" }, title: "Politique de confidentialité" };
 
 const contactEmail = BUSINESS.email;
-const updatedAt = LEGAL_DATE;
+const updatedAt = "9 novembre 2026";
 
 type Section = {
   title: string;
@@ -82,6 +82,14 @@ const sections: Section[] = [
     ],
   },
   {
+    title: "Rappels de panier",
+    paragraphs: [
+      "Sur votre demande facultative, après une case d’accord décochée par défaut et confirmation de votre adresse par email, nous pouvons vous envoyer un seul rappel environ une heure plus tard pour reprendre ce panier. Cette demande est distincte de la newsletter. Vous pouvez annuler via le lien de désabonnement présent dans chaque message, sans connexion ni frais. Le rappel n’est pas envoyé si nous reconnaissons un achat confirmé avec la même adresse ou un paiement associé à la demande.",
+      "Votre email, une copie des articles et de leurs options, la date et la version de votre accord, la confirmation de l’adresse et le statut d’envoi sont conservés dans une collection privée séparée des statistiques, pendant 30 jours maximum. Les liens de reprise et d’annulation sont personnels : ne les partagez pas. Une même adresse ne reçoit pas de nouvelle demande pendant cette période. Le lien de confirmation expire dans 24 heures. Les données expirées sont supprimées lors du prochain traitement ou de la prochaine demande de rappel.",
+      "Le panier peut aussi être retrouvé sur le même navigateur à votre retour : un message sur le site vous propose de le reprendre après 30 minutes d’absence. Ce fonctionnement utilise le panier et un repère de dernière visite stockés localement ; il ne permet pas de vous envoyer des notifications hors du site. Vous pouvez supprimer ces données depuis les réglages de votre navigateur.",
+    ],
+  },
+  {
     title: "Newsletter et avis clients",
     paragraphs: [
       `La newsletter est envoyée uniquement après votre accord explicite. Vous pouvez vous désinscrire à tout moment via les indications présentes dans les e-mails ou en écrivant à ${contactEmail}. Les avis sont modérés avant publication : seuls le prénom, la note, le message, la photo facultative et le produit concerné peuvent apparaître sur le site.`,
@@ -90,7 +98,7 @@ const sections: Section[] = [
   {
     title: "Cookies et stockage local",
     paragraphs: [
-      "Le site utilise des cookies strictement nécessaires, notamment pour la session de votre compte. Le panier, les favoris, la fermeture temporaire de la fenêtre newsletter et votre choix de confidentialité peuvent être enregistrés dans le stockage local du navigateur. Le script de mesure d’audience sur analytics.peibox.fr est chargé uniquement après votre acceptation. Avec ce même accord, les impressions de produits dans les listes, les clics vers une fiche et les vues de fiches produit sont comptés avec un identifiant d’événement aléatoire, le produit concerné, le type d’action et la date. Un repère temporaire dans le stockage de session limite les doublons ; aucun nom, e-mail, texte personnalisé ni adresse IP n’est enregistré dans ces statistiques produit. Le parcours d’achat peut également être mesuré avec votre accord : consultation de produit, ajout ou modification du panier, consultation du panier et passage au paiement. Un identifiant aléatoire par session permet de relier ces étapes et, côté serveur, de reconnaître un achat confirmé. Seuls le type de page (accueil, boutique, panier…), les références, quantités et prix des articles sont associés au parcours ; aucun e-mail, nom, adresse, texte personnalisé ni adresse IP n’est conservé dans ces statistiques. Ces parcours sont conservés 30 jours, puis supprimés lors de la prochaine collecte ou consultation des statistiques. Aucune relance automatique n’est déclenchée à partir de ces données. Les interactions avec le configurateur de lettre peuvent être comptées avec un identifiant de navigateur aléatoire, le type d’action et le format téléchargé ; aucun prénom saisi n’est joint à ces statistiques. Votre choix est mémorisé pendant environ six mois. Vous pouvez accepter ou refuser avec les boutons proposés, puis revenir sur votre choix via « Préférences de confidentialité » dans le pied de page. Le refus n’empêche pas les achats.",
+      "Le site utilise des cookies strictement nécessaires, notamment pour la session de votre compte. Le panier, les favoris, la fermeture temporaire de la fenêtre newsletter et votre choix de confidentialité peuvent être enregistrés dans le stockage local du navigateur. Le script de mesure d’audience sur analytics.peibox.fr est chargé uniquement après votre acceptation. Avec ce même accord, les impressions de produits dans les listes, les clics vers une fiche et les vues de fiches produit sont comptés avec un identifiant d’événement aléatoire, le produit concerné, le type d’action et la date. Un repère temporaire dans le stockage de session limite les doublons ; aucun nom, e-mail, texte personnalisé ni adresse IP n’est enregistré dans ces statistiques produit. Le parcours d’achat peut également être mesuré avec votre accord : consultation de produit, ajout ou modification du panier, consultation du panier et passage au paiement. Un identifiant aléatoire par session permet de relier ces étapes et, côté serveur, de reconnaître un achat confirmé. Seuls le type de page (accueil, boutique, panier…), les références, quantités et prix des articles, ainsi que des catégories d’échec du paiement, un statut technique et une référence aléatoire de diagnostic sont associés au parcours ; aucun e-mail, nom, adresse, texte personnalisé ni adresse IP n’est conservé dans ces statistiques. Ces parcours sont conservés 30 jours, puis supprimés lors de la prochaine collecte ou consultation des statistiques. Aucune relance automatique n’est déclenchée à partir de ces statistiques. Les rappels expressément demandés sont gérés séparément, comme décrit plus haut. Les interactions avec le configurateur de lettre peuvent être comptées avec un identifiant de navigateur aléatoire, le type d’action et le format téléchargé ; aucun prénom saisi n’est joint à ces statistiques. Votre choix est mémorisé pendant environ six mois. Vous pouvez accepter ou refuser avec les boutons proposés, puis revenir sur votre choix via « Préférences de confidentialité » dans le pied de page. Le refus n’empêche pas les achats.",
       "La page de paiement Stripe peut utiliser ses propres cookies techniques pour sécuriser la transaction.",
     ],
   },

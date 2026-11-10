@@ -32,11 +32,19 @@ export default async function AdminParametresPage() {
 
       <form action={saveSettingsAction} className="space-y-6">
         <div className="rounded-blob bg-cream p-7 shadow-soft">
-          <h2 className="mb-3 font-display text-lg font-semibold">Bandeau bas — Offre express</h2>
+          <h2 className="mb-5 font-display text-lg font-semibold">Rappels de panier</h2>
+          <div className="space-y-4 text-sm">
+            <label className="flex items-start gap-3"><input type="checkbox" name="cart_browser_reminder_enabled" defaultChecked={settings.cart_browser_reminder_enabled} className="mt-1" /><span>Rappel sur le site au retour dans le même navigateur après 30 minutes, si le panier contient encore des articles.</span></label>
+            <label className="flex items-start gap-3"><input type="checkbox" name="cart_email_reminder_enabled" defaultChecked={settings.cart_email_reminder_enabled} className="mt-1" /><span>Proposer un rappel par email avec accord explicite et confirmation de l’adresse.</span></label>
+            <p className="text-ink-soft">Un seul rappel, environ une heure après confirmation, annulé si un achat est confirmé. Désabonnement dans chaque email. Demandes et preuves d’accord conservées 30 jours, sans inscription à la newsletter. Les envois nécessitent l’exécution régulière du worker de rappels (ou du worker de l’assistant).</p>
+          </div>
+        </div>
+        <div className="rounded-blob bg-cream p-7 shadow-soft">
+          <h2 className="mb-3 font-display text-lg font-semibold">Accueil — Bandeau Offre express</h2>
           <p className="mb-5 text-sm text-ink-soft">Présentez un code promo, un cadeau ou une offre sur plusieurs articles. Les champs ci-dessous personnalisent aussi l’offre porte-clés dans le panier. Le cadeau prénom est enregistré automatiquement dans la commande payée ; les autres remises restent à configurer dans les outils de vente correspondants.</p>
           <div className="grid gap-5">
             <label className="flex items-center gap-3 text-sm font-bold"><input type="checkbox" name="cart_name_gift_enabled" defaultChecked={settings.cart_name_gift_enabled} />Offrir un porte-clés prénom dans le panier (un par commande payée)</label>
-            <label className="flex items-center gap-3 text-sm font-bold"><input type="checkbox" name="express_offer_enabled" defaultChecked={settings.express_offer_enabled} />Afficher le bandeau sur le site</label>
+            <label className="flex items-center gap-3 text-sm font-bold"><input type="checkbox" name="express_offer_enabled" defaultChecked={settings.express_offer_enabled} />Afficher sous la grande bannière, avant le premier produit</label>
             <label><span className={label}>Titre / texte de l’offre</span><input name="express_offer_title" maxLength={100} defaultValue={settings.express_offer_title} className={field} placeholder="Votre offre express" /></label>
             <label><span className={label}>Description</span><textarea name="express_offer_description" maxLength={300} rows={3} defaultValue={settings.express_offer_description} className={field} placeholder="Conditions, code promo ou détails du cadeau" /></label>
             <div className="grid gap-5 sm:grid-cols-2">

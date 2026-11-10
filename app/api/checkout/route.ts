@@ -1,5 +1,7 @@
+import { KEYCHAIN_ID, keychainLabel, validateKeychainColors, type KeychainConfiguration } from "@/lib/name-keychain";
+import { validateKeychainGeometry } from "@/lib/name-keychain-server";
 import { variantQuantityDiscounts } from "@/lib/noel-kits";
-import { UUID } from "@/lib/purchase-journey";
+import { UUID, type CheckoutErrorCode } from "@/lib/purchase-journey";
 import { recordPurchaseEvent } from "@/lib/store";
 import { isAdmin } from "@/lib/auth";
 import { colorKey, inventoryColorAvailable, availableInventoryPalette, usesInventoryPalette, type ColorAvailability } from "@/lib/color-availability";
@@ -33,6 +35,7 @@ interface CheckoutItem {
   customName?: string;
   keychainChoice?: string;
   clickerConfiguration?: ClickerConfiguration;
+  keychainConfiguration?: unknown;
 }
 
 interface CheckoutBody {
@@ -88,16 +91,34 @@ function validateCustomer(
 }
 
 export async function POST(req: Request) {
+  const reference = crypto.randomUUID();
+  let response: NextResponse;
+  try { response = await prepareCheckout(req); }
+  catch {
+    response = NextResponse.json({ error: "Impossible de préparer le paiement. Réessayez dans un instant.", code: "SERVER_ERROR" }, { status: 500 });
+  }
+  response.headers.set("X-Checkout-Reference", reference);
+  response.headers.set("Cache-Control", "no-store");
+  if (!response.ok) {
+    const { code } = await response.clone().json();
+    console.error("[Checkout failure]", { reference, code, status: response.status });
+  }
+  return response;
+}
+
+async function prepareCheckout(req: Request) {
   if (!stripeConfigured()) {
     return NextResponse.json(
       {
         error:
           "Le paiement n'est pas encore activé sur cette boutique.",
+        code: "PAYMENT_NOT_CONFIGURED",
       },
       { status: 503 }
     );
   }
 
+  let validationCode: CheckoutErrorCode = "INVALID_CART";
   let items: CheckoutItem[];
   let customer: CheckoutCustomer;
   let promoCode = "";
@@ -108,20 +129,25 @@ export async function POST(req: Request) {
   let pickupPointId = "";
   try {
     const body = (await req.json()) as CheckoutBody;
+    validationCode = "TERMS_REQUIRED";
     if (body.termsAccepted !== true || body.termsVersion !== LEGAL_VERSION) throw new Error("Acceptez les conditions générales de vente à jour avant de continuer.");
     journeyId = typeof body.journeySessionId === "string" && UUID.test(body.journeySessionId) ? body.journeySessionId : undefined;
+    validationCode = "INVALID_CART";
     items = body.items;
     if (!Array.isArray(items) || items.length === 0) throw new Error();
     fulfillmentMethod = body.fulfillmentMethod === "pickup" ? "pickup" : "delivery";
     pickupPointId = text(body.pickupPointId, 80);
+    validationCode = "INVALID_CUSTOMER";
     customer = validateCustomer(body.customer, fulfillmentMethod);
     promoCode = text(body.promoCode, 80);
     orderNote = text(body.note, 500);
     giftName = text(body.giftName, 100);
+    validationCode = "GIFT_NAME_INVALID";
     if (giftName && (giftName.length > 24 || !/^[\p{L}\p{M} '’‐-]+$/u.test(giftName))) throw new Error("Le prénom du cadeau doit contenir 1 à 24 lettres, espaces ou tirets.");
   } catch (e) {
     return NextResponse.json(
       {
+        code: validationCode,
         error:
           e instanceof Error && e.message
             ? e.message
@@ -132,7 +158,7 @@ export async function POST(req: Request) {
   }
 
   const settings = await getSettings();
-  if (giftName && !settings.cart_name_gift_enabled) return NextResponse.json({ error: "L’offre de porte-clés prénom est terminée. Actualisez votre panier pour continuer." }, { status: 400 });
+  if (giftName && !settings.cart_name_gift_enabled) return NextResponse.json({ code: "GIFT_EXPIRED", error: "L’offre de porte-clés prénom est terminée. Actualisez votre panier pour continuer." }, { status: 400 });
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
   const pickupPoint =
     fulfillmentMethod === "pickup"
@@ -140,7 +166,7 @@ export async function POST(req: Request) {
       : null;
   if (fulfillmentMethod === "pickup" && !pickupPoint) {
     return NextResponse.json(
-      { error: "Choisissez un point de retrait disponible." },
+      { code: "PICKUP_UNAVAILABLE", error: "Choisissez un point de retrait disponible." },
       { status: 400 }
     );
   }
@@ -154,7 +180,7 @@ export async function POST(req: Request) {
     };
     quantity: number;
   }[] = [];
-  const metadataItems: { p: string; q: number; c: string; u: number; n?: string; v?: string; k?: string; d?: string }[] = [];
+  const metadataItems: { p: string; q: number; c: string; u: number; n?: string; v?: string; k?: string; d?: string; h?: KeychainConfiguration }[] = [];
   let subtotalCents = 0;
   let totalWeightGrams = 0;
   let physicalWeightGrams = 0;
@@ -165,16 +191,26 @@ export async function POST(req: Request) {
     const product = item.productId === CLICKER_PRODUCT_ID ? CLICKER_PRODUCT : await getProductById(item.productId);
     if (!product || !product.active) {
       return NextResponse.json(
-        { error: "Un article du panier n'est plus disponible." },
+        { code: "PRODUCT_UNAVAILABLE", error: "Un article du panier n'est plus disponible." },
         { status: 400 }
       );
     }
-    if (product.slug === HOLDER_SLUG) return NextResponse.json({error:"Ce produit personnalisé nécessite une demande validée. Payez-le depuis votre espace client."},{status:400});
+    if (product.slug === HOLDER_SLUG) return NextResponse.json({code:"VALIDATION_REQUIRED",error:"Ce produit personnalisé nécessite une demande validée. Payez-le depuis votre espace client."},{status:400});
+    let keychainConfiguration: KeychainConfiguration | undefined;
+    if (product.id === KEYCHAIN_ID) {
+      try {
+        inventory ??= await getInventoryColors({ includeInactive: true });
+        keychainConfiguration = validateKeychainColors(item.keychainConfiguration, inventory);
+        await validateKeychainGeometry(keychainConfiguration);
+      } catch {
+        return NextResponse.json({ code: "PERSONALIZATION_INVALID", error: "Vérifiez le prénom, la police et les couleurs en stock de votre porte-clés." }, { status: 400 });
+      }
+    }
     const activeVariants = product.variants.filter((variant) => variant.active);
     const variant = activeVariants.find((candidate) => candidate.id === text(item.variantId, 80));
     if (activeVariants.length > 0 && !variant) {
       return NextResponse.json(
-        { error: `Choisissez un modèle disponible pour « ${product.name} ».` },
+        { code: "VARIANT_REQUIRED", error: `Choisissez un modèle disponible pour « ${product.name} ».` },
         { status: 400 }
       );
     }
@@ -185,34 +221,34 @@ export async function POST(req: Request) {
     const quantity = Math.max(1, Math.min(Number(item.quantity) || 1, maxQuantity));
     if (selectedStock <= 0 && !product.preorder) {
       return NextResponse.json(
-        { error: `« ${product.name} » est épuisé pour le moment.` },
+        { code: "OUT_OF_STOCK", error: `« ${product.name} » est épuisé pour le moment.` },
         { status: 400 }
       );
     }
-    const orderColor = publicColorName(item.color || "");
-    if (product.category !== "lunette" && product.id !== CLICKER_PRODUCT_ID && (product.colors?.length || usesInventoryPalette(product))) {
+    const orderColor = keychainConfiguration ? `${keychainConfiguration.baseColorName} / ${keychainConfiguration.textColorName}` : publicColorName(item.color || "");
+    if (product.category !== "lunette" && product.id !== CLICKER_PRODUCT_ID && product.id !== KEYCHAIN_ID && (product.colors?.length || usesInventoryPalette(product))) {
       try { inventory ??= await getInventoryColors({ includeInactive: true }); }
-      catch { return NextResponse.json({ error: "Impossible de vérifier la disponibilité des couleurs. Réessayez dans un instant." }, { status: 503 }); }
+      catch { return NextResponse.json({ code: "INVENTORY_UNAVAILABLE", error: "Impossible de vérifier la disponibilité des couleurs. Réessayez dans un instant." }, { status: 503 }); }
       const palette = usesInventoryPalette(product) ? availableInventoryPalette(inventory) : variant?.colors?.length ? variant.colors : product.colors;
       const selectedColor = palette.find(color => colorKey(color.name) === colorKey(orderColor));
-      if (!selectedColor) return NextResponse.json({ error: `Choisissez un coloris disponible pour « ${product.name} ».` }, { status: 400 });
-      if (!inventoryColorAvailable(selectedColor, inventory)) return NextResponse.json({ error: `Le coloris ${orderColor} est en rupture de stock. Choisissez une autre couleur pour « ${product.name} ».` }, { status: 400 });
+      if (!selectedColor) return NextResponse.json({ code: "COLOR_INVALID", error: `Choisissez un coloris disponible pour « ${product.name} ».` }, { status: 400 });
+      if (!inventoryColorAvailable(selectedColor, inventory)) return NextResponse.json({ code: "COLOR_OUT_OF_STOCK", error: `Le coloris ${orderColor} est en rupture de stock. Choisissez une autre couleur pour « ${product.name} ».` }, { status: 400 });
     }
     if (product.slug === NOS_SLUG) {
-      if (!product.colors.some(color => publicColorName(color.name) === orderColor)) return NextResponse.json({error:"Choisissez un coloris disponible pour le NOS : noir, rose ou blanc."},{status:400});
-      if (product.namePersonalizationEnabled && String(item.customName ?? "").trim().replace(/\s+/g," ").length > NOS_TEXT_MAX) return NextResponse.json({error:`Le texte NOS doit contenir ${NOS_TEXT_MAX} caractères maximum.`},{status:400});
+      if (!product.colors.some(color => publicColorName(color.name) === orderColor)) return NextResponse.json({code:"COLOR_INVALID",error:"Choisissez un coloris disponible pour le NOS : noir, rose ou blanc."},{status:400});
+      if (product.namePersonalizationEnabled && String(item.customName ?? "").trim().replace(/\s+/g," ").length > NOS_TEXT_MAX) return NextResponse.json({code:"PERSONALIZATION_INVALID",error:`Le texte NOS doit contenir ${NOS_TEXT_MAX} caractères maximum.`},{status:400});
     }
     const personalizedLamp = isPersonalizedLamp(product.slug);
-    const customName = personalizedLamp ? normalizeLampPersonalization(product.slug, item.customName)
+    const customName = keychainConfiguration ? keychainLabel(keychainConfiguration) : personalizedLamp ? normalizeLampPersonalization(product.slug, item.customName)
       : product.namePersonalizationEnabled ? normalizeCustomName(item.customName, product.slug === NOS_SLUG ? NOS_TEXT_MAX : 24) : "";
     const nosLogo = product.slug === NOS_SLUG ? nosLogoId(customName) : null;
-    if (nosLogo && !(await getNosLogo(nosLogo))) return NextResponse.json({error:"Votre logo NOS est introuvable. Importez-le à nouveau depuis la fiche produit."},{status:400});
+    if (nosLogo && !(await getNosLogo(nosLogo))) return NextResponse.json({code:"LOGO_NOT_FOUND",error:"Votre logo NOS est introuvable. Importez-le à nouveau depuis la fiche produit."},{status:400});
     if (personalizedLamp && !customName) {
-      return NextResponse.json({ error: `Complétez la personnalisation de « ${product.name} ».` }, { status: 400 });
+      return NextResponse.json({ code: "PERSONALIZATION_INVALID", error: `Complétez la personnalisation de « ${product.name} ».` }, { status: 400 });
     }
     const clicker = product.id === CLICKER_PRODUCT_ID ? item.clickerConfiguration : undefined;
     if (product.id === CLICKER_PRODUCT_ID && (!clicker?.text || !clicker.baseColor || !clicker.capColor || !clicker.letterColor)) {
-      return NextResponse.json({ error: "La configuration du clicker est incomplète." }, { status: 400 });
+      return NextResponse.json({ code: "PERSONALIZATION_INVALID", error: "La configuration du clicker est incomplète." }, { status: 400 });
     }
     const keychainChoice = product.slug === "porte-canette-monster" ? MONSTER_GIFT : "";
     const optionParts = [
@@ -258,6 +294,7 @@ export async function POST(req: Request) {
       ...(variant ? { v: variant.id } : {}),
       ...(keychainChoice ? { k: keychainChoice } : {}),
       ...(clicker ? { d: JSON.stringify(clicker) } : {}),
+      ...(keychainConfiguration ? { h: keychainConfiguration } : {}),
     });
   }
 
@@ -269,7 +306,7 @@ export async function POST(req: Request) {
   let metropolitan = null;
   try {
     if (!pickupPoint && shippingZone(customer.country, customer.postalCode) === "FR_METROPOLITAN") metropolitan = metropolitanQuote(totalWeightGrams, physicalWeightGrams, missingBillableWeight, freeShipping, parseMetropolitanShipping(settings.metropolitan_shipping_rates_json));
-  } catch (cause) { return NextResponse.json({ error: cause instanceof Error ? cause.message : "Livraison indisponible." }, { status: 400 }); }
+  } catch (cause) { return NextResponse.json({ code: "SHIPPING_UNAVAILABLE", error: cause instanceof Error ? cause.message : "Livraison indisponible." }, { status: 400 }); }
   const shippingCents = metropolitan ? metropolitan.priceCents : pickupPoint || freeShipping
     ? 0
     : missingBillableWeight
@@ -292,12 +329,12 @@ export async function POST(req: Request) {
       const promotionCode = promotionCodes.data[0];
       if (!promotionCode) {
         return NextResponse.json(
-          { error: "Ce code promo n'est pas valide." },
+          { code: "PROMO_INVALID", error: "Ce code promo n'est pas valide." },
           { status: 400 }
         );
       }
       const promotionError = promotionCheckoutError(promotionCode, subtotalCents);
-      if (promotionError) return NextResponse.json({ error: promotionError }, { status: 400 });
+      if (promotionError) return NextResponse.json({ code: "PROMO_INELIGIBLE", error: promotionError }, { status: 400 });
       discounts.push({ promotion_code: promotionCode.id });
     }
 
@@ -354,6 +391,11 @@ export async function POST(req: Request) {
       cancel_url: `${siteUrl}/commande/annulee`,
     });
 
+    try {
+      const { attachReminderCheckout } = await import("@/lib/cart-reminder-service");
+      await attachReminderCheckout(customer.email, session.id);
+    } catch { console.error("[Cart reminder] Payment association unavailable"); }
+
     if (journeyId) {
       try {
         if (!await isAdmin()) {
@@ -365,9 +407,12 @@ export async function POST(req: Request) {
     }
     return NextResponse.json({ url: session.url });
   } catch (e) {
-    console.error("Stripe checkout :", e);
+    const stripeType = e && typeof e === "object" && "type" in e ? e.type : "";
+    const code: CheckoutErrorCode = stripeType === "StripeAuthenticationError" || stripeType === "StripePermissionError" ? "STRIPE_CONFIGURATION"
+      : stripeType === "StripeConnectionError" || stripeType === "StripeAPIError" || stripeType === "StripeRateLimitError" ? "STRIPE_UNAVAILABLE"
+      : stripeType === "StripeInvalidRequestError" ? "STRIPE_REQUEST_INVALID" : "SERVER_ERROR";
     return NextResponse.json(
-      { error: "Impossible de préparer le paiement. Vérifiez la configuration de paiement." },
+      { error: "Impossible de préparer le paiement. Réessayez dans un instant.", code },
       { status: 502 }
     );
   }

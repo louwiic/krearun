@@ -1,3 +1,4 @@
+import type { KeychainConfiguration } from "./name-keychain";
 import type { LetterConfiguration } from "./custom-letter-settings";
 
 export type Category =
@@ -127,6 +128,7 @@ export interface OrderItem {
   holderRequestId?: string;
   letterConfiguration?: LetterConfiguration;
   clickerConfiguration?: ClickerConfiguration;
+  keychainConfiguration?: KeychainConfiguration;
   productId: string;
   name: string;
   priceCents: number;
@@ -205,6 +207,8 @@ export type CreateOrderInput = Omit<
 export interface Settings {
   site_skin: "default" | "halloween";
   site_skin_enabled: boolean;
+  cart_email_reminder_enabled: boolean;
+  cart_browser_reminder_enabled: boolean;
   cart_name_gift_enabled: boolean;
   express_offer_enabled: boolean;
   express_offer_title: string;
@@ -241,6 +245,7 @@ export interface Settings {
 
 export interface CartItem {
   clickerConfiguration?: ClickerConfiguration;
+  keychainConfiguration?: KeychainConfiguration;
   productId: string;
   slug: string;
   name: string;

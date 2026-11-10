@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import ts from 'typescript';
-import { parseJourneyEvent, purchaseJourneys } from '../lib/purchase-journey.ts';
+import * as journeys from "../lib/purchase-journey.ts";
+import { parseJourneyEvent, purchaseJourneys, checkoutDiagnostic, checkoutErrorLabel } from '../lib/purchase-journey.ts';
 const require=createRequire(import.meta.url);
 const sessionId='cde280a5-c1c3-424b-ae28-a1130111fbbc',eventId='4a33c65e-6b4f-4caf-bb10-930d183fdd85',productId='abcdefghijklmno';
 const base={sessionId,eventId,kind:'view_cart',consent:true,items:[{productId,quantity:2}]};
@@ -49,12 +50,14 @@ test('browser payload contains no personalization or email and storage corruptio
  globalThis.window={};globalThis.document={visibilityState:'visible'};globalThis.sessionStorage={getItem:k=>storage.get(k),setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)};
  globalThis.fetch=async(url,options)=>{calls.push(JSON.parse(options.body));return {ok:true};};
  try {
-  const client=load('../lib/journey-tracking.ts',{'./privacy':{hasAudienceConsent:()=>consent},'./purchase-journey':{UUID:/^[a-f0-9-]{36}$/i}});
+  const client=load('../lib/journey-tracking.ts',{'./privacy':{hasAudienceConsent:()=>consent},'./purchase-journey':journeys});
   assert.equal(client.journeySessionId(),undefined);client.trackJourney('view_cart',[]);assert.equal(calls.length,0);
   consent=true;storage.set('krearun:purchase-session:v1',JSON.stringify('broken'));
   const id=client.journeySessionId();assert.match(id,/^[a-f0-9-]{36}$/i);
   client.trackJourney('view_cart',[{productId,quantity:1,customName:'PRIVATE',name:'Private email@example.fr',unitPriceCents:5}]);
   await new Promise(r=>setTimeout(r,0));assert.equal(calls.length,1);assert.deepEqual(calls[0].items,[{productId,quantity:1}]);
+  client.trackJourney('checkout_error',[],undefined,undefined,{errorCode:'PROMO_INVALID',errorStatus:400,errorRef:eventId,message:'private@example.fr'});
+  await new Promise(r=>setTimeout(r,0));assert.equal(calls[1].errorCode,'PROMO_INVALID');assert.equal(calls[1].errorStatus,400);assert.equal(calls[1].errorRef,eventId);assert.equal(calls[1].message,undefined);
   consent=false;client.clearJourneyTracking();assert.equal(storage.size,0);assert.equal(client.journeySessionId(),undefined);
  } finally {Object.assign(globalThis,old);}
 });
@@ -62,4 +65,17 @@ test('browser payload contains no personalization or email and storage corruptio
 test('navigation page types cannot contain raw URLs or contact details',()=>{
  const valid=parseJourneyEvent({...base,page:'cart'});assert.equal(valid.page,'cart');
  assert.equal(parseJourneyEvent({...base,page:'/compte?email=private@example.fr'}),null);
+});
+
+
+test('checkout diagnostics accept only known codes, HTTP error statuses and opaque references',()=>{
+ const event=parseJourneyEvent({...base,kind:'checkout_error',errorCode:'COLOR_OUT_OF_STOCK',errorStatus:400,errorRef:eventId,error:'Private name',email:'private@example.fr'});
+ assert.equal(event.errorCode,'COLOR_OUT_OF_STOCK');assert.equal(event.errorStatus,400);assert.equal(event.errorRef,eventId);
+ assert.equal(event.error,undefined);assert.equal(event.email,undefined);
+ assert.deepEqual(checkoutDiagnostic({errorCode:'private@example.fr',errorStatus:200,errorRef:'private@example.fr'}),{errorCode:'UNKNOWN_ERROR'});
+ assert.deepEqual(checkoutDiagnostic({errorCode:'toString',errorStatus:'500'}),{errorCode:'UNKNOWN_ERROR'});
+ assert.equal(parseJourneyEvent({...base,errorCode:'PROMO_INVALID',errorStatus:400}).errorCode,undefined);
+ assert.match(checkoutErrorLabel(),/ancien suivi/);
+ assert.equal(checkoutErrorLabel('NETWORK_ERROR'),'Connexion interrompue ou serveur injoignable');
+ assert.equal(parseJourneyEvent({...base,kind:'checkout_error',consent:false}),null);
 });

@@ -1,3 +1,4 @@
+import ExpressOfferBanner from "@/components/site/ExpressOfferBanner";
 /* eslint-disable @next/next/no-img-element -- Product media and original brand artwork. */
 import Link from "next/link";
 import type { Metadata } from "next";
@@ -48,6 +49,8 @@ export default async function HomePage() {
       <h1 className="sr-only">Découvrez nos produits personnalisés — Kréarun, la personnalisation à fond !</h1>
       <img src="/brand/krearun-hero.webp" alt="Kréarun — La personnalisation à fond ! Tes idées. Tes couleurs. Ton style. Porte-boisson et porte-clés personnalisés." width={2017} height={780} fetchPriority="high" className="block h-auto w-full" />
     </section>
+
+    <ExpressOfferBanner enabled={settings.express_offer_enabled} title={settings.express_offer_title} description={settings.express_offer_description} image={settings.express_offer_image} cta={settings.express_offer_cta} href={settings.express_offer_href} />
 
     {spotlight && <section id="choisir-mon-modele" className="editorial-section" aria-labelledby="home-product-title">
       <div className="grid min-w-0 grid-cols-1 gap-8 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] md:gap-10">

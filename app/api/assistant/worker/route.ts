@@ -12,6 +12,8 @@ export async function POST(request: Request) {
   try {
     await processWhatsAppQueue();
     await assistantPrune();
+    const { processCartReminders } = await import("@/lib/cart-reminder-service");
+    await processCartReminders();
     return Response.json({ ok: true }, { headers: { "Cache-Control": "no-store" } });
   } catch { return Response.json({ error: "Traitement indisponible." }, { status: 503 }); }
 }

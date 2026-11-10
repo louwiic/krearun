@@ -1,7 +1,7 @@
 import type { ProductColor } from "./types";
 export type ColorAvailability = { name: string; hex: string; active: boolean; swatchImage?: string };
 export function usesInventoryPalette(product: { category: string; slug: string }): boolean {
-  return product.category === "noel" && product.slug.startsWith("noel-thermoforme-");
+  return product.slug === "porte-cles-prenom" || product.category === "noel" && product.slug.startsWith("noel-thermoforme-");
 }
 export function availableInventoryPalette(inventory: ColorAvailability[]): ProductColor[] {
   const seen = new Set<string>();

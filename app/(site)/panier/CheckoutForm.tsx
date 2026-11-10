@@ -1,5 +1,6 @@
 "use client";
 
+import { checkoutDiagnostic, type CheckoutDiagnostic } from "@/lib/purchase-journey";
 import { journeySessionId, trackJourney } from "@/lib/journey-tracking";
 import { parseMetropolitanShipping, shippingZone, metropolitanQuote } from "@/lib/metropolitan-shipping";
 
@@ -129,6 +130,7 @@ export default function CheckoutForm({
     trackJourney("begin_checkout", items);
     setLoading(true);
     setError("");
+    let diagnostic: CheckoutDiagnostic = { errorCode: "NETWORK_ERROR" };
     try {
       const res = await fetch("/api/checkout", {
         method: "POST",
@@ -150,16 +152,24 @@ export default function CheckoutForm({
             variantId: item.variantId,
             keychainChoice: item.keychainChoice,
             clickerConfiguration: item.clickerConfiguration,
+            keychainConfiguration: item.keychainConfiguration,
           })),
         }),
       });
+      diagnostic = checkoutDiagnostic({ errorCode: "INVALID_RESPONSE", errorStatus: res.status, errorRef: res.headers.get("X-Checkout-Reference") });
       const text = await res.text();
       const data = text ? JSON.parse(text) : {};
-      if (!res.ok) throw new Error(data.error || "Impossible de préparer le paiement.");
-      if (!data.url) throw new Error("Le service de paiement n'a pas renvoyé de lien.");
+      if (!res.ok) {
+        diagnostic = checkoutDiagnostic({ ...diagnostic, errorCode: data.code });
+        throw new Error(data.error || "Impossible de préparer le paiement.");
+      }
+      if (typeof data.url !== "string" || !data.url) {
+        diagnostic = { ...diagnostic, errorCode: "MISSING_PAYMENT_URL" };
+        throw new Error("Le service de paiement n'a pas renvoyé de lien.");
+      }
       window.location.href = data.url;
     } catch (e) {
-      trackJourney("checkout_error", items);
+      trackJourney("checkout_error", items, undefined, undefined, diagnostic);
       setError(e instanceof Error ? e.message : "Une erreur est survenue.");
       setLoading(false);
     }

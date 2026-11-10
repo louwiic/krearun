@@ -1,3 +1,4 @@
+import { KEYCHAIN_PRODUCT, KEYCHAIN_ID, KEYCHAIN_SLUG } from "./name-keychain";
 import { DEFAULT_METROPOLITAN_SHIPPING } from "./metropolitan-shipping";
 // Couche de persistance branchée sur PocketBase (collections : products,
 // orders, newsletter, settings — règles null, accès superuser uniquement).
@@ -351,10 +352,12 @@ export async function getProducts(opts?: {
   const res = await pb<ListResult<PbProduct>>(
     `/collections/products/records?perPage=500&sort=-created${filter}`
   );
-  return res.items.map(mapProduct);
+  const products = res.items.map(mapProduct);
+  return !opts?.includeInactive && !opts?.partnerSharedOnly ? [...products, KEYCHAIN_PRODUCT] : products;
 }
 
 export async function getProductBySlug(slug: string): Promise<Product | null> {
+  if (slug === KEYCHAIN_SLUG) return KEYCHAIN_PRODUCT;
   const res = await pb<ListResult<PbProduct>>(
     `/collections/products/records?perPage=1&filter=${encodeURIComponent(
       `slug='${escapeFilter(slug)}'`
@@ -364,6 +367,7 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
 }
 
 export async function getProductById(id: string): Promise<Product | null> {
+  if (id === KEYCHAIN_ID) return KEYCHAIN_PRODUCT;
   try {
     return mapProduct(await pb<PbProduct>(`/collections/products/records/${id}`));
   } catch {
@@ -417,7 +421,7 @@ export async function decrementStock(items: { productId: string; quantity: numbe
   for (const item of items) {
     const product = await getProductById(item.productId);
     if (!product) continue;
-    if (product.preorder) continue;
+    if (product.preorder || product.id === KEYCHAIN_ID) continue;
     const variant = product.variants.find((candidate) => candidate.id === item.variantId);
     if (variant) {
       const variants = product.variants.map((candidate) =>
@@ -1044,6 +1048,8 @@ export async function addSubscriber(email: string, consent?: {version: string; a
 const DEFAULT_SETTINGS: Settings = {
   site_skin: "default",
   site_skin_enabled: false,
+  cart_email_reminder_enabled: true,
+  cart_browser_reminder_enabled: true,
   cart_name_gift_enabled: true,
   express_offer_enabled: false,
   express_offer_title: "",
@@ -1097,11 +1103,11 @@ export async function getSettings(): Promise<Settings> {
 }
 
 export async function saveSettings(patch: Partial<Settings>): Promise<Settings> {
-  if (Object.keys(patch).some(key => key.startsWith("express_offer_") || key === "cart_name_gift_enabled")) {
+  if (Object.keys(patch).some(key => key.startsWith("express_offer_") || key === "cart_name_gift_enabled" || key === "cart_email_reminder_enabled" || key === "cart_browser_reminder_enabled")) {
     const schema = await pb<{ fields: { name: string; [key: string]: unknown }[] }>("/collections/settings");
     const fields = [...schema.fields];
-    for (const name of ["cart_name_gift_enabled", "express_offer_enabled", "express_offer_title", "express_offer_description", "express_offer_image", "express_offer_cta", "express_offer_href"]) {
-      if (!fields.some(field => field.name === name)) fields.push({ name, type: (name === "express_offer_enabled" || name === "cart_name_gift_enabled") ? "bool" : "text" });
+    for (const name of ["cart_email_reminder_enabled", "cart_browser_reminder_enabled", "cart_name_gift_enabled", "express_offer_enabled", "express_offer_title", "express_offer_description", "express_offer_image", "express_offer_cta", "express_offer_href"]) {
+      if (!fields.some(field => field.name === name)) fields.push({ name, type: (name === "express_offer_enabled" || name === "cart_name_gift_enabled" || name === "cart_email_reminder_enabled" || name === "cart_browser_reminder_enabled") ? "bool" : "text" });
     }
     if (fields.length !== schema.fields.length) await pb("/collections/settings", { method: "PATCH", body: { fields } });
   }
@@ -1222,7 +1228,20 @@ async function prunePurchaseJourneys() {
   }
   lastJourneyPrune = Date.now();
 }
+let purchaseDiagnosticSchema: Promise<void> | undefined;
+async function ensurePurchaseDiagnosticSchema() {
+  purchaseDiagnosticSchema ??= (async () => {
+    const schema = await pb<{ fields: { name: string; [key: string]: unknown }[] }>("/collections/purchase_events");
+    const fields = [...schema.fields];
+    for (const field of [{ name: "errorCode", type: "text", max: 80 }, { name: "errorStatus", type: "number" }, { name: "errorRef", type: "text", max: 36 }]) {
+      if (!fields.some(existing => existing.name === field.name)) fields.push(field);
+    }
+    if (fields.length !== schema.fields.length) await pb("/collections/purchase_events", { method: "PATCH", body: { fields } });
+  })().catch(error => { purchaseDiagnosticSchema = undefined; throw error; });
+  return purchaseDiagnosticSchema;
+}
 export async function recordPurchaseEvent(event: import("./purchase-journey").JourneyEvent) {
+  if (event.kind === "checkout_error" && event.errorCode) await ensurePurchaseDiagnosticSchema();
   const path = `/collections/purchase_events/records?perPage=1&filter=${encodeURIComponent(`eventId='${event.eventId}'`)}`;
   if ((await pb<ListResult<{id:string}>>(path)).items.length) return;
   try { await pb("/collections/purchase_events/records", { method: "POST", body: event }); }
@@ -1239,4 +1258,131 @@ export async function getPurchaseEvents(): Promise<import("./purchase-journey").
     rows.push(...list.items); if (page >= list.totalPages) break;
   }
   return rows;
+}
+
+// Requested cart reminders are private operational records, separate from analytics.
+let cartReminderSchema: Promise<void> | undefined;
+async function ensureCartReminderSchema() {
+  cartReminderSchema ??= (async () => {
+    const fields = [
+      ...["email", "emailHash", "tokenHash", "consentVersion"].map(name => ({ name, type: "text", required: true })),
+      { name: "deliveryToken", type: "text", max: 64 },
+      { name: "cart", type: "json", maxSize: 50000 }, { name: "checkoutIds", type: "json", maxSize: 10000 },
+      { name: "status", type: "select", maxSelect: 1, values: ["unconfirmed", "pending", "sent", "cancelled", "purchased", "failed"] },
+      ...["consentAt", "confirmedAt", "dueAt", "expiresAt"].map(name => ({ name, type: "date" })),
+      { name: "created", type: "autodate", onCreate: true, onUpdate: false },
+    ];
+    for (const name of ["cart_reminders", "cart_reminder_claims"]) {
+      const existing = await pb<ListResult<{ id: string }>>(`/collections?filter=${encodeURIComponent(`name='${name}'`)}`);
+      if (existing.items.length) {
+        const schema = await pb<Record<string, unknown>>(`/collections/${existing.items[0].id}`);
+        if (["listRule", "viewRule", "createRule", "updateRule", "deleteRule"].some(rule => schema[rule] !== null)) throw new Error("Cart reminder collections must remain private");
+        continue;
+      }
+      try {
+        await pb("/collections", { method: "POST", body: {
+          name, type: "base", listRule: null, viewRule: null, createRule: null, updateRule: null, deleteRule: null,
+          fields: name === "cart_reminders" ? fields : [{ name: "expiresAt", type: "date" }],
+          indexes: name === "cart_reminders" ? ["CREATE UNIQUE INDEX idx_cart_reminder_email ON cart_reminders (emailHash)", "CREATE UNIQUE INDEX idx_cart_reminder_token ON cart_reminders (tokenHash)"] : [],
+        } });
+      } catch (error) {
+        if (!(await pb<ListResult<{ id: string }>>(`/collections?filter=${encodeURIComponent(`name='${name}'`)}`)).items.length) throw error;
+      }
+    }
+  })().catch(error => { cartReminderSchema = undefined; throw error; });
+  return cartReminderSchema;
+}
+export async function findCartReminder(field: "tokenHash" | "emailHash", hash: string) {
+  if (!/^[a-f0-9]{64}$/.test(hash)) return null;
+  await ensureCartReminderSchema();
+  const data = await pb<ListResult<import("./cart-reminders").CartReminder>>(`/collections/cart_reminders/records?perPage=1&filter=${encodeURIComponent(`${field}='${hash}'`)}`);
+  return data.items[0] ?? null;
+}
+export async function createCartReminder(input: Omit<import("./cart-reminders").CartReminder, "id">) {
+  await ensureCartReminderSchema();
+  return pb<import("./cart-reminders").CartReminder>("/collections/cart_reminders/records", { method: "POST", body: input });
+}
+export async function updateCartReminder(id: string, patch: Partial<import("./cart-reminders").CartReminder>) {
+  if (!/^[a-z0-9]{15}$/.test(id)) throw new Error("Rappel invalide.");
+  return pb<import("./cart-reminders").CartReminder>(`/collections/cart_reminders/records/${id}`, { method: "PATCH", body: patch });
+}
+export async function claimCartReminder(reminder: import("./cart-reminders").CartReminder) {
+  try { await pb("/collections/cart_reminder_claims/records", { method: "POST", body: { id: reminder.id, expiresAt: reminder.expiresAt } }); return true; }
+  catch { return false; } // Unique record IDs prevent concurrent workers from sending twice.
+}
+export async function dueCartReminders() {
+  await ensureCartReminderSchema();
+  const now = new Date().toISOString();
+  const result = await pb<ListResult<import("./cart-reminders").CartReminder>>(`/collections/cart_reminders/records?perPage=10&sort=dueAt&filter=${encodeURIComponent(`status='pending' && dueAt<='${now}' && expiresAt>'${now}'`)}`);
+  return result.items;
+}
+export async function hasPaidOrderSince(email: string, since: string) {
+  const filter = `email='${escapeFilter(email)}' && (paymentStatus='paid' || paymentStatus='refunded') && created>='${escapeFilter(since)}'`;
+  return (await pb<ListResult<{ id: string }>>(`/collections/orders/records?perPage=1&fields=id&filter=${encodeURIComponent(filter)}`)).items.length > 0;
+}
+export async function pruneCartReminders() {
+  await ensureCartReminderSchema();
+  const now = new Date().toISOString();
+  for (const name of ["cart_reminders", "cart_reminder_claims"]) {
+    for (;;) {
+      const expired = await pb<ListResult<{ id: string }>>(`/collections/${name}/records?perPage=100&fields=id&filter=${encodeURIComponent(`expiresAt<'${now}'`)}`);
+      if (!expired.items.length) break;
+      await Promise.all(expired.items.map(row => pb(`/collections/${name}/records/${row.id}`, { method: "DELETE" })));
+    }
+  }
+}
+
+let keychainFileSchema: Promise<void> | undefined;
+async function ensureKeychainFileSchema() {
+  keychainFileSchema ??= (async () => {
+    const existing = await pb<ListResult<{ id: string }>>(`/collections?filter=${encodeURIComponent("name='name_keychain_files'")}`);
+    if (existing.items.length) {
+      const schema = await pb<{ fields: { name: string; protected?: boolean }[]; [key: string]: unknown }>(`/collections/${existing.items[0].id}`);
+      if (["listRule","viewRule","createRule","updateRule","deleteRule"].some(rule=>schema[rule]!==null) || !schema.fields.some(field=>field.name==="file"&&field.protected)) throw new Error("Les fichiers de porte-clés doivent rester privés.");
+      return;
+    }
+    try {
+      await pb("/collections", { method: "POST", body: {
+        name: "name_keychain_files", type: "base", listRule: null, viewRule: null, createRule: null, updateRule: null, deleteRule: null,
+        fields: [
+          ...["uniqueKey","orderId","originalName"].map(name=>({name,type:"text"})),
+          {name:"orderNumber",type:"number"},{name:"itemIndex",type:"number"},
+          {name:"source",type:"select",maxSelect:1,values:["order","admin"]}, {name:"configuration",type:"json",maxSize:5000},
+          {name:"file",type:"file",maxSelect:1,maxSize:100*1024*1024,protected:true}, {name:"created",type:"autodate",onCreate:true,onUpdate:false},
+        ], indexes:["CREATE UNIQUE INDEX idx_name_keychain_file ON name_keychain_files (uniqueKey)"],
+      } });
+    } catch(error) { if (!(await pb<ListResult<{id:string}>>(`/collections?filter=${encodeURIComponent("name='name_keychain_files'")}`)).items.length) throw error; }
+  })().catch(error=>{keychainFileSchema=undefined;throw error;});
+  return keychainFileSchema;
+}
+export async function listKeychainFiles(orderId?: string) {
+  await ensureKeychainFileSchema();
+  const filter = orderId ? `&filter=${encodeURIComponent(`orderId='${escapeFilter(orderId)}'`)}` : "";
+  return (await pb<ListResult<import("./name-keychain").KeychainFile>>(`/collections/name_keychain_files/records?perPage=100&sort=-created${filter}`)).items;
+}
+export async function saveKeychainFile(input: { uniqueKey: string; orderId: string; orderNumber: number; itemIndex: number; source: "order"|"admin"; configuration: import("./name-keychain").KeychainConfiguration }, bytes: Uint8Array) {
+  await ensureKeychainFileSchema();
+  const path = `/collections/name_keychain_files/records?perPage=1&filter=${encodeURIComponent(`uniqueKey='${escapeFilter(input.uniqueKey)}'`)}`;
+  const existing = (await pb<ListResult<import("./name-keychain").KeychainFile>>(path)).items[0];
+  if(existing)return existing;
+  const name = `porte-cles-${input.configuration.name.normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9-]/gi,"-").toLowerCase()}.3mf`;
+  validatePrintFile(name,bytes);
+  const form = new FormData();
+  for(const [key,value] of Object.entries(input))form.set(key,typeof value==="object"?JSON.stringify(value):String(value));
+  form.set("originalName",name);
+  form.set("file",new Blob([new Uint8Array(bytes)],{type:"application/octet-stream"}),name);
+  const send=()=>fetch(`${PB_URL}/api/collections/name_keychain_files/records`,{method:"POST",headers:{Authorization:cachedToken?.value||""},body:form,cache:"no-store"});
+  await getToken();let response=await send();
+  if(response.status===401){cachedToken=null;await getToken();response=await send();}
+  if(!response.ok){const duplicate=(await pb<ListResult<import("./name-keychain").KeychainFile>>(path)).items[0];if(duplicate)return duplicate;throw new Error("Impossible d’enregistrer le fichier du porte-clés.");}
+  return response.json() as Promise<import("./name-keychain").KeychainFile>;
+}
+export async function downloadKeychainFile(id: string) {
+  if(!/^[a-z0-9]{15}$/.test(id))return null;
+  const record=await pb<import("./name-keychain").KeychainFile>(`/collections/name_keychain_files/records/${id}`);
+  if(!record.file)return null;
+  const {token}=await pb<{token:string}>("/files/token",{method:"POST"});
+  const response=await fetch(`${PB_URL}/api/files/name_keychain_files/${id}/${encodeURIComponent(record.file)}?token=${encodeURIComponent(token)}`,{cache:"no-store"});
+  if(!response.ok)throw new Error("Fichier indisponible.");
+  return {record,response};
 }

@@ -22,6 +22,10 @@ const schema = list.items[0] ?? api("/collections", "POST", {
     {name:"created",type:"autodate",onCreate:true,onUpdate:false},
   ], indexes:["CREATE UNIQUE INDEX idx_purchase_event ON purchase_events (eventId)","CREATE INDEX idx_purchase_session ON purchase_events (sessionId)","CREATE INDEX idx_purchase_created ON purchase_events (created)"],
 }, token);
-if (!schema.fields.some(f=>f.name === "page")) api(`/collections/${schema.id}`, "PATCH", {fields:[...schema.fields,{name:"page",type:"text",max:40}]}, token);
+const fields = [...schema.fields];
+for (const field of [{name:"page",type:"text",max:40},{name:"errorCode",type:"text",max:80},{name:"errorStatus",type:"number"},{name:"errorRef",type:"text",max:36}]) {
+  if (!fields.some(existing=>existing.name === field.name)) fields.push(field);
+}
+if (fields.length !== schema.fields.length) api(`/collections/${schema.id}`, "PATCH", {fields}, token);
 if (["listRule","viewRule","createRule","updateRule","deleteRule"].some(k=>schema[k]!==null)) throw new Error("Unsafe purchase-event rules");
 console.log("Private purchase_events collection ready; no contact fields; 30-day application retention.");

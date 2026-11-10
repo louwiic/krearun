@@ -7,6 +7,7 @@ export function orderItemDetails(item: OrderItem) {
     { label: "Coloris", value: item.color },
     { label: "Prénom / personnalisation", value: item.customName },
     { label: "Porte-clés offert", value: monsterGiftLabel(item.keychainChoice, item.color) },
+    ...(item.keychainConfiguration ? [{ label: "Police du porte-clés", value: item.keychainConfiguration.font }, { label: "Fond du porte-clés", value: item.keychainConfiguration.baseColorName }, { label: "Lettres du porte-clés", value: item.keychainConfiguration.textColorName }] : []),
     ...(item.clickerConfiguration ? [
       { label: "Texte du clicker", value: item.clickerConfiguration.text },
       { label: "Symbole", value: item.clickerConfiguration.symbol || "Aucun" },

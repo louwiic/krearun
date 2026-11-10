@@ -1,3 +1,5 @@
+import {loadTs} from './load-ts.mjs';
+const keychains=loadTs(new URL('../lib/name-keychain.ts',import.meta.url));
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -34,7 +36,7 @@ test("public catalog and partner feeds exclude offers while admins can list them
   const fn = source.statements.find(node => ts.isFunctionDeclaration(node) && node.name?.text === "getProducts");
   const { outputText } = ts.transpileModule(fn.getText(source), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } });
   const urls = [], mod = { exports: {} };
-  new Function("module", "exports", "pb", "mapProduct", outputText)(mod, mod.exports, async url => { urls.push(url); return { items: [] }; }, value => value);
+  new Function("module", "exports", "pb", "mapProduct", "KEYCHAIN_PRODUCT", outputText)(mod, mod.exports, async url => { urls.push(url); return { items: [] }; }, value => value, keychains.KEYCHAIN_PRODUCT);
   for (const opts of [undefined, { partnerSharedOnly: true }, { partnerSharedOnly: true, includeInactive: true }, { includeInactive: true }]) await mod.exports.getProducts(opts);
   const filters = urls.map(url => new URL(url, "https://test.invalid").searchParams.get("filter") || "");
   for (const filter of filters.slice(0, 3)) assert.ok(filter.includes("privateSale=false"));
@@ -66,6 +68,8 @@ test("unlisted offer pages use noindex even when their catalog category is hidde
       "@/lib/legal": { BUSINESS: {} },
       "next/link": () => null, "next/navigation": {},
     ...Object.fromEntries(["Gallery", "AddToCart", "ProductCard", "ReviewForm"].map(name => [`@/components/product/${name}`, () => null])),
+    "@/components/keychains/KeychainConfigurator": () => null,
+    "@/lib/name-keychain": keychains,
     "@/components/custom-holder/CustomHolderProduct": () => null,
     "@/components/product/NosProductGallery": () => null, "@/lib/nos": { NOS_SLUG: "nos", NOS_COLORS: [] },
     "@/lib/store": { getProductBySlug: async () => product, getSettings: async () => ({}) },

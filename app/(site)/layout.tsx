@@ -1,4 +1,4 @@
-import ExpressOfferBanner from "@/components/site/ExpressOfferBanner";
+import CartReturnReminder from "@/components/cart/CartReturnReminder";
 import { ColorAvailabilityProvider } from "@/components/product/ColorAvailabilityProvider";
 import HalloweenSpiders from "@/components/site/HalloweenSpiders";
 import { activeSiteSkin } from "@/lib/site-skins";
@@ -45,6 +45,7 @@ export default async function SiteLayout({
         </div>
       )}
       <Navbar categories={categories} />
+      {settings.cart_browser_reminder_enabled && <CartReturnReminder />}
       {activeSiteSkin(settings) === "halloween" && <SeasonalSkinBanner />}
       <main className="flex-1">{children}</main>
       <Footer
@@ -65,7 +66,6 @@ export default async function SiteLayout({
         text={settings.newsletter_popup_text}
         storeName={settings.store_name}
       />
-    <ExpressOfferBanner enabled={settings.express_offer_enabled} title={settings.express_offer_title} description={settings.express_offer_description} image={settings.express_offer_image} cta={settings.express_offer_cta} href={settings.express_offer_href} />
     <PrivacyPreferences />
     <ProductTracking /><PurchaseTracking />
       </div></ColorAvailabilityProvider>

@@ -659,6 +659,8 @@ export async function saveSettingsAction(formData: FormData) {
   }
 
   await saveSettings({
+    cart_email_reminder_enabled: formData.get("cart_email_reminder_enabled") === "on",
+    cart_browser_reminder_enabled: formData.get("cart_browser_reminder_enabled") === "on",
     cart_name_gift_enabled: formData.get("cart_name_gift_enabled") === "on",
     express_offer_enabled: formData.get("express_offer_enabled") === "on",
     express_offer_title: String(formData.get("express_offer_title") ?? "").trim().slice(0, 100),

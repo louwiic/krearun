@@ -34,6 +34,7 @@ interface CartContextValue {
     clickerConfiguration?: CartItem["clickerConfiguration"]
   ) => void;
   clearCart: () => void;
+  restoreCart: (items: CartItem[]) => void;
 }
 
 const CartContext = createContext<CartContextValue | null>(null);
@@ -150,6 +151,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
     []
   );
 
+  const restoreCart = useCallback((restored: CartItem[]) => setItems(restored), []);
+
   const clearCart = useCallback(() => setItems([]), []);
 
   const value = useMemo<CartContextValue>(
@@ -166,8 +169,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
       removeItem,
       setQuantity,
       clearCart,
+      restoreCart,
     }),
-    [items, isOpen, hydrated, addItem, removeItem, setQuantity, clearCart]
+    [items, isOpen, hydrated, addItem, removeItem, setQuantity, clearCart, restoreCart]
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

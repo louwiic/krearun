@@ -1,8 +1,11 @@
+import { loadTs } from './load-ts.mjs';
+const keychains=loadTs(new URL('../lib/name-keychain.ts',import.meta.url));
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {createRequire} from 'node:module';
 import ts from 'typescript';
+import * as journeys from '../lib/purchase-journey.ts';
 import * as quantityPricing from '../lib/quantity-discounts.ts';
 import * as noelKits from '../lib/noel-kits.ts';
 import * as metropolitan from '../lib/metropolitan-shipping.ts';
@@ -13,17 +16,20 @@ import * as nos from '../lib/nos.ts';
 import * as availability from '../lib/color-availability.ts';
 import * as promotionDetails from '../lib/promotion-details.ts';
 const require=createRequire(import.meta.url);
-function checkout(slug='porte-canette-monster',weightGrams=180, settings={}, productOverrides={}, inventory=[], promotion=null) {
+function checkout(slug='porte-canette-monster',weightGrams=180, settings={}, productOverrides={}, inventory=[], promotion=null, failures={}) {
  const sessions=[];
  const mocks={
+  "@/lib/name-keychain":keychains,
+  "@/lib/name-keychain-server":{validateKeychainGeometry:async()=>{}},
+  "@/lib/cart-reminder-service":{attachReminderCheckout:async()=>{}},
   "@/lib/noel-kits":noelKits,
   "@/lib/auth":{isAdmin:async()=>false},
-  "@/lib/purchase-journey":{UUID:/^[0-9a-f-]{36}$/i},
+  "@/lib/purchase-journey":journeys,
   '@/lib/promotion-details':promotionDetails,'@/lib/color-availability':availability,'@/lib/metropolitan-shipping':metropolitan,'@/lib/nos':nos,
   '@/lib/monster-gift':gift,'@/lib/legal':legal,'@/lib/checkout-item-metadata':metadata,
-  '@/lib/store':{getInventoryColors:async()=>inventory,getNosLogo:async id=>id==='abc123def456ghi'?{id}:null,getSettings:async()=>settings,getProductById:async()=>({id:'monster',slug,name:'Produit',active:true,variants:[],stock:10,priceCents:1790,weightGrams,images:[],colors:slug===nos.NOS_SLUG?nos.NOS_COLORS:[],...productOverrides})},
-  '@/lib/stripe':{stripeConfigured:()=>true,getStripe:()=>({promotionCodes:{list:async()=>({data:promotion?[promotion]:[]})},checkout:{sessions:{create:async data=>{sessions.push(data);return {url:'https://checkout.invalid/test'};}}}})},
-  '@/lib/colors':{publicColorName:v=>v},'@/lib/free-shipping':{billableProductWeight:()=>weightGrams,hasMissingProductWeight:()=>weightGrams<=0},
+  '@/lib/store':{getInventoryColors:async()=>inventory,getNosLogo:async id=>id==='abc123def456ghi'?{id}:null,getSettings:async()=>settings,getProductById:async()=>{if(failures.store)throw new Error('private@example.fr');return ({id:'monster',slug,name:'Produit',active:true,variants:[],stock:10,priceCents:1790,weightGrams,images:[],colors:slug===nos.NOS_SLUG?nos.NOS_COLORS:[],...productOverrides});}},
+  '@/lib/stripe':{stripeConfigured:()=>!failures.configuration,getStripe:()=>({promotionCodes:{list:async()=>({data:promotion?[promotion]:[]})},checkout:{sessions:{create:async data=>{if(failures.stripe)throw {type:failures.stripe,message:"private@example.fr"};sessions.push(data);return {url:'https://checkout.invalid/test'};}}}})},
+  '@/lib/colors':{publicColorName:v=>v},'@/lib/free-shipping':{billableProductWeight:product=>product.slug===keychains.KEYCHAIN_SLUG?0:weightGrams,hasMissingProductWeight:product=>product.slug===keychains.KEYCHAIN_SLUG?false:weightGrams<=0},
   '@/lib/shipping':{parseShippingRates:()=>[],calculateShippingCents:()=>({priceCents:577,label:'Test'})},
   '@/lib/pickup':{getPickupPoint:()=>null},'@/lib/quantity-discounts':quantityPricing,
   '@/lib/clicker':{CLICKER_PRODUCT_ID:'clicker'},'@/lib/custom-holder':{HOLDER_SLUG:'holder'},
@@ -145,4 +151,60 @@ test('Christmas bundle checkout charges the selected stored lot price, includes 
  assert.equal(JSON.parse(metadata.readCheckoutItems(good.sessions[0].metadata))[0].v,variants[1].id);
  const invalid=checkout(slug,200,{},product,inventory);
  assert.equal((await invalid.post(request({variantId:'noel-2072645-kit-99'}))).status,400);assert.equal(invalid.sessions.length,0);
+});
+
+
+test('checkout failure responses explain validation, availability and promo failures without exposing customer input',async()=>{
+ const cases=[
+  [checkout(),request({},false),'TERMS_REQUIRED',400],
+  [checkout(),request({},true,{email:'invalid'}),'INVALID_CUSTOMER',400],
+  [checkout('other',180,{}, {stock:0}),request(),'OUT_OF_STOCK',400],
+  [checkout('other',180,{}, {colors:[{name:'Rouge',hex:'#ff0000'}]}),request(),'COLOR_INVALID',400],
+  [checkout(),request({},true,{}, {promoCode:'secret-promo'}),'PROMO_INVALID',400],
+  [checkout(),request({},true,{country:'BE'}),'SHIPPING_UNAVAILABLE',400],
+  [checkout('other',180,{}, {},[],null,{configuration:true}),request(),'PAYMENT_NOT_CONFIGURED',503],
+ ];
+ for(const [{post,sessions},req,code,status] of cases){
+  const response=await post(req);assert.equal(response.status,status);assert.equal((await response.json()).code,code);assert.equal(sessions.length,0);
+  assert.match(response.headers.get('X-Checkout-Reference'),journeys.UUID);assert.equal(response.headers.get('Cache-Control'),'no-store');
+ }
+});
+
+test('unexpected server failures and Stripe errors carry safe categories and a support reference',async()=>{
+ for(const [failure,code,status] of [
+  [{store:true},'SERVER_ERROR',500],
+  [{stripe:'StripeAuthenticationError'},'STRIPE_CONFIGURATION',502],
+  [{stripe:'StripeConnectionError'},'STRIPE_UNAVAILABLE',502],
+  [{stripe:'StripeInvalidRequestError'},'STRIPE_REQUEST_INVALID',502],
+ ]){
+  const {post}=checkout('other',180,{}, {},[],null,failure);
+  const response=await post(request());assert.equal(response.status,status);
+  const body=await response.json();assert.equal(body.code,code);assert.ok(!JSON.stringify(body).includes('private@example.fr'));assert.match(response.headers.get('X-Checkout-Reference'),journeys.UUID);
+ }
+});
+
+test('name keychain costs exactly 12 euros with no shipping for every available style',async()=>{
+ const inventory=[{name:'Violet',hex:'#542b8a',active:true},{name:'Jaune',hex:'#fae933',active:true}];
+ for(const style of ['relief','mono']){
+  const keychainConfiguration={name:'Léa',font:'chewy',style,baseColor:'#542b8a',baseColorName:'Violet',textColor:'#fae933',textColorName:'Jaune'};
+  const {post,sessions}=checkout(keychains.KEYCHAIN_SLUG,30,{},keychains.KEYCHAIN_PRODUCT,inventory);
+  const response=await post(request({productId:keychains.KEYCHAIN_ID,keychainConfiguration,priceCents:1,shippingCents:999}));
+  assert.equal(response.status,200);assert.equal(sessions[0].line_items[0].price_data.unit_amount,1200);
+  assert.equal(sessions[0].shipping_options[0].shipping_rate_data.fixed_amount.amount,0);
+  const stored=JSON.parse(metadata.readCheckoutItems(sessions[0].metadata))[0];assert.equal(stored.h.name,'Léa');assert.equal(stored.h.font,'chewy');assert.equal(stored.h.style,style);
+ }
+});
+test('name keychain cannot be purchased with a missing name or unavailable color',async()=>{
+ for(const keychainConfiguration of [undefined,{name:'Léa',font:'chewy',style:'relief',baseColor:'#000000',baseColorName:'Noir',textColor:'#ffffff',textColorName:'Blanc'}]){
+  const {post,sessions}=checkout(keychains.KEYCHAIN_SLUG,30,{},keychains.KEYCHAIN_PRODUCT,[]);
+  const response=await post(request({productId:keychains.KEYCHAIN_ID,keychainConfiguration}));assert.equal(response.status,400);assert.equal(sessions.length,0);
+ }
+});
+
+test('included keychain shipping also stays at zero to metropolitan France',async()=>{
+ const inventory=[{name:'Violet',hex:'#542b8a',active:true}];
+ const keychainConfiguration={name:'Léa',font:'chewy',style:'mono',baseColor:'#542b8a',baseColorName:'Violet',textColor:'#542b8a',textColorName:'Violet'};
+ const {post,sessions}=checkout(keychains.KEYCHAIN_SLUG,30,{},keychains.KEYCHAIN_PRODUCT,inventory);
+ assert.equal((await post(request({productId:keychains.KEYCHAIN_ID,keychainConfiguration},true,{country:'FR',postalCode:'75001'}))).status,200);
+ assert.equal(sessions[0].line_items[0].price_data.unit_amount,1200);assert.equal(sessions[0].shipping_options[0].shipping_rate_data.fixed_amount.amount,0);
 });

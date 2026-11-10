@@ -1,3 +1,4 @@
+import CartReminderSignup from "@/components/cart/CartReminderSignup";
 import CheckoutForm from "./CheckoutForm";
 import { getSettings } from "@/lib/store";
 
@@ -17,6 +18,8 @@ export default async function CartPage() {
         puis validez votre commande. Votre espace client sera préparé
         automatiquement après validation.
       </p>
+
+      {settings.cart_email_reminder_enabled && <CartReminderSignup />}
 
       <CheckoutForm
         nameGiftEnabled={settings.cart_name_gift_enabled}
