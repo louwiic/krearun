@@ -42,7 +42,7 @@ export default async function HomePage() {
   const collections = [
     { name: "Porte-boisson", href: "/boutique?categorie=porte-boisson", product: main?.category === "porte-boisson" && main.images?.length ? main : visible.find(product => product.category === "porte-boisson" && product.images?.length) },
     { name: "Lampes", href: "/boutique?categorie=veilleuses", product: visible.find(product => product.category === "veilleuses" && product.images?.length) },
-    { name: "Lunettes", href: "/boutique?categorie=lunette", product: visible.find(product => product.category === "lunette" && product.images?.length) },
+    { name: "Noël", href: "/boutique?categorie=noel", product: visible.find(product => product.category === "noel" && product.images?.length) },
     { name: "Nouveautés", href: "/boutique?nouveautes=1", product: visible.find(product => product.isNew && product.images?.length && product.id !== main?.id) },
   ].filter(collection => collection.product);
   const variantPrices = main?.variants.filter(variant => variant.active).map(variant => variant.priceCents || main.priceCents) ?? [];
@@ -81,6 +81,22 @@ export default async function HomePage() {
         </div>
       </div>
     </section>}
+
+    <section className="editorial-section" aria-labelledby="home-selection-title">
+      <div className="editorial-section-heading"><h2 id="home-selection-title">Votre sélection</h2><Link href="/boutique">Voir la boutique ↗</Link></div>
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+        {[
+          { image: "monster-blue", title: "Monster bleu & violet", alt: "Deux porte-canettes Monster bleu et violet avec leurs accessoires sur fond uni", slug: "porte-canette-monster" },
+          { image: "nos-blue", title: "Porte-boisson NOS", alt: "Porte-boisson NOS bleu avec sa chaîne et son médaillon sur fond uni", slug: "porte-boisson-nos-500ml" },
+          { image: "monster-gold", title: "Monster argent & or", alt: "Porte-canette Monster noir, griffes argent et or, avec ses accessoires sur fond uni", slug: "porte-canette-monster" },
+        ].map(item => <Link key={item.image} href={`/boutique/${item.slug}`} className="group min-w-0">
+          <div className="aspect-square overflow-hidden rounded-2xl border border-ink/10 bg-[#F6F2ED]">
+            <img src={`/products/home-selection/${item.image}.webp`} alt={item.alt} width={1000} height={1000} loading="lazy" className="h-full w-full object-contain object-center" />
+          </div>
+          <h3 className="mt-4 font-display text-lg font-semibold group-hover:underline">{item.title} <span aria-hidden="true">↗</span></h3>
+        </Link>)}
+      </div>
+    </section>
 
     <section className="editorial-promises" aria-label="L’atelier Kréarun">
       {[

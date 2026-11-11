@@ -6,7 +6,7 @@ export default function Gallery({
   images,
   videoUrl = "",
   name,
-  imageFit = "cover",
+  imageFit = "contain",
 }: {
   images: string[];
   videoUrl?: string;
@@ -38,11 +38,11 @@ export default function Gallery({
 
   return (
     <div className="space-y-3 sm:space-y-4">
-      <div className="overflow-hidden rounded-2xl border-2 border-ink bg-cream shadow-soft">
+      <div className="relative aspect-square max-h-[520px] w-full overflow-hidden rounded-2xl border-2 border-ink bg-cream shadow-soft">
         {activeMedia.type === "video" ? (
           <video
             src={activeMedia.src}
-            className="aspect-square max-h-[520px] w-full object-cover"
+            className="absolute inset-0 h-full w-full object-contain object-center"
             controls
             muted
             playsInline
@@ -52,31 +52,32 @@ export default function Gallery({
           <img
             src={activeMedia.src}
             alt={name}
-            className={`aspect-square max-h-[520px] w-full ${imageFit === "contain" ? "object-contain" : "object-cover"}`}
+            className={`absolute inset-0 h-full w-full object-center ${imageFit === "contain" ? "object-contain" : "object-cover"}`}
           />
         )}
       </div>
       {media.length > 1 && (
-        <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 sm:mx-0 sm:gap-3 sm:overflow-visible sm:px-0 sm:pb-0">
+        <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 sm:mx-0 sm:gap-3 sm:px-0 sm:pb-0">
           {media.map((item, i) => (
             <button
               key={item.src}
               onClick={() => setActive(i)}
+              aria-pressed={active === i}
               aria-label={item.type === "video" ? "Vidéo produit" : `Photo ${i + 1}`}
-              className={`relative overflow-hidden rounded-2xl border-2 transition-all ${
+              className={`relative shrink-0 overflow-hidden rounded-2xl border-2 transition-all ${
                 active === i ? "border-terra" : "border-transparent opacity-70 hover:opacity-100"
               }`}
             >
               {item.type === "video" ? (
                 <>
-                  <video src={item.src} muted playsInline className="h-14 w-14 object-cover sm:h-16 sm:w-16" />
+                  <video src={item.src} muted playsInline className="h-14 w-14 bg-cream object-contain object-center sm:h-16 sm:w-16" />
                   <span className="absolute inset-0 grid place-items-center bg-ink/25 text-xs font-bold text-cream">
                     ▶
                   </span>
                 </>
               ) : (
                 /* eslint-disable-next-line @next/next/no-img-element */
-                <img src={item.src} alt="" className="h-14 w-14 object-cover sm:h-16 sm:w-16" />
+                <img src={item.src} alt="" className="h-14 w-14 bg-cream object-contain object-center sm:h-16 sm:w-16" />
               )}
             </button>
           ))}

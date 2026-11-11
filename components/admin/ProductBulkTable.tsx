@@ -2,6 +2,7 @@
 
 import type { ProductCounts } from "@/lib/product-events";
 import Link from "next/link";
+import { adminSearchText } from "@/lib/admin-search";
 import { useEffect, useRef, useState } from "react";
 import { bulkUpdateProductsAction } from "@/app/admin/actions";
 import { formatPrice } from "@/lib/format";
@@ -14,8 +15,16 @@ interface ProductBulkTableProps {
 
 export function ProductBulkTable({ products, audience }: ProductBulkTableProps) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [query, setQuery] = useState("");
+  const [category, setCategory] = useState("");
+  const [status, setStatus] = useState("");
+  const visible = products.filter(product => {
+    const text = adminSearchText(`${product.name} ${product.slug} ${product.id} ${CATEGORIES.find(item => item.value === product.category)?.label ?? product.category}`);
+    return adminSearchText(query).split(/\s+/).every(word => text.includes(word)) && (!category || product.category === category) && (!status || (status === "active" ? product.active : !product.active));
+  });
+  function resetSelection() { setSelectedIds(new Set()); }
   const selectAllRef = useRef<HTMLInputElement>(null);
-  const allSelected = products.length > 0 && selectedIds.size === products.length;
+  const allSelected = visible.length > 0 && visible.every(product => selectedIds.has(product.id));
 
   useEffect(() => {
     if (selectAllRef.current) {
@@ -33,11 +42,23 @@ export function ProductBulkTable({ products, audience }: ProductBulkTableProps) 
   }
 
   function toggleAll() {
-    setSelectedIds(allSelected ? new Set() : new Set(products.map((product) => product.id)));
+    setSelectedIds(allSelected ? new Set() : new Set(visible.map((product) => product.id)));
   }
 
   return (
     <form action={bulkUpdateProductsAction}>
+      <div className="mb-4 grid gap-3 rounded-2xl border border-sand bg-cream p-4 sm:grid-cols-[2fr_1fr_1fr]">
+        <label className="text-xs font-semibold">Rechercher un produit
+          <input type="search" onKeyDown={event => {if(event.key === "Enter") event.preventDefault();}} value={query} onChange={event => { setQuery(event.target.value); resetSelection(); }} placeholder="Nom, référence ou catégorie…" className="mt-2 w-full rounded-xl border border-sand bg-white px-3 py-3 text-sm" />
+        </label>
+        <label className="text-xs font-semibold">Catégorie
+          <select value={category} onChange={event => {setCategory(event.target.value); resetSelection();}} className="mt-2 w-full rounded-xl border border-sand bg-white px-3 py-3 text-sm"><option value="">Toutes les catégories</option>{CATEGORIES.map(item => <option key={item.value} value={item.value}>{item.label}</option>)}</select>
+        </label>
+        <label className="text-xs font-semibold">Statut
+          <select value={status} onChange={event => {setStatus(event.target.value); resetSelection();}} className="mt-2 w-full rounded-xl border border-sand bg-white px-3 py-3 text-sm"><option value="">Tous les statuts</option><option value="active">En ligne</option><option value="hidden">Masqués</option></select>
+        </label>
+        <p role="status" className="text-xs text-ink-soft sm:col-span-3">{visible.length} résultat{visible.length > 1 ? "s" : ""} sur {products.length} produits{(query || category || status) && <button type="button" onClick={() => {setQuery("");setCategory("");setStatus("");resetSelection();}} className="ml-3 font-semibold underline">Effacer les filtres</button>}</p>
+      </div>
       <div className="mb-4 flex flex-wrap items-center gap-3 rounded-2xl border border-sand/70 bg-cream px-4 py-3 shadow-soft">
         <span className="min-w-28 text-sm font-bold text-ink">
           {selectedIds.size} sélectionné{selectedIds.size > 1 ? "s" : ""}
@@ -90,7 +111,7 @@ export function ProductBulkTable({ products, audience }: ProductBulkTableProps) 
                   type="checkbox"
                   checked={allSelected}
                   onChange={toggleAll}
-                  aria-label="Sélectionner tous les produits"
+                  aria-label="Sélectionner tous les résultats affichés"
                   className="h-5 w-5 cursor-pointer accent-terra"
                 />
               </th>
@@ -103,7 +124,7 @@ export function ProductBulkTable({ products, audience }: ProductBulkTableProps) 
             </tr>
           </thead>
           <tbody>
-            {products.map((product) => {
+            {visible.map((product) => {
               const selected = selectedIds.has(product.id);
               return (
                 <tr
@@ -124,7 +145,7 @@ export function ProductBulkTable({ products, audience }: ProductBulkTableProps) 
                   <td className="px-2 py-3">
                     <Link href={`/admin/produits/${product.id}`} className="flex items-center gap-3 font-semibold hover:text-terra">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={product.images[0] ?? "/products/hero.svg"} alt="" className="h-11 w-11 rounded-xl object-cover" />
+                      <img src={product.images[0] ?? "/products/hero.svg"} alt="" onError={event => {if (!event.currentTarget.src.endsWith("/products/hero.svg")) event.currentTarget.src = "/products/hero.svg";}} className="h-11 w-11 rounded-xl object-contain" />
                       <span>
                         {product.name}
                         {product.featured && <span className="ml-2" title="Coup de cœur">💛</span>}
@@ -165,6 +186,7 @@ export function ProductBulkTable({ products, audience }: ProductBulkTableProps) 
                 </tr>
               );
             })}
+            {visible.length === 0 && <tr><td colSpan={9} className="px-5 py-12 text-center text-ink-soft">Aucun produit trouvé. Essayez un autre nom ou effacez les filtres.</td></tr>}
           </tbody>
         </table>
       </div>
