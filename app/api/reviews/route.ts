@@ -1,4 +1,5 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
+import { sendNewReviewNotification } from "@/lib/email";
 import { createReview, getProductById } from "@/lib/store";
 import { uploadSiteImageToR2 } from "@/lib/r2";
 import sharp from "sharp";
@@ -53,7 +54,7 @@ export async function POST(req: Request) {
       imageUrl = await uploadSiteImageToR2("reviews", new File([new Uint8Array(optimized)], "avis.webp", { type: "image/webp" }));
     }
 
-    await createReview({
+    const review = await createReview({
       productId,
       productName,
       authorName,
@@ -61,6 +62,15 @@ export async function POST(req: Request) {
       rating,
       message,
       imageUrl,
+    });
+
+    after(async () => {
+      try {
+        const sent = await sendNewReviewNotification(review);
+        if (!sent) console.error("Notification de nouvel avis non envoyée", { reviewId: review.id });
+      } catch {
+        console.error("Échec de notification de nouvel avis", { reviewId: review.id });
+      }
     });
 
     return NextResponse.json({ ok: true });

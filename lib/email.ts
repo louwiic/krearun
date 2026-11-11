@@ -4,7 +4,7 @@ import { BUSINESS, BUSINESS_ADDRESS, LEGAL_VERSION, LEGAL_SECTIONS, GUARANTEE_PA
 // Tous les envois sont non-bloquants côté appelant : une erreur d'e-mail
 // ne doit jamais faire échouer un paiement ou une mise à jour de commande.
 import nodemailer from "nodemailer";
-import type { Order } from "./types";
+import type { Order, Review } from "./types";
 import { holderModelLabel, holderTotal, type HolderRequest } from "./custom-holder";
 import { holderSiteUrl } from "./custom-holder-http";
 import { publicColorName } from "./colors";
@@ -117,6 +117,22 @@ function escapeHtml(value: string): string {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
+}
+
+export async function sendNewReviewNotification(review: Review): Promise<boolean> {
+  const moderationUrl = "https://krearun.re/admin/avis";
+  return sendEmail(
+    "stdcreativ974@gmail.com",
+    `Nouvel avis client · ${review.rating}/5 — Kréarun`,
+    layout(`<h1 style="font-size:22px;margin:0 0 16px;">Un nouvel avis attend votre validation</h1>
+<p><strong>Produit :</strong> ${escapeHtml(review.productName)}</p>
+<p><strong>Client :</strong> ${escapeHtml(review.authorName)}<br/><strong>E-mail :</strong> ${escapeHtml(review.email)}</p>
+<p><strong>Note :</strong> ${review.rating}/5</p>
+<blockquote style="margin:20px 0;padding:16px;border-left:3px solid #e97843;background:#faf6ef;white-space:pre-wrap;">${escapeHtml(review.message)}</blockquote>
+${review.imageUrl ? "<p>Une photo accompagne cet avis. Elle est consultable dans l’administration.</p>" : ""}
+<p>L’avis est enregistré et reste masqué sur le site jusqu’à votre approbation.</p>
+<p style="text-align:center;margin:28px 0;"><a href="${moderationUrl}" style="display:inline-block;background:#453a2f;color:#fdfaf4;text-decoration:none;padding:14px 28px;border-radius:999px;font-weight:bold;">Consulter et modérer les avis</a></p>`),
+  );
 }
 
 // ─── Gabarit commun, aux couleurs du site ───────────────────

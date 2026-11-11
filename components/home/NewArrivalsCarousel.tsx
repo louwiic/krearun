@@ -46,7 +46,7 @@ export default function NewArrivalsCarousel({ items }: { items: NewArrival[] }) 
   return <section aria-labelledby={`${id}-title`} aria-roledescription="carrousel" className="border-b-2 border-ink bg-cream">
     <div className="mx-auto max-w-6xl px-5 py-5 sm:px-8 sm:py-6">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <h2 id={`${id}-title`} className="font-display text-xl font-bold sm:text-2xl">Les nouveautés de l’atelier</h2>
+        <h2 id={`${id}-title`} className="font-display text-xl font-bold sm:text-2xl">Du nouveau par ici</h2>
         <div className="flex items-center gap-2">
           <Link href="/boutique?nouveautes=1" className="mr-2 text-xs font-bold underline underline-offset-4">Tout voir ↗</Link>
           <button type="button" onClick={() => move(-1)} disabled={edges.start} aria-label="Nouveautés précédentes" aria-controls={id} className="grid h-10 w-10 place-items-center rounded-full border border-ink bg-white text-xl transition-colors hover:bg-sand disabled:cursor-default disabled:opacity-30">←</button>

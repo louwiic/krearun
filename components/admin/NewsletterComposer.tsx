@@ -61,6 +61,27 @@ function brandedTemplate({
 
 const templates = [
   {
+    id: "porte-cles-offert",
+    label: "Offre du moment · porte-clés prénom offert",
+    subject: "Un produit acheté, votre porte-clés prénom offert 🎁",
+    html: brandedTemplate({
+      eyebrow: "L’offre du moment",
+      title: "Votre prénom, notre cadeau",
+      highlight: "Pour l’achat d’un produit, un porte-clés prénom offert.",
+      paragraphs: [
+        '<img src="https://krearun.re/offers/porte-cles-prenom.png" alt="Porte-clés colorés personnalisés avec un prénom" width="536" style="display:block;width:100%;max-width:536px;height:auto;border-radius:16px;" />',
+        "Bonjour,",
+        "En ce moment chez Kréarun, on glisse une petite attention dans votre commande : <strong>un porte-clés personnalisé avec le prénom de votre choix, offert pour l’achat d’un produit.</strong>",
+        "Pour vous, votre moitié ou quelqu’un à gâter : choisissez le prénom qui vous fait plaisir.",
+        "<strong>Comment en profiter ?</strong><br/>Choisissez votre produit dans la boutique, puis ouvrez votre panier. Cliquez sur l’offre cadeau, renseignez le prénom à fabriquer et poursuivez votre achat.",
+        "Votre porte-clés sera préparé avec votre commande après validation du paiement.",
+        "À bientôt à l’atelier,<br/><strong>Loïc · Kréarun</strong>",
+      ],
+      cta: "Je profite de mon cadeau",
+      ctaHref: "https://krearun.re/boutique",
+    }),
+  },
+  {
     id: "halloween-2026",
     label: "Halloween · −5 € dès 40 €",
     subject: HALLOWEEN_OFFER.subject,

@@ -32,7 +32,7 @@ export default async function HomePage() {
   const selection = [...featured, ...visible.filter(product => !product.featured)].slice(0, 6);
   const newArrivals = visible
     .filter(product => product.active && !product.privateSale && product.isNew && product.id !== main?.id && product.images?.length)
-    .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))
+    .sort((a, b) => Number(b.slug === "porte-boisson-sweat-monster") - Number(a.slug === "porte-boisson-sweat-monster") || Date.parse(b.createdAt) - Date.parse(a.createdAt))
     .slice(0, 12)
     .map(product => {
       const prices = product.variants.filter(variant => variant.active).map(variant => variant.priceCents || product.priceCents);
