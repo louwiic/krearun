@@ -8,6 +8,7 @@ import NosPersonalization from "./NosPersonalization";
 import { NOS_SLUG } from "@/lib/nos";
 import { MONSTER_GIFT } from "@/lib/monster-gift";
 import { useState } from "react";
+import { SWEAT_SLUG, SWEAT_COLOR_EVENT } from "@/lib/sweat-preview";
 import { NOS_COLOR_EVENT } from "@/lib/nos-preview";
 import Link from "next/link";
 import { HOLDER_SLUG } from "@/lib/custom-holder";
@@ -171,6 +172,7 @@ export default function AddToCart({ product }: { product: Product }) {
                 disabled={!isColorAvailable(c)}
                 onClick={() => {
                   setColor(c.name);
+                  if (product.slug === SWEAT_SLUG) window.dispatchEvent(new CustomEvent(SWEAT_COLOR_EVENT, {detail:{name:publicColorName(c.name),hex:c.hex}}));
                   if (product.slug === NOS_SLUG) window.dispatchEvent(new CustomEvent(NOS_COLOR_EVENT, {detail:{name:publicColorName(c.name),hex:c.hex}}));
                   if (c.image) {
                     window.dispatchEvent(
