@@ -21,7 +21,7 @@ export default function HomeHighlight({config,products}:{config:HighlightConfig;
     <Link href={href} data-product-click={product.id} className="mt-6 inline-flex rounded-full bg-terra px-6 py-3 font-bold text-white hover:bg-terra-deep">{config.cta||"Je découvre"} →</Link>
    </div>
    {(video||image)&&<div className="min-w-0 overflow-hidden rounded-2xl border border-sand bg-linen">
-    {video?<video src={video} controls playsInline preload="metadata" aria-label={`Démonstration : ${product.name}`} className="max-h-[520px] w-full object-contain"/>:<img src={image} alt={product.name} width={700} height={700} loading="lazy" className="aspect-square max-h-[520px] w-full object-contain"/>}
+    {video?<video src={video} autoPlay loop muted playsInline preload="auto" aria-label={`Démonstration : ${product.name}`} className="max-h-[520px] w-full object-contain"/>:<img src={image} alt={product.name} width={700} height={700} loading="lazy" className="aspect-square max-h-[520px] w-full object-contain"/>}
    </div>}
   </div>
  </section>;
