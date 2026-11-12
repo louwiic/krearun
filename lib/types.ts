@@ -205,6 +205,7 @@ export type CreateOrderInput = Omit<
   Partial<OrderManagementFields>;
 
 export interface Settings {
+  homepage_highlight_json: string;
   site_skin: "default" | "halloween";
   site_skin_enabled: boolean;
   cart_email_reminder_enabled: boolean;

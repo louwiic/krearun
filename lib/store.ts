@@ -1051,6 +1051,7 @@ const DEFAULT_SETTINGS: Settings = {
   cart_email_reminder_enabled: true,
   cart_browser_reminder_enabled: true,
   cart_name_gift_enabled: true,
+  homepage_highlight_json: "",
   express_offer_enabled: false,
   express_offer_title: "",
   express_offer_description: "",
@@ -1103,6 +1104,10 @@ export async function getSettings(): Promise<Settings> {
 }
 
 export async function saveSettings(patch: Partial<Settings>): Promise<Settings> {
+  if ("homepage_highlight_json" in patch) {
+    const schema = await pb<{fields:{name:string;[key:string]:unknown}[]}>("/collections/settings");
+    if (!schema.fields.some(field => field.name === "homepage_highlight_json")) await pb("/collections/settings", {method:"PATCH",body:{fields:[...schema.fields,{name:"homepage_highlight_json",type:"text",max:10000}]}});
+  }
   if (Object.keys(patch).some(key => key.startsWith("express_offer_") || key === "cart_name_gift_enabled" || key === "cart_email_reminder_enabled" || key === "cart_browser_reminder_enabled")) {
     const schema = await pb<{ fields: { name: string; [key: string]: unknown }[] }>("/collections/settings");
     const fields = [...schema.fields];

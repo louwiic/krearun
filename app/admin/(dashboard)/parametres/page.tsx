@@ -1,3 +1,5 @@
+import HomeHighlightSettings from "@/components/admin/HomeHighlightSettings";
+import { parseHomeHighlight } from "@/lib/home-highlight";
 import SiteSkinSettings from "@/components/admin/SiteSkinSettings";
 import { DEFAULT_METROPOLITAN_SHIPPING } from "@/lib/metropolitan-shipping";
 import { getProducts, getSettings } from "@/lib/store";
@@ -29,6 +31,8 @@ export default async function AdminParametresPage() {
       <h1 className="mb-8 font-display text-3xl font-semibold">Réglages</h1>
 
       <SiteSkinSettings skin={settings.site_skin} enabled={settings.site_skin_enabled} />
+
+      <HomeHighlightSettings config={parseHomeHighlight(settings.homepage_highlight_json)} products={products.filter(p=>!p.privateSale).map(({slug,name,active})=>({slug,name,active}))} />
 
       <form action={saveSettingsAction} className="space-y-6">
         <div className="rounded-blob bg-cream p-7 shadow-soft">

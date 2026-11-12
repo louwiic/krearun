@@ -1,3 +1,5 @@
+import HomeHighlight from "@/components/home/HomeHighlight";
+import { parseHomeHighlight } from "@/lib/home-highlight";
 import NewArrivalsCarousel from "@/components/home/NewArrivalsCarousel";
 import { hasFreeShipping } from "@/lib/free-shipping";
 import ExpressOfferBanner from "@/components/site/ExpressOfferBanner";
@@ -81,6 +83,8 @@ export default async function HomePage() {
         </div>
       </div>
     </section>}
+
+    <HomeHighlight config={parseHomeHighlight(settings.homepage_highlight_json)} products={visible} />
 
     <section className="editorial-section" aria-labelledby="home-selection-title">
       <div className="editorial-section-heading"><h2 id="home-selection-title">Votre sélection</h2><Link href="/boutique">Voir la boutique ↗</Link></div>

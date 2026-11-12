@@ -1,5 +1,6 @@
 "use server";
 
+import { parseHomeHighlight, highlightMediaUrl } from "@/lib/home-highlight";
 import { setAdminNotice } from "@/lib/admin-notice";
 import { parseMetropolitanShipping } from "@/lib/metropolitan-shipping";
 
@@ -19,6 +20,7 @@ import {
   getInventoryColors,
   getOrderById,
   getProductById,
+  getProductBySlug,
   getNewsletterRecords,
   getOrders,
   setMailingContactIgnored,
@@ -713,4 +715,26 @@ export async function saveCategoriesAction(formData: FormData) {
   revalidatePath("/sitemap.xml");
   await setAdminNotice("success", "Catégories enregistrées.");
   redirect("/admin/categories");
+}
+
+
+export async function saveHomeHighlightAction(_previous: {error?:string;success?:string}, formData:FormData):Promise<{error?:string;success?:string}> {
+  await requireAdmin();
+  try {
+    const config=parseHomeHighlight(JSON.stringify(Object.fromEntries(formData.entries())));
+    config.enabled=formData.get("enabled")==="on";
+    if(config.enabled&&!config.productSlug)return {error:"Choisissez le produit à mettre en avant."};
+    if(config.productSlug){const product=await getProductBySlug(config.productSlug);if(!product||product.privateSale)return {error:"Ce produit ne peut pas être mis en avant."};}
+    const image=formData.get("image_file"),video=formData.get("video_file");
+    const files=[image,video].filter((file):file is File=>file instanceof File&&file.size>0);
+    if(files.reduce((sum,file)=>sum+file.size,0)>5*1024*1024)return {error:"Les fichiers dépassent 5 Mo au total. Importez-les séparément ou utilisez une URL."};
+    if(config.mediaSource==="custom") {
+      for(const key of ["image","video"] as const){const raw=String(formData.get(key)||"").trim();if(raw&&!highlightMediaUrl(raw))return {error:"Utilisez une URL HTTPS ou un chemin interne pour les médias."};}
+      if(image instanceof File&&image.size){if(!["image/jpeg","image/png","image/webp"].includes(image.type))return {error:"Choisissez une photo JPEG, PNG ou WebP."};const [optimized]=await toWebp([image]);config.image=await uploadSiteImageToR2("home-highlight",optimized);}
+      if(video instanceof File&&video.size){if(!["video/mp4","video/webm","video/quicktime"].includes(video.type))return {error:"Choisissez une vidéo MP4, WebM ou MOV."};config.video=await uploadSiteMediaToR2("home-highlight",await toWebMp4(video));}
+    }
+    await saveSettings({homepage_highlight_json:JSON.stringify(config)});
+    revalidatePath("/");revalidatePath("/admin/parametres");
+    return {success:"Bloc « À ne pas rater » enregistré."};
+  }catch{return {error:"Impossible d’enregistrer ce bloc pour le moment."};}
 }
