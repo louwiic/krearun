@@ -30,8 +30,8 @@ export default async function SiteLayout({
   return (
     <ColorAvailabilityProvider colors={inventory.map(({name,hex,active,swatchImage}) => ({name,hex,active,swatchImage}))}><div className="storefront flex min-h-screen flex-col bg-linen text-ink" data-site-skin={activeSiteSkin(settings)}>
       {activeSiteSkin(settings) === "halloween" && <HalloweenSpiders />}
-      {/* Test mobile uniquement : accès à KréaGame, la boutique en temps réel. */}
-      <Link href="/boutique-live" className="flex items-center justify-center gap-2 bg-ink py-2 text-[11px] font-bold uppercase tracking-[0.18em] text-linen md:hidden">
+      {/* Accès à KréaGame, la boutique en temps réel. */}
+      <Link href="/boutique-live" className="flex items-center justify-center gap-2 bg-ink py-2 text-[11px] font-bold uppercase tracking-[0.18em] text-linen">
         <span className="relative flex h-2 w-2">
           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-terra opacity-75" />
           <span className="relative inline-flex h-2 w-2 rounded-full bg-terra" />
