@@ -30,7 +30,7 @@ test('webhook retries recover a missing manufacturing file without creating or d
  const previous=process.env.STRIPE_WEBHOOK_SECRET;process.env.STRIPE_WEBHOOK_SECRET='test';
  const req=()=>new Request('https://krearun.re/api/stripe/webhook',{method:'POST',headers:{'stripe-signature':'test'},body:'test'});
  try{
-  assert.equal((await route.POST(req())).status,500);assert.equal(created,1);assert.equal(stock,1);assert.deepEqual(order.items[0].keychainConfiguration,configuration);
+  assert.equal((await route.POST(req())).status,500);assert.equal(created,1);assert.equal(stock,1);assert.deepEqual(order.items[0].keychainConfiguration,keychains.parseKeychainConfiguration(configuration));
   assert.equal((await route.POST(req())).status,200);assert.equal(created,1);assert.equal(stock,1);assert.equal(generated,2);
   event.data.object.payment_status='unpaid';assert.equal((await route.POST(req())).status,200);assert.equal(generated,2);
  }finally{if(previous===undefined)delete process.env.STRIPE_WEBHOOK_SECRET;else process.env.STRIPE_WEBHOOK_SECRET=previous;}

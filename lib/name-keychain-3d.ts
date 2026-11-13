@@ -9,8 +9,9 @@ const path = (contours: NameplateContour[]) => contours.map(contour => `M ${cont
 export function keychainShapes(value: KeychainConfiguration, font: Font) {
   const config = parseKeychainConfiguration(value);
   for (const character of config.name) if (character.trim() && font.charToGlyphIndex(character.replace("’", "'")) === 0) throw new Error("Cette police ne contient pas tous les caractères du prénom.");
-  const rim = config.style === "relief" ? 2.2 : 0.8;
-  const layout = calculateNameplateLayout({ name: config.name.replace(/’/g,"'"), maxWidth: 80, maxHeight: 25, baseThickness: 2.4, reliefHeight: 1.2, contourWidth: rim },font);
+  const rim = config.borderWidthMm!;
+  const eyeletRadius = 5 + rim / 2;
+  const layout = calculateNameplateLayout({ name: config.name.replace(/’/g,"'"), maxWidth: 80, maxHeight: 25, baseThickness: 2.4, reliefHeight: 1.2, contourWidth: config.style === "relief" ? 2.2 : 0.8 },font);
   const areas=layout.contours.map(area);
   const reference=areas.reduce((largest,a,i)=>Math.abs(a)>Math.abs(areas[largest])?i:largest,0);
   const sign=Math.sign(areas[reference]);
@@ -34,7 +35,7 @@ export function keychainShapes(value: KeychainConfiguration, font: Font) {
   const backing:ClipperLib.Paths=[];offset.Execute(backing,rim*precision);
   const circle=(x:number,y:number,r:number)=>positive(Array.from({length:64},(_,i)=>[x+r*Math.cos(i*2*Math.PI/64),y+r*Math.sin(i*2*Math.PI/64)] as [number,number]));
   const y=layout.height*0.58;
-  let joined=clip([...backing,circle(-4,y,5)],[],ClipperLib.ClipType.ctUnion);
+  let joined=clip([...backing,circle(-4,y,eyeletRadius)],[],ClipperLib.ClipType.ctUnion);
   // Connect detached glyphs/accents by the shortest local bridge, without a bar across the name.
   for(let attempt=0;attempt<64;attempt++){
     const components=joined.filter(points=>ClipperLib.Clipper.Area(points)>0);

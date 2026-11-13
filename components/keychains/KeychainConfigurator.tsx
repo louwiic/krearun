@@ -11,14 +11,15 @@ const Preview=dynamic(()=>import("./KeychainPreview"),{ssr:false,loading:()=> <d
 export default function KeychainConfigurator({inventory,admin=false}:{inventory:ColorAvailability[];admin?:boolean}){
   const colors=useMemo(()=>availableInventoryPalette(inventory),[inventory]);
   const [name,setName]=useState("Léa"),[font,setFont]=useState("chewy"),[style,setStyle]=useState("relief");
+  const [borderWidthMm,setBorderWidthMm]=useState<number|undefined>();
   const [baseName,setBaseName]=useState(colors[0]?.name||""),[textName,setTextName]=useState(colors[1]?.name||colors[0]?.name||"");
   const [ready,setReady]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(""),[fileUrl,setFileUrl]=useState("");
   const {addItem}=useCart();const router=useRouter();
   const result=useMemo(()=>{
     const base=colors.find(c=>c.name===baseName),text=colors.find(c=>c.name===(style==="mono"?baseName:textName));
-    try{return {configuration:parseKeychainConfiguration({name,font,style,baseColor:base?.hex,baseColorName:base?.name,textColor:text?.hex,textColorName:text?.name}),error:""};}
+    try{return {configuration:parseKeychainConfiguration({name,font,style,borderWidthMm,baseColor:base?.hex,baseColorName:base?.name,textColor:text?.hex,textColorName:text?.name}),error:""};}
     catch(error){return {configuration:null,error:error instanceof Error?error.message:"Vérifiez les options."};}
-  },[name,font,style,baseName,textName,colors]);
+  },[name,font,style,borderWidthMm,baseName,textName,colors]);
   async function generate(format:"3mf"|"stl"){
     if(!result.configuration)return;setBusy(true);setError("");setFileUrl("");
     try{
@@ -41,6 +42,10 @@ export default function KeychainConfigurator({inventory,admin=false}:{inventory:
     <label className="mt-6 block text-sm font-bold">Votre prénom<input value={name} maxLength={18} onChange={event=>setName(event.target.value)} className="mt-2 w-full rounded-xl border border-sand bg-white px-4 py-3 text-base" placeholder="Ex. Léa"/><span className="mt-2 block text-xs font-normal text-ink-soft">18 caractères maximum. Respectez les majuscules souhaitées.</span></label>
     <fieldset className="mt-6"><legend className="text-sm font-bold">Modèle</legend><div className="mt-3 grid grid-cols-2 gap-3">{[["relief","Relief bicolore"],["mono","Lettres unies"]].map(([id,label])=><button type="button" aria-pressed={style===id} key={id} onClick={()=>setStyle(id)} className={`rounded-xl border-2 p-3 text-sm font-bold ${style===id?"border-ink bg-cream":"border-sand"}`}>{label}</button>)}</div></fieldset>
     <label className="mt-6 block text-sm font-bold">Police<select value={font} onChange={event=>setFont(event.target.value)} className="mt-2 w-full rounded-xl border border-sand bg-white px-4 py-3">{KEYCHAIN_FONTS.map(item=><option key={item.id} value={item.id}>{item.label} — {item.description}</option>)}</select></label>
+    <label className="mt-6 block text-sm font-bold">Largeur du fond — {(borderWidthMm ?? (style==="relief"?2.2:0.8)).toFixed(1).replace(".",",")} mm
+      <input type="range" min="0.8" max="4" step="0.2" value={borderWidthMm ?? (style==="relief"?2.2:0.8)} onChange={event=>setBorderWidthMm(Number(event.target.value))} className="mt-3 block w-full accent-terra"/>
+      <span className="mt-2 block text-xs font-normal text-ink-soft">Élargissez le contour autour du prénom pour un fond plus généreux. L’œillet reste renforcé et son trou conserve un diamètre de 4 mm.</span>
+    </label>
     {palette("base")}{style==="relief"&&palette("text")}
     {!colors.length&&<p className="mt-5 text-sm text-terra-deep">Aucun coloris disponible à l’atelier pour le moment.</p>}
     <p className="mt-6 text-sm text-ink-soft">Anneau inclus · fabriqué à La Réunion · prêt en 2 à 4 jours de préparation</p>

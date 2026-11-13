@@ -70,3 +70,26 @@ test('font coordinates keep the P counter in the upper half of the printed objec
  assert.ok(center(hole)>center(outer),'manufacturing Y must point up, not mirror the printed name');
  assert.ok(Number.isFinite(shapes.previewFlipY));
 });
+
+test('backing width is validated and historical configurations keep their defaults',()=>{
+ assert.equal(config.parseKeychainConfiguration(base).borderWidthMm,2.2);
+ assert.equal(config.parseKeychainConfiguration({...base,style:'mono'}).borderWidthMm,0.8);
+ for(const width of [0,-1,4.1,Infinity,NaN,'4'])assert.throws(()=>config.parseKeychainConfiguration({...base,borderWidthMm:width}));
+ assert.equal(config.parseKeychainConfiguration({...base,borderWidthMm:4}).borderWidthMm,4);
+});
+test('wider backing is connected to a reinforced eyelet and exports a larger printable base',()=>{
+ const font=fonts.get('chewy');
+ const normal=geometry.buildKeychainModel({...base,name:'Alan',borderWidthMm:2.2},font);
+ const wide=geometry.buildKeychainModel({...base,name:'Alan',borderWidthMm:4},font);
+ assert.ok(jscad.measurements.measureVolume(wide.base)>jscad.measurements.measureVolume(normal.base));
+ for(const font of fonts.values())for(const name of ['Alan','Éloïse','WILLIAM'])for(const width of [0.8,2.2,4]){
+   const input={...base,name,borderWidthMm:width};
+   const shapes=geometry.keychainShapes(input,font);
+   assert.ok(shapes.width<=95.001);assert.ok(shapes.height<=32.001);
+   const outlines=jscad.geometries.geom2.toOutlines(shapes.baseShape),areas=outlines.map(signedArea);
+   const sign=Math.sign(areas.reduce((a,b)=>Math.abs(a)>Math.abs(b)?a:b));
+   assert.equal(areas.filter(a=>Math.sign(a)===sign).length,1,`${name}/${width} must have one joined backing`);
+   const holes=outlines.filter((_,i)=>Math.sign(areas[i])!==sign);
+   assert.ok(holes.some(h=>Math.abs(Math.max(...h.map(p=>p[0]))-Math.min(...h.map(p=>p[0]))-4)<.02),'4mm eyelet hole must stay open');
+ }
+});
