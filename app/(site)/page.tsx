@@ -17,6 +17,8 @@ export const metadata: Metadata = {
 import HomeReviews from "@/components/home/HomeReviews";
 import ProductCard from "@/components/product/ProductCard";
 import Gallery from "@/components/product/Gallery";
+import MonsterProductGallery from "@/components/product/MonsterProductGallery";
+import { MONSTER_SLUG } from "@/lib/monster-preview";
 import AddToCart from "@/components/product/AddToCart";
 import { formatPrice } from "@/lib/format";
 import { publicProductCopy } from "@/lib/public-copy";
@@ -68,11 +70,11 @@ export default async function HomePage() {
 
     {spotlight && <section id="choisir-mon-modele" className="editorial-section" aria-labelledby="home-product-title">
       <div className="grid min-w-0 grid-cols-1 gap-8 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] md:gap-10">
-        <Gallery
+        {main.slug === MONSTER_SLUG ? <MonsterProductGallery images={main.images} videoUrl={main.videoUrl} name={main.name} initialColor={main.colors[0] || {name:"Blanc",hex:"#ffffff"}} /> : <Gallery
           images={[...main.images, ...main.variants.map(variant => variant.image), ...main.colors.map(color => color.image)].filter((image, index, images): image is string => Boolean(image) && images.indexOf(image) === index)}
           videoUrl={main.videoUrl}
           name={main.name}
-        />
+        />}
         <div className="min-w-0">
           <p className="editorial-eyebrow">Vos couleurs, votre style</p>
           <h2 id="home-product-title" data-product-impression={main.id} className="mt-3 font-display text-3xl font-bold tracking-tight sm:text-4xl">{main.name}</h2>

@@ -19,7 +19,7 @@ import type { Product } from "@/lib/types";
 import LampPersonalization from "./LampPersonalization";
 import { buildLampPersonalization, isPersonalizedLamp } from "@/lib/lamp-personalization";
 import MonsterGiftPreview from "./MonsterGiftPreview";
-import MonsterClawPreview from "./MonsterClawPreview";
+import { MONSTER_SLUG, MONSTER_COLOR_EVENT } from "@/lib/monster-preview";
 import { discountedUnitPriceCents, quantityDiscountPercent } from "@/lib/quantity-discounts";
 
 export default function AddToCart({ product }: { product: Product }) {
@@ -48,7 +48,6 @@ export default function AddToCart({ product }: { product: Product }) {
   const normalizedCustomName = customName.trim().replace(/\s+/g, " ");
   const missingCustomName =
     personalizedLamp ? !lampDetails : product.namePersonalizationEnabled && addPersonalization && !normalizedCustomName;
-  const showMonsterPreview = product.slug === "porte-canette-monster" && Boolean(selectedColor);
   const personalizationPriceCents = !personalizedLamp && product.namePersonalizationEnabled && addPersonalization
     ? product.namePersonalizationPriceCents
     : 0;
@@ -158,12 +157,6 @@ export default function AddToCart({ product }: { product: Product }) {
           <p className="mb-2 text-sm font-bold">
             Coloris — <span className="font-semibold text-ink-soft">{color ? publicColorName(color) : "Aucun coloris disponible"}</span>
           </p>
-          {showMonsterPreview && selectedColor ? (
-            <MonsterClawPreview
-              color={selectedColor.hex}
-              colorName={publicColorName(selectedColor.name)}
-            />
-          ) : null}
           <div className="flex flex-wrap gap-2.5">
             {availableColors.map((c) => (
               <button
@@ -172,6 +165,7 @@ export default function AddToCart({ product }: { product: Product }) {
                 disabled={!isColorAvailable(c)}
                 onClick={() => {
                   setColor(c.name);
+                  if (product.slug === MONSTER_SLUG) window.dispatchEvent(new CustomEvent(MONSTER_COLOR_EVENT, {detail:{name:publicColorName(c.name),hex:c.hex}}));
                   if (product.slug === SWEAT_SLUG) window.dispatchEvent(new CustomEvent(SWEAT_COLOR_EVENT, {detail:{name:publicColorName(c.name),hex:c.hex}}));
                   if (product.slug === NOS_SLUG) window.dispatchEvent(new CustomEvent(NOS_COLOR_EVENT, {detail:{name:publicColorName(c.name),hex:c.hex}}));
                   if (c.image) {

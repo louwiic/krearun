@@ -4,6 +4,8 @@ import Link from "next/link";
 import { productDescription, productStructuredData, productBreadcrumb, jsonLdString } from "@/lib/seo";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import MonsterProductGallery from "@/components/product/MonsterProductGallery";
+import { MONSTER_SLUG } from "@/lib/monster-preview";
 import SweatProductGallery from "@/components/product/SweatProductGallery";
 import { SWEAT_SLUG } from "@/lib/sweat-preview";
 import NosProductGallery from "@/components/product/NosProductGallery";
@@ -104,7 +106,7 @@ export default async function ProductPage({
       </nav>
 
       <div className="grid grid-cols-1 gap-8 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] md:gap-10">
-        {product.slug === SWEAT_SLUG ? <SweatProductGallery images={product.images} videoUrl={product.videoUrl} name={product.name} initialColor={product.colors[0] || {name:"Vert",hex:"#58bc2e"}} /> : product.slug === NOS_SLUG ? <NosProductGallery images={product.images} videoUrl={product.videoUrl} name={product.name} initialColor={product.colors[0] || NOS_COLORS[0]} /> : <Gallery
+        {product.slug === MONSTER_SLUG ? <MonsterProductGallery images={product.images} videoUrl={product.videoUrl} name={product.name} initialColor={product.colors[0] || {name:"Blanc",hex:"#ffffff"}} /> : product.slug === SWEAT_SLUG ? <SweatProductGallery images={product.images} videoUrl={product.videoUrl} name={product.name} initialColor={product.colors[0] || {name:"Vert",hex:"#58bc2e"}} /> : product.slug === NOS_SLUG ? <NosProductGallery images={product.images} videoUrl={product.videoUrl} name={product.name} initialColor={product.colors[0] || NOS_COLORS[0]} /> : <Gallery
           images={[
             ...(product.images.length ? product.images : product.privateSale ? ["/products/sur-mesure.svg"] : []),
             ...product.variants.map((variant) => variant.image).filter(Boolean),
