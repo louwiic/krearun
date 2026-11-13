@@ -1,7 +1,8 @@
 export const JOURNEY_CLIENT_KINDS = ["visit", "product_view", "add_to_cart", "cart_updated", "view_cart", "begin_checkout", "checkout_error"] as const;
-export const JOURNEY_PAGES = {home:"Accueil",shop:"Boutique",product:"Fiche produit",personalize:"Personnaliser",workshop:"L’atelier",contact:"Contact",cart:"Panier",confirmation:"Retour de paiement",other:"Autre page"} as const;
+export const JOURNEY_PAGES = {home:"Accueil",shop:"Boutique",product:"Fiche produit",personalize:"Personnaliser",workshop:"L’atelier",contact:"Contact",cart:"Panier",confirmation:"Retour de paiement",kreagame:"KréaGame",other:"Autre page"} as const;
 export function journeyPage(path: string): keyof typeof JOURNEY_PAGES {
   if(path === "/") return "home";
+  if(path === "/boutique-live") return "kreagame";
   if(path === "/boutique") return "shop";
   if(path.startsWith("/boutique/")) return "product";
   if(path === "/panier") return "cart";

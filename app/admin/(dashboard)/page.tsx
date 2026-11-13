@@ -2,19 +2,22 @@ import Link from "next/link";
 import { createHash } from "node:crypto";
 import SalesDashboard from "@/components/admin/SalesDashboard";
 import { reunionDay, type SalesOrder } from "@/lib/sales-analytics";
-import { getOrders, getProducts, getSubscribers, getLetterStats } from "@/lib/store";
+import { getOrders, getProducts, getSubscribers, getLetterStats, getPurchaseEvents } from "@/lib/store";
 import { formatPrice } from "@/lib/format";
 import { stripeConfigured } from "@/lib/stripe";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminDashboard() {
-  const [orders, products, subscribers, letterStats] = await Promise.all([
+  const [orders, products, subscribers, letterStats, journeyEvents] = await Promise.all([
     getOrders(),
     getProducts({ includeInactive: true }),
     getSubscribers(),
     getLetterStats(),
+    getPurchaseEvents().catch(() => []),
   ]);
+  // Visiteurs uniques (sessions consenties) arrivés sur KréaGame via le bandeau.
+  const kreagamePlayers = new Set(journeyEvents.filter(event => event.kind === "visit" && event.page === "kreagame").map(event => event.sessionId)).size;
 
   const paidOrders = orders.filter((o) => o.status !== "cancelled" && o.amountPaidCents > 0);
   const revenue = paidOrders.reduce((n, o) => n + o.amountPaidCents, 0);
@@ -34,6 +37,7 @@ export default async function AdminDashboard() {
     { label: "Commandes historiques", value: String(orders.length) },
     { label: "À préparer / remettre", value: String(toShip.length) },
     { label: "Abonnés newsletter", value: String(subscribers.length) },
+    { label: "🎮 Joueurs KréaGame (30 j)", value: String(kreagamePlayers) },
   ];
 
   return (

@@ -716,6 +716,14 @@ export async function getOrders(): Promise<Order[]> {
   return orders.sort((a, b) => b.orderedAt.localeCompare(a.orderedAt) || b.number - a.number);
 }
 
+// Commandes « en cours » (payées ou en préparation) pour la boutique en
+// temps réel : simple comptage, aucun détail client exposé.
+export async function countOrdersInProduction(): Promise<number> {
+  const filter = encodeURIComponent("status='paid' || status='preparing'");
+  const res = await pb<ListResult<{ id: string }>>(`/collections/orders/records?perPage=1&fields=id&filter=${filter}`);
+  return res.totalItems;
+}
+
 export async function getOrderById(id: string): Promise<Order | null> {
   if (!/^[a-z0-9]{15}$/.test(id)) return null;
   try {
