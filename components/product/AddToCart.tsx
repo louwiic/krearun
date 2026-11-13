@@ -7,7 +7,7 @@ import { useColorAvailability, useProductColors } from "./ColorAvailabilityProvi
 import NosPersonalization from "./NosPersonalization";
 import { NOS_SLUG } from "@/lib/nos";
 import { MONSTER_GIFT } from "@/lib/monster-gift";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { SWEAT_SLUG, SWEAT_COLOR_EVENT } from "@/lib/sweat-preview";
 import { NOS_COLOR_EVENT } from "@/lib/nos-preview";
 import Link from "next/link";
@@ -18,7 +18,6 @@ import { formatPrice } from "@/lib/format";
 import type { Product } from "@/lib/types";
 import LampPersonalization from "./LampPersonalization";
 import { buildLampPersonalization, isPersonalizedLamp } from "@/lib/lamp-personalization";
-import MonsterGiftPreview from "./MonsterGiftPreview";
 import { MONSTER_SLUG, MONSTER_COLOR_EVENT } from "@/lib/monster-preview";
 import { discountedUnitPriceCents, quantityDiscountPercent } from "@/lib/quantity-discounts";
 
@@ -60,6 +59,17 @@ export default function AddToCart({ product }: { product: Product }) {
   const discountedConfiguredPriceCents =
     discountedUnitPriceCents(modelPriceCents, priceDiscounts, quantity) +
     personalizationPriceCents;
+
+  useEffect(() => {
+    if (product.slug !== MONSTER_SLUG) return;
+    const select = (event: Event) => {
+      const detail = (event as CustomEvent<{name:string}>).detail;
+      const match = product.colors.find(item => publicColorName(item.name) === detail?.name);
+      if (match) setColor(match.name);
+    };
+    window.addEventListener(MONSTER_COLOR_EVENT, select);
+    return () => window.removeEventListener(MONSTER_COLOR_EVENT, select);
+  }, [product.slug, product.colors]);
 
   if (product.slug === HOLDER_SLUG) return <Link href={`/boutique/${HOLDER_SLUG}`} className="inline-flex rounded-full bg-terra px-6 py-4 font-bold text-white">Personnaliser et demander une validation →</Link>;
 
@@ -144,16 +154,13 @@ export default function AddToCart({ product }: { product: Product }) {
                 Couvercle + décapsuleur griffes
               </span>
             </div>
-            <div className="flex min-w-0 items-center gap-2 rounded-lg bg-white/75 p-2">
-              <MonsterGiftPreview color={selectedColor.hex} colorName={publicColorName(color)} />
-              <div><p className="text-xs font-bold">Porte-clés griffes offert</p><p className="mt-1 text-[10px] text-ink-soft">Modèle unique · {publicColorName(color)}</p></div>
-            </div>
+
           </div>
         </div>
       ) : null}
 
       {availableColors.length > 0 && (
-        <div className="space-y-3">
+        <div className={product.slug === MONSTER_SLUG ? "hidden space-y-3 md:block" : "space-y-3"}>
           <p className="mb-2 text-sm font-bold">
             Coloris — <span className="font-semibold text-ink-soft">{color ? publicColorName(color) : "Aucun coloris disponible"}</span>
           </p>

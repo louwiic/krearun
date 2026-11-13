@@ -70,7 +70,7 @@ export default async function HomePage() {
 
     {spotlight && <section id="choisir-mon-modele" className="editorial-section" aria-labelledby="home-product-title">
       <div className="grid min-w-0 grid-cols-1 gap-8 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] md:gap-10">
-        {main.slug === MONSTER_SLUG ? <MonsterProductGallery images={main.images} videoUrl={main.videoUrl} name={main.name} initialColor={main.colors[0] || {name:"Blanc",hex:"#ffffff"}} /> : <Gallery
+        {main.slug === MONSTER_SLUG ? <MonsterProductGallery product={main} images={main.images} videoUrl={main.videoUrl} name={main.name} initialColor={main.colors[0] || {name:"Blanc",hex:"#ffffff"}} /> : <Gallery
           images={[...main.images, ...main.variants.map(variant => variant.image), ...main.colors.map(color => color.image)].filter((image, index, images): image is string => Boolean(image) && images.indexOf(image) === index)}
           videoUrl={main.videoUrl}
           name={main.name}
