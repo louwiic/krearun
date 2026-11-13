@@ -1,3 +1,4 @@
+import { MONSTER_MULTICOLOR_CENTS, parseMonsterColors, monsterColorNames, isMonsterPremium } from "@/lib/monster-multicolor";
 import { KEYCHAIN_ID, keychainLabel, validateKeychainColors, type KeychainConfiguration } from "@/lib/name-keychain";
 import { validateKeychainGeometry } from "@/lib/name-keychain-server";
 import { variantQuantityDiscounts } from "@/lib/noel-kits";
@@ -225,14 +226,20 @@ async function prepareCheckout(req: Request) {
         { status: 400 }
       );
     }
+    const monsterParts = product.slug === "porte-canette-monster" ? parseMonsterColors(item.color) : undefined;
+    if(product.slug === "porte-canette-monster" && item.color?.startsWith("Multicolore") && !monsterParts) return NextResponse.json({code:"COLOR_INVALID",error:"Vérifiez les trois couleurs du Monster."},{status:400});
     const orderColor = keychainConfiguration ? `${keychainConfiguration.baseColorName} / ${keychainConfiguration.textColorName}` : publicColorName(item.color || "");
     if (product.category !== "lunette" && product.id !== CLICKER_PRODUCT_ID && product.id !== KEYCHAIN_ID && (product.colors?.length || usesInventoryPalette(product))) {
       try { inventory ??= await getInventoryColors({ includeInactive: true }); }
       catch { return NextResponse.json({ code: "INVENTORY_UNAVAILABLE", error: "Impossible de vérifier la disponibilité des couleurs. Réessayez dans un instant." }, { status: 503 }); }
       const palette = usesInventoryPalette(product) ? availableInventoryPalette(inventory) : variant?.colors?.length ? variant.colors : product.colors;
-      const selectedColor = palette.find(color => colorKey(color.name) === colorKey(orderColor));
-      if (!selectedColor) return NextResponse.json({ code: "COLOR_INVALID", error: `Choisissez un coloris disponible pour « ${product.name} ».` }, { status: 400 });
-      if (!inventoryColorAvailable(selectedColor, inventory)) return NextResponse.json({ code: "COLOR_OUT_OF_STOCK", error: `Le coloris ${orderColor} est en rupture de stock. Choisissez une autre couleur pour « ${product.name} ».` }, { status: 400 });
+      const requestedColors=monsterParts ? monsterColorNames(orderColor) : [orderColor];
+      for(const requested of requestedColors) {
+        if(isMonsterPremium(monsterParts) && requested === "Argenté")continue;
+        const selectedColor = palette.find(color => colorKey(color.name) === colorKey(requested));
+        if (!selectedColor) return NextResponse.json({ code: "COLOR_INVALID", error: `Choisissez un coloris disponible pour « ${product.name} ».` }, { status: 400 });
+        if (!inventoryColorAvailable(selectedColor, inventory)) return NextResponse.json({ code: "COLOR_OUT_OF_STOCK", error: `Le coloris ${requested} est en rupture de stock. Choisissez une autre couleur pour « ${product.name} ».` }, { status: 400 });
+      }
     }
     if (product.slug === NOS_SLUG) {
       if (!product.colors.some(color => publicColorName(color.name) === orderColor)) return NextResponse.json({code:"COLOR_INVALID",error:"Choisissez un coloris disponible pour le NOS : noir, rose ou blanc."},{status:400});
@@ -259,11 +266,12 @@ async function prepareCheckout(req: Request) {
       clicker ? `Lettres : ${text(clicker.letterColor, 60)}` : "",
       clicker ? `Symbole : ${text(clicker.symbol || "aucun", 30)}` : "",
       customName ? `Personnalisation : ${customName}` : "",
-      keychainChoice ? `Porte-clés offert : ${monsterGiftLabel(keychainChoice, publicColorName(item.color))}` : "",
+      keychainChoice ? `Porte-clés offert : ${monsterGiftLabel(keychainChoice, monsterParts?.claws || publicColorName(item.color))}` : "",
     ].filter(Boolean);
     const unitAmount =
       discountedUnitPriceCents(selectedPrice, variantQuantityDiscounts(product, variant?.id), quantity) +
-      (customName && !personalizedLamp ? product.namePersonalizationPriceCents : 0);
+      (customName && !personalizedLamp ? product.namePersonalizationPriceCents : 0) +
+      (monsterParts ? MONSTER_MULTICOLOR_CENTS : 0);
     subtotalCents += unitAmount * quantity;
     const pricedProduct = { ...product, weightGrams: selectedWeight };
     physicalWeightGrams += (selectedWeight || 0) * quantity;

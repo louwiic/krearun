@@ -18,6 +18,7 @@ import { formatPrice } from "@/lib/format";
 import type { Product } from "@/lib/types";
 import LampPersonalization from "./LampPersonalization";
 import { buildLampPersonalization, isPersonalizedLamp } from "@/lib/lamp-personalization";
+import { MONSTER_MULTICOLOR_CENTS, monsterColorLabel, type MonsterColors } from "@/lib/monster-multicolor";
 import { MONSTER_SLUG, MONSTER_COLOR_EVENT } from "@/lib/monster-preview";
 import { discountedUnitPriceCents, quantityDiscountPercent } from "@/lib/quantity-discounts";
 
@@ -27,6 +28,7 @@ export default function AddToCart({ product }: { product: Product }) {
   const { colors: productColors, required: inventoryPalette } = useProductColors(product);
   const activeVariants = product.variants.filter((variant) => variant.active);
   const [variantId, setVariantId] = useState(activeVariants[0]?.id ?? "");
+  const [monsterColors,setMonsterColors]=useState<MonsterColors|undefined>();
   const [requestedColor, setColor] = useState(productColors.find(isColorAvailable)?.name ?? "");
   const [addPersonalization, setAddPersonalization] = useState(false);
   const [customName, setCustomName] = useState("");
@@ -50,22 +52,23 @@ export default function AddToCart({ product }: { product: Product }) {
   const personalizationPriceCents = !personalizedLamp && product.namePersonalizationEnabled && addPersonalization
     ? product.namePersonalizationPriceCents
     : 0;
+  const multicolorPriceCents = product.slug === MONSTER_SLUG && monsterColors ? MONSTER_MULTICOLOR_CENTS : 0;
   const modelPriceCents = selectedVariant?.priceCents || product.priceCents;
-  const configuredPriceCents = modelPriceCents + personalizationPriceCents;
+  const configuredPriceCents = modelPriceCents + personalizationPriceCents + multicolorPriceCents;
   const priceDiscounts = variantQuantityDiscounts(product, selectedVariant?.id);
   const kitCount = noelKitCount(product.slug, selectedVariant?.id);
   const hasNoelKits = noelKitVariants(product).length > 0;
   const quantityDiscount = quantityDiscountPercent(priceDiscounts, quantity);
   const discountedConfiguredPriceCents =
     discountedUnitPriceCents(modelPriceCents, priceDiscounts, quantity) +
-    personalizationPriceCents;
+    personalizationPriceCents + multicolorPriceCents;
 
   useEffect(() => {
     if (product.slug !== MONSTER_SLUG) return;
     const select = (event: Event) => {
-      const detail = (event as CustomEvent<{name:string}>).detail;
+      const detail = (event as CustomEvent<{name:string;parts?:MonsterColors}>).detail;
       const match = product.colors.find(item => publicColorName(item.name) === detail?.name);
-      if (match) setColor(match.name);
+      if (match) {setColor(match.name);setMonsterColors(detail.parts);}
     };
     window.addEventListener(MONSTER_COLOR_EVENT, select);
     return () => window.removeEventListener(MONSTER_COLOR_EVENT, select);
@@ -160,7 +163,7 @@ export default function AddToCart({ product }: { product: Product }) {
       ) : null}
 
       {availableColors.length > 0 && (
-        <div className={product.slug === MONSTER_SLUG ? "hidden space-y-3 md:block" : "space-y-3"}>
+        <div className={product.slug === MONSTER_SLUG ? "hidden" : "space-y-3"}>
           <p className="mb-2 text-sm font-bold">
             Coloris — <span className="font-semibold text-ink-soft">{color ? publicColorName(color) : "Aucun coloris disponible"}</span>
           </p>
@@ -304,7 +307,7 @@ export default function AddToCart({ product }: { product: Product }) {
                 slug: product.slug,
                 name: product.name,
                 priceCents: configuredPriceCents,
-                color: publicColorName(color),
+                color: monsterColors ? monsterColorLabel(monsterColors) : publicColorName(color),
                 customName: personalizedLamp ? lampDetails : product.namePersonalizationEnabled && addPersonalization
                   ? normalizedCustomName
                   : undefined,
@@ -315,7 +318,7 @@ export default function AddToCart({ product }: { product: Product }) {
                 stock: selectedStock,
                 weightGrams: selectedWeight,
                 preorder: product.preorder,
-                personalizationPriceCents,
+                personalizationPriceCents:personalizationPriceCents + multicolorPriceCents,
                 quantityDiscounts: priceDiscounts,
               },
               quantity

@@ -22,7 +22,7 @@ export function reminderCart(value: unknown): ReminderCartItem[] {
   if (!Array.isArray(value) || !value.length || value.length > 30) throw new Error("Votre panier doit contenir au moins un article.");
   return value.map(item => {
     if (!item || typeof item !== "object" || !/^(?:[a-z0-9]{15}|clicker-studio|name-keychain)$/.test(item.productId) || !Number.isInteger(item.quantity) || item.quantity < 1 || item.quantity > 100) throw new Error("Panier invalide.");
-    const clean: ReminderCartItem = { productId: item.productId, quantity: item.quantity, color: typeof item.color === "string" ? item.color.slice(0, 100) : "" };
+    const clean: ReminderCartItem = { productId: item.productId, quantity: item.quantity, color: typeof item.color === "string" ? item.color.slice(0, 240) : "" };
     if (typeof item.variantId === "string") clean.variantId = item.variantId.slice(0, 80);
     if (typeof item.customName === "string") clean.customName = item.customName.slice(0, 1000);
     if (item.clickerConfiguration && typeof item.clickerConfiguration === "object") {

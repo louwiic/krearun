@@ -9,7 +9,8 @@ import * as journeys from '../lib/purchase-journey.ts';
 import * as quantityPricing from '../lib/quantity-discounts.ts';
 import * as noelKits from '../lib/noel-kits.ts';
 import * as metropolitan from '../lib/metropolitan-shipping.ts';
-import * as gift from '../lib/monster-gift.ts';
+const gift=loadTs(new URL('../lib/monster-gift.ts',import.meta.url));
+const multicolor=loadTs(new URL('../lib/monster-multicolor.ts',import.meta.url));
 import * as metadata from '../lib/checkout-item-metadata.ts';
 import * as legal from '../lib/legal.ts';
 import * as nos from '../lib/nos.ts';
@@ -19,6 +20,7 @@ const require=createRequire(import.meta.url);
 function checkout(slug='porte-canette-monster',weightGrams=180, settings={}, productOverrides={}, inventory=[], promotion=null, failures={}) {
  const sessions=[];
  const mocks={
+  "@/lib/monster-multicolor":multicolor,
   "@/lib/name-keychain":keychains,
   "@/lib/name-keychain-server":{validateKeychainGeometry:async()=>{}},
   "@/lib/cart-reminder-service":{attachReminderCheckout:async()=>{}},
@@ -207,4 +209,31 @@ test('included keychain shipping also stays at zero to metropolitan France',asyn
  const {post,sessions}=checkout(keychains.KEYCHAIN_SLUG,30,{},keychains.KEYCHAIN_PRODUCT,inventory);
  assert.equal((await post(request({productId:keychains.KEYCHAIN_ID,keychainConfiguration},true,{country:'FR',postalCode:'75001'}))).status,200);
  assert.equal(sessions[0].line_items[0].price_data.unit_amount,1200);assert.equal(sessions[0].shipping_options[0].shipping_rate_data.fixed_amount.amount,0);
+});
+
+
+test('Monster multicolor checkout validates every part and charges 2 euros per unit',async()=>{
+ const colors=[{name:'Blanc',hex:'#ffffff'},{name:'noir',hex:'#111111'},{name:'jaune',hex:'#ffd600'}];
+ const color=multicolor.monsterColorLabel({top:'Blanc',bottom:'noir',claws:'jaune'});
+ const s=checkout('porte-canette-monster',180,{}, {colors});
+ const response=await s.post(request({color,quantity:2}));
+ assert.equal(response.status,200);
+ assert.equal(s.sessions[0].line_items[0].price_data.unit_amount,1990);
+ assert.match(s.sessions[0].line_items[0].price_data.product_data.name,/Griffes : jaune/);
+ const unavailable=checkout('porte-canette-monster',180,{}, {colors},[{name:'jaune',hex:'#ffd600',active:false,stockGrams:0}]);
+ const rejected=await unavailable.post(request({color}));
+ assert.equal(rejected.status,400);
+ assert.equal((await rejected.json()).code,'COLOR_OUT_OF_STOCK');
+ assert.equal(unavailable.sessions.length,0);
+ const invalid=await s.post(request({color:multicolor.monsterColorLabel({top:'Blanc',bottom:'inconnue',claws:'jaune'})}));
+ assert.equal(invalid.status,400);
+});
+
+test('premium black/silver is charged once and cannot authorize arbitrary colors',async()=>{
+ const s=checkout('porte-canette-monster',180,{}, {colors:[{name:'Noir Monster',hex:'#111313'}]});
+ const response=await s.post(request({color:multicolor.monsterColorLabel(multicolor.MONSTER_PREMIUM_COLORS)}));
+ assert.equal(response.status,200);
+ assert.equal(s.sessions[0].line_items[0].price_data.unit_amount,1990);
+ const invalid=await s.post(request({color:multicolor.monsterColorLabel({...multicolor.MONSTER_PREMIUM_COLORS,top:'inconnue'})}));
+ assert.equal(invalid.status,400);
 });

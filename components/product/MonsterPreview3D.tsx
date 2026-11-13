@@ -6,19 +6,21 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MONSTER_MODEL_URL, monsterPartColor } from "@/lib/monster-preview";
 
-export default function MonsterPreview3D({color,colorName}:{color:string;colorName:string}) {
+export default function MonsterPreview3D({color,colorName,parts}:{color:string;colorName:string;parts?:{top:string;bottom:string;claws:string}}) {
   const host = useRef<HTMLDivElement>(null);
-  const bodyMaterials = useRef<THREE.MeshStandardMaterial[]>([]);
+  const bodyMaterials = useRef<{material:THREE.MeshStandardMaterial;name:string}[]>([]);
   const currentColor = useRef(color);
+  const currentParts = useRef(parts);
   const renderView = useRef<()=>void>(()=>{});
   const reset = useRef<()=>void>(()=>{});
   const [status,setStatus] = useState("Chargement du modèle Monster…");
 
   useEffect(()=>{
     currentColor.current=color;
-    bodyMaterials.current.forEach(material=>material.color.set(color));
+    currentParts.current=parts;
+    bodyMaterials.current.forEach(({material,name})=>material.color.set(monsterPartColor(name,color,parts)));
     renderView.current();
-  },[color]);
+  },[color,parts]);
 
   useEffect(()=>{
     const element=host.current;
@@ -48,11 +50,11 @@ export default function MonsterPreview3D({color,colorName}:{color:string;colorNa
       const rect=element!.getBoundingClientRect();if(!rect.width||!rect.height)return;
       renderer.setSize(rect.width,rect.height);
       camera.aspect=rect.width/rect.height;camera.updateProjectionMatrix();
-      render();
+      if(model)fit();else render();
     }
     function fit() {
       const fov=camera.fov*Math.PI/180;
-      const distance=Math.max(modelSize.y/(2*Math.tan(fov/2)),modelSize.x/(2*Math.tan(fov/2)*camera.aspect))*1.2;
+      const distance=Math.max(modelSize.y/(2*Math.tan(fov/2)),modelSize.x/(2*Math.tan(fov/2)*camera.aspect))*1.35;
       camera.position.set(distance*.15,distance*.08,distance);
       controls.target.set(0,0,0);controls.update();controls.saveState();render();
     }
@@ -68,9 +70,11 @@ export default function MonsterPreview3D({color,colorName}:{color:string;colorNa
         if(!(object instanceof THREE.Mesh))return;
         const original=Array.isArray(object.material)?object.material:[object.material];
         original.forEach(material=>material.dispose());
-        const material=new THREE.MeshStandardMaterial({color:monsterPartColor(object.name,currentColor.current),roughness:.72,metalness:0});
+        const material=new THREE.MeshStandardMaterial({color:monsterPartColor(object.name,currentColor.current,currentParts.current),roughness:.72,metalness:0});
         object.material=material;
-        if(object.name.startsWith("accent_"))bodyMaterials.current.push(material);
+        if(object.name.startsWith("accent_")){
+          bodyMaterials.current.push({material,name:object.name});
+        }
         if(!object.geometry.getAttribute("normal"))object.geometry.computeVertexNormals();
       });
       // The optimized preview is centered and already uses Y up, front +Z.

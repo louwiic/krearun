@@ -269,6 +269,8 @@ h2.font-display {
   .halloween-spider { animation: none; }
 }
 
+.color-swatch-unavailable { position: relative; }
+
 .color-swatch-unavailable::after {
   content: "";
   position: absolute;

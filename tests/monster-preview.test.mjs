@@ -2,3 +2,11 @@ import test from 'node:test';import assert from 'node:assert/strict';import {rea
 const {monsterPartColor}=loadTs(new URL('../lib/monster-preview.ts',import.meta.url));
 test('only claws and top/bottom accents follow the chosen color',()=>{for(const color of ['#ffffff','#ff2f7d','#8fe55b']){for(const name of ['accent_top','accent_bottom','accent_claw_left'])assert.equal(monsterPartColor(name,color),color);assert.equal(monsterPartColor('body',color),'#111313');assert.equal(monsterPartColor('handle',color),'#111313');}});
 test('exported preview contains the complete holder and independently recolorable parts',()=>{const bytes=readFileSync(new URL('../public/models/monster/monster-holder.glb',import.meta.url));assert.equal(bytes.toString('ascii',0,4),'glTF');const gltf=JSON.parse(bytes.toString('utf8',20,20+bytes.readUInt32LE(12)));const names=gltf.nodes.map(n=>n.name);for(const name of ['body','accent_top','accent_bottom'])assert.ok(names.includes(name));assert.equal(names.filter(n=>n?.startsWith('accent_claw_')).length,6);assert.ok(bytes.length<2*1024*1024);});
+
+test('multicolor top, bottom and claws recolor independently while body stays black',()=>{
+ const parts={top:'#ffffff',bottom:'#111111',claws:'#ffd600'};
+ assert.equal(monsterPartColor('accent_top','#ff0000',parts),parts.top);
+ assert.equal(monsterPartColor('accent_bottom','#ff0000',parts),parts.bottom);
+ assert.equal(monsterPartColor('accent_claw_left','#ff0000',parts),parts.claws);
+ assert.equal(monsterPartColor('body','#ff0000',parts),'#111313');
+});
