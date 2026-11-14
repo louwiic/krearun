@@ -13,6 +13,7 @@ const ClickerPreview = dynamic(() => import("@/components/clicker/ClickerOrbitPr
 const LetterExample = dynamic(() => import("./LetterExample"), { ssr: false, loading: LoadingPreview });
 
 const choices = [
+  {id:"birth",name:"Lettre de naissance",detail:"30 € · personnalisation incluse",description:"Une grande initiale, le prénom, les informations de naissance et les petits éléments de votre choix.",href:"/boutique/lettre-de-naissance-personnalisee",action:"Créer ma lettre de naissance"},
   { id: "keychain", name: "Porte-clés prénom", detail: "12 € · livraison incluse", description: "Votre prénom en relief bicolore, lettres épaisses ou écriture cursive, avec les couleurs de l’atelier.", href: "/boutique/porte-cles-prenom", action: "Créer mon porte-clés" },
   { id: "holder", name: "Porte-boisson", detail: "Votre logo, vos couleurs", description: "Un porte-boisson 500 ml avec poignée, à personnaliser avec votre logo et vos textes.", href: "/boutique/porte-boisson-500ml-personnalise", action: "Personnaliser mon porte-boisson" },
   { id: "clicker", name: "Clicker", detail: "Un petit clic à votre image", description: "Composez votre clicker avec un texte, un symbole et les couleurs qui vous plaisent.", href: "/clicker-studio", action: "Personnaliser mon clicker" },
@@ -25,11 +26,12 @@ export default function PersonalizationChoices() {
       {choices.map((choice, index) => (
         <article key={choice.id} className="flex overflow-hidden rounded-2xl border-2 border-ink bg-white/60 flex-col">
           <div className="pointer-events-none relative overflow-hidden border-b border-ink/15" aria-label={`Exemple de ${choice.name.toLowerCase()} en 3D`}>
+            {choice.id === "birth" && <div role="img" aria-label="Lettre de naissance personnalisée" className="h-[280px] bg-cream bg-contain bg-center bg-no-repeat" style={{backgroundImage:"url(/products/lettre-naissance/lili.webp)"}}/>}
             {choice.id === "keychain" && <div role="img" aria-label="Exemples de porte-clés prénom bicolores" className="h-[280px] bg-cream bg-cover bg-center" style={{backgroundImage:"url(/keychains/relief-reference.png)"}}/>}
             {choice.id === "holder" && <div className="[&>div>div]:h-[280px]"><HolderPreview thumbnail configuration={{ model: "custom", logoFaces: 2, bodyColor: "#171717", bodyColorName: "Noir", topColor: "#f67340", bottomColor: "#f67340", logoWidth: 45, logoOffset: 0 }} /></div>}
             {choice.id === "clicker" && <ClickerPreview thumbnail text="KREA" symbol="♥" baseColor="#171717" capColor="#b5dff2" letterColor="#171717" />}
             {choice.id === "letter" && <LetterExample />}
-            <span className="pointer-events-none absolute left-4 top-4 rounded-full bg-white/90 px-3 py-1 text-[10px] font-bold uppercase tracking-widest">{choice.id === "keychain" ? "Porte-clés personnalisé" : "Aperçu 3D"}</span>
+            <span className="pointer-events-none absolute left-4 top-4 rounded-full bg-white/90 px-3 py-1 text-[10px] font-bold uppercase tracking-widest">{choice.id === "birth" ? "Personnalisation incluse" : choice.id === "keychain" ? "Porte-clés personnalisé" : "Aperçu 3D"}</span>
           </div>
           <div className="flex flex-1 flex-col p-6">
             <p className="text-xs font-bold uppercase tracking-wide text-ink-soft">0{index + 1} / {choice.detail}</p>

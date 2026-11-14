@@ -1,4 +1,6 @@
 import { loadTs } from './load-ts.mjs';
+const birth=loadTs(new URL('../lib/birth-letter.ts',import.meta.url));
+const lampPersonalizations=loadTs(new URL('../lib/lamp-personalization.ts',import.meta.url));
 const keychains=loadTs(new URL('../lib/name-keychain.ts',import.meta.url));
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -20,6 +22,7 @@ const require=createRequire(import.meta.url);
 function checkout(slug='porte-canette-monster',weightGrams=180, settings={}, productOverrides={}, inventory=[], promotion=null, failures={}) {
  const sessions=[];
  const mocks={
+  "@/lib/birth-letter":birth,
   "@/lib/monster-multicolor":multicolor,
   "@/lib/name-keychain":keychains,
   "@/lib/name-keychain-server":{validateKeychainGeometry:async()=>{}},
@@ -35,7 +38,7 @@ function checkout(slug='porte-canette-monster',weightGrams=180, settings={}, pro
   '@/lib/shipping':{parseShippingRates:()=>[],calculateShippingCents:()=>({priceCents:577,label:'Test'})},
   '@/lib/pickup':{getPickupPoint:()=>null},'@/lib/quantity-discounts':quantityPricing,
   '@/lib/clicker':{CLICKER_PRODUCT_ID:'clicker'},'@/lib/custom-holder':{HOLDER_SLUG:'holder'},
-  '@/lib/lamp-personalization':{isPersonalizedLamp:()=>false},
+  '@/lib/lamp-personalization':lampPersonalizations,
  };
  const source=readFileSync(new URL('../app/api/checkout/route.ts',import.meta.url),'utf8');
  const {outputText}=ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS}});
@@ -236,4 +239,15 @@ test('premium black/silver is charged once and cannot authorize arbitrary colors
  assert.equal(s.sessions[0].line_items[0].price_data.unit_amount,1990);
  const invalid=await s.post(request({color:multicolor.monsterColorLabel({...multicolor.MONSTER_PREMIUM_COLORS,top:'inconnue'})}));
  assert.equal(invalid.status,400);
+});
+
+test('birth letter made on demand keeps every selected detail at the catalog price without ready stock',async()=>{
+ const config={...birth.EMPTY_BIRTH_LETTER,initial:'L',name:'Lili',date:'2026-10-17',time:'19:35',weight:'3090',length:'49',colors:'Rose et blanc',note:'Prénom en bas',elementBaseColor:'Blanc',elementTopColor:'Blanc'};
+ const details=birth.buildBirthLetter(config);
+ const s=checkout(birth.BIRTH_LETTER_SLUG,600,{}, {stock:0,priceCents:3000,namePersonalizationEnabled:true,namePersonalizationPriceCents:0},[{name:'Blanc',hex:'#ffffff',active:true}]);
+ const response=await s.post(request({customName:details}));assert.equal(response.status,200);
+ assert.equal(s.sessions[0].line_items[0].price_data.unit_amount,3000);
+ assert.match(s.sessions[0].line_items[0].price_data.product_data.name,/3090 g/);
+ const invalid=await s.post(request({customName:'Lili'}));assert.equal(invalid.status,400);
+ assert.equal((await invalid.json()).code,'PERSONALIZATION_INVALID');
 });

@@ -100,7 +100,7 @@ export async function restoreReminderCart(token: string): Promise<CartItem[]> {
     const activeVariants = product.variants.filter(v => v.active);
     const variant = activeVariants.find(v => v.id === saved.variantId);
     if (activeVariants.length && !variant) continue;
-    const stock = variant?.stock ?? product.stock;
+    const stock = product.slug === "lettre-de-naissance-personnalisee" ? 20 : variant?.stock ?? product.stock;
     if (!product.preorder && stock <= 0) continue;
     const personalizationPriceCents = (product.namePersonalizationEnabled && saved.customName && !isPersonalizedLamp(product.slug) ? product.namePersonalizationPriceCents : 0) + (product.slug === "porte-canette-monster" && parseMonsterColors(saved.color) ? MONSTER_MULTICOLOR_CENTS : 0);
     result.push({ ...saved, slug: product.slug, name: product.name, priceCents: (variant?.priceCents || product.priceCents) + personalizationPriceCents,

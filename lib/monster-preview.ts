@@ -11,6 +11,9 @@ export function monsterRealPhoto(name:string):string|undefined {
   const key=name.replace(/^PLA\s+/i, "").trim().toLowerCase();
   if(key === "vert phosphorescent") return "/products/monster/vert-phosphorescent-real.webp";
   if(key === "orange fluo" || key === "orange") return "/products/monster/orange-real.webp";
+  if(["paillete rose","rose pailleté","rose paillette"].includes(key)) return "/products/monster/rose-paillete-real.webp";
+  if(key === "turquoise") return "/products/monster/turquoise-real.webp";
+  if(key === "bleu galaxy") return "/products/monster/bleu-galaxy-real.webp";
   if(key === "bleu reflet mauve") return "/products/monster/bleu-reflet-mauve-real.webp";
   return undefined;
 }

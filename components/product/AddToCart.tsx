@@ -16,6 +16,8 @@ import { useCart } from "@/components/cart/CartContext";
 import { publicColorName } from "@/lib/colors";
 import { formatPrice } from "@/lib/format";
 import type { Product } from "@/lib/types";
+import {BIRTH_LETTER_SLUG,EMPTY_BIRTH_LETTER,buildBirthLetter} from "@/lib/birth-letter";
+import BirthLetterPersonalization from "./BirthLetterPersonalization";
 import LampPersonalization from "./LampPersonalization";
 import { buildLampPersonalization, isPersonalizedLamp } from "@/lib/lamp-personalization";
 import { MONSTER_MULTICOLOR_CENTS, monsterColorLabel, type MonsterColors } from "@/lib/monster-multicolor";
@@ -32,16 +34,18 @@ export default function AddToCart({ product }: { product: Product }) {
   const [requestedColor, setColor] = useState(productColors.find(isColorAvailable)?.name ?? "");
   const [addPersonalization, setAddPersonalization] = useState(false);
   const [customName, setCustomName] = useState("");
+  const [birth,setBirth]=useState(EMPTY_BIRTH_LETTER);
+  const birthLetter=product.slug===BIRTH_LETTER_SLUG;
   const personalizedLamp = isPersonalizedLamp(product.slug);
   const [lamp, setLamp] = useState({ initial: "", text: "", secondName: "", motif: "Étoiles", otherMotif: "", hearts: "2", inscription: "" });
-  const lampDetails = buildLampPersonalization(product.slug, lamp);
+  const lampDetails = birthLetter ? buildBirthLetter(birth) : buildLampPersonalization(product.slug, lamp);
   const [quantity, setQuantity] = useState(1);
   const selectedVariant = activeVariants.find((variant) => variant.id === variantId);
   const availableColors = !inventoryPalette && selectedVariant?.colors?.length ? selectedVariant.colors : productColors;
   const selectedColor = availableColors.find((item) => item.name === requestedColor && isColorAvailable(item)) ?? availableColors.find(isColorAvailable);
   const color = selectedColor?.name ?? "";
   const colorsSoldOut = (inventoryPalette || availableColors.length > 0) && !selectedColor;
-  const selectedStock = selectedVariant?.stock ?? product.stock;
+  const selectedStock = birthLetter ? 20 : selectedVariant?.stock ?? product.stock;
   const selectedWeight = selectedVariant?.weightGrams || product.weightGrams;
   const selectedImage = selectedColor?.image || selectedVariant?.image || product.images[0] || (product.privateSale ? "/products/sur-mesure.svg" : "/products/hero.svg");
   const maxQuantity = product.preorder ? 20 : selectedStock;
@@ -165,7 +169,7 @@ export default function AddToCart({ product }: { product: Product }) {
       {availableColors.length > 0 && (
         <div className={product.slug === MONSTER_SLUG ? "hidden" : "space-y-3"}>
           <p className="mb-2 text-sm font-bold">
-            Coloris — <span className="font-semibold text-ink-soft">{color ? publicColorName(color) : "Aucun coloris disponible"}</span>
+            {birthLetter ? "Couleur de la grande lettre" : "Coloris"} — <span className="font-semibold text-ink-soft">{color ? publicColorName(color) : "Aucun coloris disponible"}</span>
           </p>
           <div className="flex flex-wrap gap-2.5">
             {availableColors.map((c) => (
@@ -200,11 +204,12 @@ export default function AddToCart({ product }: { product: Product }) {
           {availableColors.some(c => !isColorAvailable(c)) && <p className="text-xs font-semibold text-ink-soft">Coloris barrés : rupture de stock.</p>}
         </div>
       )}
-      {inventoryPalette && <p className="text-xs leading-relaxed text-ink-soft">Choisissez la couleur principale de votre décoration parmi les coloris disponibles à l’atelier. Les détails du motif gardent leurs couleurs ; les moules du kit sont fournis dans un coloris d’atelier.</p>}
+      {inventoryPalette && !birthLetter && <p className="text-xs leading-relaxed text-ink-soft">Choisissez la couleur principale de votre décoration parmi les coloris disponibles à l’atelier. Les détails du motif gardent leurs couleurs ; les moules du kit sont fournis dans un coloris d’atelier.</p>}
 
       {product.slug === NOS_SLUG && <p className="text-xs text-ink-soft">L’aperçu 3D suit votre choix de couleur. La photo réelle présente le modèle bleu.</p>}
 
-      {personalizedLamp && <LampPersonalization slug={product.slug} value={lamp} onChange={setLamp} />}
+      {birthLetter && <BirthLetterPersonalization value={birth} onChange={setBirth} colors={availableColors.filter(isColorAvailable)}/> }
+      {personalizedLamp && !birthLetter && <LampPersonalization slug={product.slug} value={lamp} onChange={setLamp} />}
 
       {product.slug === NOS_SLUG && product.namePersonalizationEnabled && <NosPersonalization value={customName} priceCents={product.namePersonalizationPriceCents} onChange={(value,enabled)=>{setCustomName(value);setAddPersonalization(enabled);}} />}
 
@@ -330,7 +335,7 @@ export default function AddToCart({ product }: { product: Product }) {
           {soldOut
             ? (colorsSoldOut ? "Coloris en rupture de stock" : "Bientôt de retour")
             : missingCustomName
-              ? "Indiquer le prénom"
+              ? birthLetter ? "Compléter la lettre de naissance" : "Indiquer le prénom"
             : product.preorder
               ? "Pré-commander"
               : `Ajouter au panier — ${formatPrice(discountedConfiguredPriceCents * quantity)}${
@@ -345,7 +350,7 @@ export default function AddToCart({ product }: { product: Product }) {
         </p>
       )}
 
-      {!soldOut && !product.preorder && product.stock <= 5 && (
+      {!soldOut && !birthLetter && !product.preorder && product.stock <= 5 && (
         <p className="text-xs font-semibold text-terra-deep">
           Plus que {product.stock} exemplaire{product.stock > 1 ? "s" : ""} — le
           prochain lot est déjà en préparation ✿

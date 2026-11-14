@@ -12,13 +12,13 @@ export default function ProductCard({ product, className = "", showCta = false, 
   const stock = variants.length ? variants.reduce((total, variant) => total + variant.stock, 0) : product.stock;
   const prices = variants.map(variant => variant.priceCents || product.priceCents).filter(price => price > 0);
   const price = prices.length ? Math.min(...prices) : product.priceCents;
-  const personalized = product.slug === HOLDER_SLUG;
+  const personalized = product.slug === HOLDER_SLUG || product.slug === "lettre-de-naissance-personnalisee";
   const soldOut = !personalized && stock <= 0 && !product.preorder;
   return <Link href={`/boutique/${product.slug}`} data-product-impression={product.id} data-product-click={product.id} className={`editorial-product-card group ${className}`}>
     <div className="editorial-product-image">
       <img src={product.images[0] ?? "/products/hero.svg"} alt={product.name} width={800} height={800} decoding="async" loading={priority ? "eager" : "lazy"} className="aspect-square h-full w-full object-cover" />
       {product.images[1] && <img src={product.images[1]} alt="" aria-hidden width={800} height={800} decoding="async" loading="lazy" className="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100" />}
-      {(soldOut || product.preorder || product.isNew) && <span className="editorial-product-badge">{soldOut ? "Épuisé" : product.preorder ? "Précommande" : "Nouveau"}</span>}
+      {(soldOut || product.preorder || product.isNew) && <span className="editorial-product-badge">{soldOut ? "Épuisé" : product.slug === "lettre-de-naissance-personnalisee" ? "Sur commande" : product.preorder ? "Précommande" : "Nouveau"}</span>}
     </div>
     <div className="pt-4">
       <h3 className="editorial-product-title">{product.name}</h3>

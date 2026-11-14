@@ -1,7 +1,8 @@
+import {BIRTH_LETTER_SLUG,normalizeBirthLetter} from "./birth-letter";
 export const LETTER_LAMP_SLUG = "lampe-lettre-personnalisee";
 export const LOVE_LAMP_SLUG = "lampe-double-love";
 export function isPersonalizedLamp(slug: string) {
-  return slug === LETTER_LAMP_SLUG || slug === LOVE_LAMP_SLUG;
+  return slug === LETTER_LAMP_SLUG || slug === LOVE_LAMP_SLUG || slug === BIRTH_LETTER_SLUG;
 }
 export interface LampPersonalization {
   initial: string;
@@ -32,6 +33,7 @@ export function buildLampPersonalization(slug: string, fields: LampPersonalizati
 }
 /** Keep the manufacturing details intact through checkout and reject incomplete requests. */
 export function normalizeLampPersonalization(slug: string, value: unknown): string {
+  if(slug===BIRTH_LETTER_SLUG)return normalizeBirthLetter(value);
   if (typeof value !== "string") return "";
   const normalized = value.trim().replace(/\s+/g, " ");
   if (slug === LETTER_LAMP_SLUG && /^Lettre : \p{L} \| Texte : [^|]{1,32} \| Motif : [^|]{1,32}$/u.test(normalized)) return normalized;

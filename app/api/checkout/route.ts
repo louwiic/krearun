@@ -1,3 +1,4 @@
+import {birthLetterDetailColors} from "@/lib/birth-letter";
 import { MONSTER_MULTICOLOR_CENTS, parseMonsterColors, monsterColorNames, isMonsterPremium } from "@/lib/monster-multicolor";
 import { KEYCHAIN_ID, keychainLabel, validateKeychainColors, type KeychainConfiguration } from "@/lib/name-keychain";
 import { validateKeychainGeometry } from "@/lib/name-keychain-server";
@@ -215,7 +216,7 @@ async function prepareCheckout(req: Request) {
         { status: 400 }
       );
     }
-    const selectedStock = variant?.stock ?? product.stock;
+    const selectedStock = product.slug === "lettre-de-naissance-personnalisee" ? 20 : variant?.stock ?? product.stock;
     const selectedWeight = variant?.weightGrams || product.weightGrams;
     const selectedPrice = variant?.priceCents || product.priceCents;
     const maxQuantity = product.preorder ? 20 : selectedStock;
@@ -252,6 +253,10 @@ async function prepareCheckout(req: Request) {
     if (nosLogo && !(await getNosLogo(nosLogo))) return NextResponse.json({code:"LOGO_NOT_FOUND",error:"Votre logo NOS est introuvable. Importez-le à nouveau depuis la fiche produit."},{status:400});
     if (personalizedLamp && !customName) {
       return NextResponse.json({ code: "PERSONALIZATION_INVALID", error: `Complétez la personnalisation de « ${product.name} ».` }, { status: 400 });
+    }
+    if(product.slug === "lettre-de-naissance-personnalisee") {
+      const detailPalette=availableInventoryPalette(inventory||[]);
+      if(birthLetterDetailColors(customName).some(name=>!detailPalette.some(color=>colorKey(color.name)===colorKey(name))))return NextResponse.json({code:"COLOR_OUT_OF_STOCK",error:"Choisissez des couleurs disponibles pour le fond et le dessus des éléments."},{status:400});
     }
     const clicker = product.id === CLICKER_PRODUCT_ID ? item.clickerConfiguration : undefined;
     if (product.id === CLICKER_PRODUCT_ID && (!clicker?.text || !clicker.baseColor || !clicker.capColor || !clicker.letterColor)) {

@@ -8,6 +8,7 @@ export function siteOrigin(): string {
 }
 
 export const CATEGORY_DESCRIPTIONS: Record<string, string> = {
+  personnalisation: "Créez un cadeau personnalisé à La Réunion : initiale, prénom, couleurs et détails de naissance, fabriqués à la commande dans notre atelier.",
   veilleuses: "Découvrez nos veilleuses et lampes personnalisées, préparées dans notre atelier à La Réunion. Choisissez un modèle et composez un cadeau à votre image.",
   bureau: "Des accessoires pour votre bureau, préparés par Kréarun à La Réunion. Découvrez les modèles disponibles pour organiser et personnaliser votre espace.",
   rangement: "Découvrez les objets de rangement Kréarun pour organiser votre quotidien. Des créations préparées avec soin dans notre atelier à La Réunion.",
@@ -49,7 +50,7 @@ export function productStructuredData(product: Product, categoryLabel: string, r
     offers: {
       "@type": "Offer", price: ((prices.length ? Math.min(...prices) : product.priceCents) / 100).toFixed(2),
       priceCurrency: "EUR", itemCondition: "https://schema.org/NewCondition",
-      availability: `https://schema.org/${product.preorder ? "PreOrder" : stock > 0 ? "InStock" : "OutOfStock"}`, url,
+      availability: `https://schema.org/${product.slug === "lettre-de-naissance-personnalisee" ? "InStock" : product.preorder ? "PreOrder" : stock > 0 ? "InStock" : "OutOfStock"}`, url,
     },
     ...(approved.length ? {
       aggregateRating: { "@type": "AggregateRating", ratingValue: Number((approved.reduce((sum, review) => sum + review.rating, 0) / approved.length).toFixed(2)), reviewCount: approved.length },

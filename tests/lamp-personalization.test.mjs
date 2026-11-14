@@ -1,4 +1,5 @@
 import test from 'node:test';
+import {loadTs} from './load-ts.mjs';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import ts from 'typescript';
@@ -9,7 +10,7 @@ function load(path) {
  new Function('module','exports',outputText)(module,module.exports);
  return module.exports;
 }
-const lamp=load('../lib/lamp-personalization.ts');
+const lamp=loadTs(new URL('../lib/lamp-personalization.ts',import.meta.url));
 const metadata=load('../lib/checkout-item-metadata.ts');
 const fields={initial:'l',text:'Louane',secondName:'Ketty',motif:'Étoiles',otherMotif:'',hearts:'2',inscription:'Éphésiens 5:31'};
 test('letter, text and alternative symbols survive checkout without first-name truncation',()=>{

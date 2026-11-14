@@ -163,13 +163,13 @@ export function ProductBulkTable({ products, audience }: ProductBulkTableProps) 
                   <td className="px-5 py-3 font-bold">{formatPrice(product.priceCents)}</td>
                   <td className="px-5 py-3">
                     <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${
-                      product.stock === 0
+                      product.slug === "lettre-de-naissance-personnalisee" ? "bg-sage/25 text-sage-deep" : product.stock === 0
                         ? "bg-blush/50 text-terra-deep"
                         : product.stock <= 3
                           ? "bg-sand/70 text-ink-soft"
                           : "bg-sage/25 text-sage-deep"
                     }`}>
-                      {product.stock}
+                      {product.slug === "lettre-de-naissance-personnalisee" ? "Sur commande" : product.stock}
                     </span>
                   </td>
                   {(["impressions","clicks","views"] as const).map(key=><td key={key} className="px-4 py-3 text-right"><Link href={`/admin/produits/statistiques?produit=${product.id}`} className="hover:underline">{audience===null||audience===undefined?"—":(audience[product.id]?.[key]||0).toLocaleString("fr-FR")}</Link></td>)}

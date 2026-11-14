@@ -42,7 +42,7 @@ export function groupStoreCategories(categories: StoreCategory[]) {
     { id: "maison", label: "Maison & décoration", values: ["veilleuses", "vases", "deco", "salle-de-bain"] },
     { id: "bureau", label: "Bureau & rangement", values: ["bureau", "rangement"] },
     { id: "accessoires", label: "Accessoires", values: ["porte-boisson", "lunette"] },
-    { id: "collections", label: "Collections", values: ["noel"] },
+    { id: "collections", label: "Collections", values: ["noel", "personnalisation"] },
   ];
   return families.map(family => ({ id: family.id, label: family.label, categories: categories.filter(category => category.active && family.values.includes(category.value)) })).filter(family => family.categories.length);
 }
