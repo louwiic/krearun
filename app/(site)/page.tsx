@@ -97,7 +97,7 @@ export default async function HomePage() {
           { image: "monster-gold", title: "Monster argent & or", alt: "Porte-canette Monster noir, griffes argent et or, avec ses accessoires sur fond uni", slug: "porte-canette-monster" },
         ].map(item => <Link key={item.image} href={`/boutique/${item.slug}`} className="group min-w-0">
           <div className="aspect-square overflow-hidden rounded-2xl border border-ink/10 bg-[#F6F2ED]">
-            <img src={`/products/home-selection/${item.image}.webp`} alt={item.alt} width={1000} height={1000} loading="lazy" className="h-full w-full object-contain object-center" />
+            <img src={`/products/home-selection/${item.image}.webp`} alt={item.alt} width={1000} height={1000} loading="lazy" className={`h-full w-full object-contain object-center ${item.image === "monster-blue" ? "rotate-90" : ""}`} />
           </div>
           <h3 className="mt-4 font-display text-lg font-semibold group-hover:underline">{item.title} <span aria-hidden="true">↗</span></h3>
         </Link>)}
