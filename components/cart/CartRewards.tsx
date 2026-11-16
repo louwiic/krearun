@@ -2,6 +2,7 @@
 
 import { REWARDS, findReward, rewardDiscount } from "@/lib/rewards";
 import { formatPrice } from "@/lib/format";
+import CouponIllustration from "./CouponIllustration";
 import { useCart } from "./CartContext";
 
 export default function CartRewards({ onSelect }: { onSelect?: () => void }) {
@@ -19,9 +20,12 @@ export default function CartRewards({ onSelect }: { onSelect?: () => void }) {
       {REWARDS.map(reward => {
         const unlocked = rewardDiscount(reward.code, subtotalCents) > 0;
         const active = rewardCode === reward.code && unlocked;
-        return <button type="button" key={reward.code} disabled={!unlocked} aria-pressed={active} onClick={() => { onSelect?.(); selectReward(active ? "" : reward.code); }} className={`rounded-xl border px-3 py-3 text-left text-sm disabled:opacity-60 ${active ? "border-terra bg-terra/10" : "border-sand"}`}>
-          <span className="flex items-center justify-between gap-2"><strong>−{formatPrice(reward.amountCents)}</strong><span>{active ? "✓ Appliquée · retirer" : unlocked ? "Utiliser" : reward.maximumCents !== null && subtotalCents > reward.maximumCents ? "Hors plafond" : "À débloquer"}</span></span>
-          <span className="mt-1 block text-xs">{reward.title} · {reward.condition}</span>
+        return <button type="button" key={reward.code} disabled={!unlocked} aria-pressed={active} onClick={() => { onSelect?.(); selectReward(active ? "" : reward.code); }} className={`flex items-center gap-2 rounded-2xl border px-2 py-3 text-left text-sm transition-colors enabled:hover:border-terra disabled:opacity-60 ${active ? "border-terra bg-terra/10" : "border-sand"}`}>
+          <CouponIllustration amountCents={reward.amountCents} />
+          <span className="min-w-0 flex-1">
+          <span className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1"><strong>−{formatPrice(reward.amountCents)}</strong><span>{active ? "✓ Appliquée · retirer" : unlocked ? "Utiliser" : reward.maximumCents !== null && subtotalCents > reward.maximumCents ? "Hors plafond" : "À débloquer"}</span></span>
+          <span className="mt-1 block text-xs">{reward.title}<span className="mt-1 block text-ink-soft">{reward.condition}</span></span>
+          </span>
         </button>;
       })}
     </div>
