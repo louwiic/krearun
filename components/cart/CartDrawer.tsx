@@ -4,6 +4,7 @@ import { personalizationLabel } from "@/lib/nos";
 
 import { monsterGiftLabel } from "@/lib/monster-gift";
 
+import CartRewards from "./CartRewards";
 import Link from "next/link";
 import { useCart } from "./CartContext";
 import { publicColorName } from "@/lib/colors";
@@ -21,7 +22,7 @@ export default function CartDrawer({
   shippingFlatCents: number;
   shippingRatesJson: string;
 }) {
-  const { items, subtotalCents, isOpen, closeCart, setQuantity, removeItem } =
+  const { items, subtotalCents, rewardDiscountCents, isOpen, closeCart, setQuantity, removeItem } =
     useCart();
 
   const freeShippingEnabled = freeShippingThresholdCents > 0;
@@ -38,7 +39,7 @@ export default function CartDrawer({
       : billableWeightGrams === 0
         ? 0
         : shippingEstimate.priceCents;
-  const totalCents = subtotalCents + shippingCents;
+  const totalCents = subtotalCents + shippingCents - rewardDiscountCents;
 
   return (
     <>
@@ -101,7 +102,9 @@ export default function CartDrawer({
               )}
             </div>
 
-            <ul className="soft-scroll flex-1 divide-y divide-sand/50 overflow-y-auto px-4 sm:px-6">
+            <div className="soft-scroll min-h-0 flex-1 overflow-y-auto px-4 sm:px-6">
+            <div className="my-4"><CartRewards /></div>
+            <ul className="divide-y divide-sand/50">
               {items.map((item) => {
                 const unitPriceCents = cartUnitPriceCents(item);
                 const discountPercent = quantityDiscountPercent(item.quantityDiscounts, item.quantity);
@@ -227,6 +230,7 @@ export default function CartDrawer({
                 );
               })}
             </ul>
+            </div>
 
             <div className="border-t border-sand/70 bg-cream px-4 py-4 sm:px-6 sm:py-5">
               <div className="mb-2 flex items-center justify-between">
@@ -241,6 +245,7 @@ export default function CartDrawer({
                   {shippingCents === 0 ? "Offerte" : formatPrice(shippingCents)}
                 </span>
               </div>
+              {rewardDiscountCents > 0 && <div className="mb-2 flex justify-between text-sm font-semibold"><span>Récompense</span><span>−{formatPrice(rewardDiscountCents)}</span></div>}
               <p className="mb-3 text-xs text-ink-soft">Vers la métropole : tarif Colissimo calculé selon le poids et votre adresse à l’étape suivante.</p>
               <div className="mb-4 flex items-center justify-between border-t border-sand/60 pt-3">
                 <span className="text-sm font-bold">Total estimé</span>

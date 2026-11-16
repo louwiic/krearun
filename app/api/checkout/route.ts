@@ -1,3 +1,5 @@
+import { findReward, rewardDiscount } from "@/lib/rewards";
+import { checkoutRewardCoupon } from "@/lib/reward-checkout";
 import {birthLetterDetailColors} from "@/lib/birth-letter";
 import { MONSTER_MULTICOLOR_CENTS, parseMonsterColors, monsterColorNames, isMonsterPremium } from "@/lib/monster-multicolor";
 import { KEYCHAIN_ID, keychainLabel, validateKeychainColors, type KeychainConfiguration } from "@/lib/name-keychain";
@@ -332,7 +334,11 @@ async function prepareCheckout(req: Request) {
   const discounts: NonNullable<Stripe.Checkout.SessionCreateParams["discounts"]> = [];
 
   try {
-    if (promoCode) {
+    const reward = findReward(promoCode);
+    if (reward) {
+      if (!rewardDiscount(promoCode, subtotalCents)) return NextResponse.json({ code: "PROMO_INELIGIBLE", error: `Récompense non applicable : ${reward.condition.toLowerCase()}, hors livraison et après remises automatiques.` }, { status: 400 });
+      discounts.push({ coupon: await checkoutRewardCoupon(stripe, reward) });
+    } else if (promoCode) {
       const promotionCodes = await stripe.promotionCodes.list({
         code: promoCode,
         active: true,

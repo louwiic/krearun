@@ -1,5 +1,6 @@
 "use server";
 
+import { buildOrderColorCatalog, updateOrderItemColors } from "@/lib/order-colors";
 import { orderImageUrl } from "@/lib/order-images";
 import { normalizeOrderTrackingNumber } from "@/lib/order-tracking";
 import { createHash } from "node:crypto";
@@ -10,6 +11,8 @@ import {
   createOrder,
   ensureOrderManagementSchema,
   getOrderById,
+  getProducts,
+  getInventoryColors,
   getOrderBySourceId,
   updateManagedOrder,
 } from "@/lib/store";
@@ -114,6 +117,8 @@ export async function saveManualOrderAction(
     const rawImage = data.has("productImage") ? text(data, "productImage", 2000) : previous?.productImage || "";
     const productImage = orderImageUrl(rawImage);
     if (rawImage && !productImage) throw new Error("Adresse de photo invalide : utilisez une URL http(s) ou une image du site.");
+    const items = previous?.items.length ? updateOrderItemColors(previous.items, data,
+      buildOrderColorCatalog(...await Promise.all([getProducts({ includeInactive: true }), getInventoryColors()]))) : previous?.items ?? [];
     const input: CreateOrderInput = {
       name,
       email,
@@ -141,7 +146,7 @@ export async function saveManualOrderAction(
       urgent: data.get("urgent") === "on",
       orderedAt,
       dueDate,
-      items: previous?.items ?? [],
+      items,
       source: previous?.source ?? "manual",
       sourceId: previous?.sourceId ?? "",
       stripeSessionId: previous?.stripeSessionId ?? "",

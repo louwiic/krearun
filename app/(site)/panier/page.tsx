@@ -1,9 +1,12 @@
 import CartReminderSignup from "@/components/cart/CartReminderSignup";
 import CheckoutForm from "./CheckoutForm";
-import { getSettings } from "@/lib/store";
+import { getCustomerSession } from "@/lib/customer-auth";
+import { getSettings, getCustomerById } from "@/lib/store";
 
 export default async function CartPage() {
-  const settings = await getSettings();
+  const [settings, session] = await Promise.all([getSettings(), getCustomerSession()]);
+  const customer = session ? await getCustomerById(session.id) : null;
+  const [firstName = "", ...lastName] = customer?.name.trim().split(/\s+/) ?? [];
 
   return (
     <div className="mx-auto max-w-6xl px-5 py-10 sm:px-8 sm:py-14">
@@ -22,6 +25,7 @@ export default async function CartPage() {
       {settings.cart_email_reminder_enabled && <CartReminderSignup />}
 
       <CheckoutForm
+        initialCustomer={customer ? {email: customer.email, firstName, lastName: lastName.join(" "), phone: customer.phone, addressLine1: customer.addressLine1, addressLine2: customer.addressLine2, postalCode: customer.postalCode, city: customer.city, country: customer.country === "FR" ? "FR" : "RE"} : undefined}
         nameGiftEnabled={settings.cart_name_gift_enabled}
         nameGiftContent={{
           title: settings.express_offer_title || "Finalisez votre achat : votre porte-clés prénom est offert !",

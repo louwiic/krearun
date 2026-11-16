@@ -7,6 +7,8 @@ import { parseMetropolitanShipping, shippingZone, metropolitanQuote } from "@/li
 import { monsterGiftLabel } from "@/lib/monster-gift";
 
 import Link from "next/link";
+import CartRewards from "@/components/cart/CartRewards";
+import { rewardDiscount } from "@/lib/rewards";
 import CartNameGift from "@/components/cart/CartNameGift";
 import TermsAcceptance from "@/components/legal/TermsAcceptance";
 import { LEGAL_VERSION } from "@/lib/legal";
@@ -17,7 +19,7 @@ import { formatPrice } from "@/lib/format";
 import { billableWeight, hasMissingBillableWeight } from "@/lib/free-shipping";
 import { calculateShippingCents, parseShippingRates } from "@/lib/shipping";
 import { parsePickupPoints } from "@/lib/pickup";
-import type { FulfillmentMethod } from "@/lib/types";
+import type { CheckoutCustomer, FulfillmentMethod } from "@/lib/types";
 import { cartUnitPriceCents, quantityDiscountPercent } from "@/lib/quantity-discounts";
 
 const inputClass =
@@ -60,6 +62,7 @@ function Field({
 }
 
 export default function CheckoutForm({
+  initialCustomer,
   nameGiftEnabled,
   nameGiftContent,
   freeShippingThresholdCents,
@@ -68,6 +71,7 @@ export default function CheckoutForm({
   metropolitanShippingRatesJson,
   pickupPointsJson,
 }: {
+  initialCustomer?: CheckoutCustomer;
   nameGiftEnabled: boolean;
   nameGiftContent: { title: string; description: string; image: string; cta: string };
   freeShippingThresholdCents: number;
@@ -76,19 +80,20 @@ export default function CheckoutForm({
   metropolitanShippingRatesJson: string;
   pickupPointsJson: string;
 }) {
-  const { items, subtotalCents, setQuantity, removeItem } = useCart();
+  const { items, subtotalCents, rewardCode, selectReward, manualPromoCode, setManualPromoCode: setPromoCode, setQuantity, removeItem } = useCart();
   const postalCodeInput = useRef<HTMLInputElement>(null);
   const countryNotice = useRef<HTMLDialogElement>(null);
   const [loading, setLoading] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [error, setError] = useState("");
-  const [promoCode, setPromoCode] = useState("");
+  const promoCode = manualPromoCode || (rewardDiscount(rewardCode, subtotalCents) ? rewardCode : "");
+  const rewardDiscountCents = rewardDiscount(promoCode, subtotalCents);
   const [orderNote, setOrderNote] = useState("");
   const [giftName, setGiftName] = useState("");
   const pickupPoints = useMemo(() => parsePickupPoints(pickupPointsJson), [pickupPointsJson]);
   const [fulfillmentMethod, setFulfillmentMethod] = useState<FulfillmentMethod>("delivery");
   const [pickupPointId, setPickupPointId] = useState(pickupPoints[0]?.id ?? "");
-  const [customer, setCustomer] = useState({
+  const [customer, setCustomer] = useState(initialCustomer ?? {
     email: "",
     firstName: "",
     lastName: "",
@@ -122,7 +127,7 @@ export default function CheckoutForm({
         : billableWeightGrams === 0
           ? 0
           : shippingEstimate.priceCents;
-  const totalCents = subtotalCents + shippingCents;
+  const totalCents = subtotalCents + shippingCents - rewardDiscountCents;
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -385,6 +390,7 @@ export default function CheckoutForm({
           </span>
         </label>
 
+        <CartRewards onSelect={() => setPromoCode("")} />
         <label className="block">
           <span className="mb-1.5 block text-xs font-bold text-ink-soft">
             Code promo
@@ -392,7 +398,7 @@ export default function CheckoutForm({
           <input
             className={inputClass}
             value={promoCode}
-            onChange={(event) => setPromoCode(event.target.value)}
+            onChange={(event) => { setPromoCode(event.target.value); selectReward(""); }}
             placeholder="Facultatif"
           />
           <span className="mt-2 block text-xs text-ink-faint">
@@ -524,6 +530,7 @@ export default function CheckoutForm({
               {shippingError ? "À déterminer" : shippingCents === 0 ? "Offerte" : formatPrice(shippingCents)}
             </span>
           </div>
+          {rewardDiscountCents > 0 && <div className="flex justify-between font-semibold"><span>Récompense</span><span>−{formatPrice(rewardDiscountCents)}</span></div>}
           <div className="flex items-center justify-between border-t border-sand/70 pt-4">
             <span className="font-bold">Total estimé</span>
             <span className="font-display text-xl font-semibold">

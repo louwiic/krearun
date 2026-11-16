@@ -23,3 +23,15 @@ test("hexadecimal colors and multiple colors remain visible", () => {
   assert.deepEqual(resolveOrderColor("Noir & Blanc", item), ["#171717", "#ffffff"]);
   assert.deepEqual(resolveOrderColor("Teinte inconnue", item), [null]);
 });
+
+test("editing an order color preserves personalization and prices and rejects unknown colors", async () => {
+  const { orderItemColorChoices, updateOrderItemColors } = await import('../lib/order-colors.ts');
+  const original = { ...item, color: 'Ancien coloris', customName: 'Test', priceCents: 1990, quantity: 2, keychainChoice: 'griffes' };
+  assert.ok(orderItemColorChoices(original, catalog).includes('Ancien coloris'));
+  const form = new FormData();
+  assert.equal(updateOrderItemColors([original], form, catalog)[0], original);
+  form.set('itemColor_0', 'Bleu');
+  assert.deepEqual(updateOrderItemColors([original], form, catalog), [{...original, color:'Bleu'}]);
+  form.set('itemColor_0', 'inventée');
+  assert.throws(() => updateOrderItemColors([original], form, catalog), /Coloris invalide/);
+});

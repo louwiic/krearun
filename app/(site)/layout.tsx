@@ -1,3 +1,4 @@
+import RewardsLauncher from "@/components/site/RewardsLauncher";
 import CartReturnReminder from "@/components/cart/CartReturnReminder";
 import { ColorAvailabilityProvider } from "@/components/product/ColorAvailabilityProvider";
 import HalloweenSpiders from "@/components/site/HalloweenSpiders";
@@ -76,6 +77,7 @@ export default async function SiteLayout({
         text={settings.newsletter_popup_text}
         storeName={settings.store_name}
       />
+    <RewardsLauncher />
     <PrivacyPreferences />
     <ProductTracking /><PurchaseTracking /><PresenceTracking />
       </div></ColorAvailabilityProvider>

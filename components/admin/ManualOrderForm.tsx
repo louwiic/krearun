@@ -13,6 +13,8 @@ import {
   PRODUCTION_STATUSES,
   productionStatus,
 } from "@/lib/order-management";
+import type { OrderColorCatalog } from "@/lib/order-colors";
+import { orderItemColorChoices } from "@/lib/order-colors";
 import type { Order } from "@/lib/types";
 import {
   paymentStatusStyle,
@@ -23,7 +25,7 @@ const field =
   "mt-1.5 w-full rounded-xl border border-sand bg-linen px-4 py-3 text-sm outline-none focus:border-terra disabled:opacity-60";
 const statusField =
   "mt-1.5 w-full rounded-xl border px-4 py-3 text-sm font-semibold outline-none focus:border-terra disabled:cursor-not-allowed disabled:opacity-100";
-export default function ManualOrderForm({ order, products = [] }: { order?: Order; products?: OrderImageProduct[] }) {
+export default function ManualOrderForm({ order, products = [], colorCatalog }: { order?: Order; products?: OrderImageProduct[]; colorCatalog?: OrderColorCatalog }) {
   const [state, setState] = useState<OrderActionResult>({});
   const [pending, startTransition] = useTransition();
   const [payment, setPayment] = useState(order?.paymentStatus ?? "unpaid");
@@ -129,6 +131,16 @@ export default function ManualOrderForm({ order, products = [] }: { order?: Orde
               Fabrication
             </h2>
             <OrderImagePicker initialImage={order?.productImage} products={products} />
+            {order?.items.map((item, index) => (
+              <label key={index} className="mt-4 block text-sm font-semibold">
+                Couleur — {item.name}{item.variantName ? ` · ${item.variantName}` : ""}
+                <select name={`itemColor_${index}`} defaultValue={item.color} className={field}>
+                  {orderItemColorChoices(item, colorCatalog).map(color => (
+                    <option key={color} value={color}>{color || "Sans coloris"}</option>
+                  ))}
+                </select>
+              </label>
+            ))}
             <label className="block text-sm font-semibold">
               Produits et détails de la commande
               <textarea

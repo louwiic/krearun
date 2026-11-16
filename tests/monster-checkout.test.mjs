@@ -1,4 +1,6 @@
 import { loadTs } from './load-ts.mjs';
+const rewards=loadTs(new URL('../lib/rewards.ts',import.meta.url));
+const rewardCheckout=loadTs(new URL('../lib/reward-checkout.ts',import.meta.url));
 const birth=loadTs(new URL('../lib/birth-letter.ts',import.meta.url));
 const lampPersonalizations=loadTs(new URL('../lib/lamp-personalization.ts',import.meta.url));
 const keychains=loadTs(new URL('../lib/name-keychain.ts',import.meta.url));
@@ -22,6 +24,8 @@ const require=createRequire(import.meta.url);
 function checkout(slug='porte-canette-monster',weightGrams=180, settings={}, productOverrides={}, inventory=[], promotion=null, failures={}) {
  const sessions=[];
  const mocks={
+  "@/lib/rewards":rewards,
+  "@/lib/reward-checkout":rewardCheckout,
   "@/lib/birth-letter":birth,
   "@/lib/monster-multicolor":multicolor,
   "@/lib/name-keychain":keychains,
@@ -33,7 +37,7 @@ function checkout(slug='porte-canette-monster',weightGrams=180, settings={}, pro
   '@/lib/promotion-details':promotionDetails,'@/lib/color-availability':availability,'@/lib/metropolitan-shipping':metropolitan,'@/lib/nos':nos,
   '@/lib/monster-gift':gift,'@/lib/legal':legal,'@/lib/checkout-item-metadata':metadata,
   '@/lib/store':{getInventoryColors:async()=>inventory,getNosLogo:async id=>id==='abc123def456ghi'?{id}:null,getSettings:async()=>settings,getProductById:async()=>{if(failures.store)throw new Error('private@example.fr');return ({id:'monster',slug,name:'Produit',active:true,variants:[],stock:10,priceCents:1790,weightGrams,images:[],colors:slug===nos.NOS_SLUG?nos.NOS_COLORS:[],...productOverrides});}},
-  '@/lib/stripe':{stripeConfigured:()=>!failures.configuration,getStripe:()=>({promotionCodes:{list:async()=>({data:promotion?[promotion]:[]})},checkout:{sessions:{create:async data=>{if(failures.stripe)throw {type:failures.stripe,message:"private@example.fr"};sessions.push(data);return {url:'https://checkout.invalid/test'};}}}})},
+  '@/lib/stripe':{stripeConfigured:()=>!failures.configuration,getStripe:()=>({coupons:{retrieve:async id=>({id,valid:true,amount_off:Number(id.split("-").at(-1)),currency:"eur",duration:"once"})},promotionCodes:{list:async()=>({data:promotion?[promotion]:[]})},checkout:{sessions:{create:async data=>{if(failures.stripe)throw {type:failures.stripe,message:"private@example.fr"};sessions.push(data);return {url:'https://checkout.invalid/test'};}}}})},
   '@/lib/colors':{publicColorName:v=>v},'@/lib/free-shipping':{billableProductWeight:product=>product.slug===keychains.KEYCHAIN_SLUG?0:weightGrams,hasMissingProductWeight:product=>product.slug===keychains.KEYCHAIN_SLUG?false:weightGrams<=0},
   '@/lib/shipping':{parseShippingRates:()=>[],calculateShippingCents:()=>({priceCents:577,label:'Test'})},
   '@/lib/pickup':{getPickupPoint:()=>null},'@/lib/quantity-discounts':quantityPricing,
@@ -250,4 +254,19 @@ test('birth letter made on demand keeps every selected detail at the catalog pri
  assert.match(s.sessions[0].line_items[0].price_data.product_data.name,/3090 g/);
  const invalid=await s.post(request({customName:'Lili'}));assert.equal(invalid.status,400);
  assert.equal((await invalid.json()).code,'PERSONALIZATION_INVALID');
+});
+
+test('rewards use server totals and exclude shipping from thresholds',async()=>{
+ for (const [price,code,status,amount] of [[1799,'KREA050',200,50],[1800,'KREA050',200,50],[1801,'KREA050',400,0],[3499,'KREA2',400,0],[3500,'krea2',200,200]]) {
+  const {post,sessions}=checkout('other',180,{}, {priceCents:price});
+  const response=await post(request({},true,{}, {promoCode:code,subtotalCents:999999,rewardDiscountCents:999999}));
+  assert.equal(response.status,status);
+  if(status===200)assert.deepEqual(sessions[0].discounts,[{coupon:`krearun-reward-v1-${amount}`}]);
+  else assert.equal(sessions.length,0);
+ }
+});
+test('automatic quantity discounts count before reward eligibility',async()=>{
+ const {post,sessions}=checkout('other',180,{}, {priceCents:1800,quantityDiscounts:[{minQuantity:2,percent:10}]});
+ const response=await post(request({quantity:2},true,{}, {promoCode:'KREA2'}));
+ assert.equal(response.status,400);assert.equal(sessions.length,0);
 });

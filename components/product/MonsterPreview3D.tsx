@@ -12,6 +12,7 @@ export default function MonsterPreview3D({color,colorName,parts}:{color:string;c
   const currentColor = useRef(color);
   const currentParts = useRef(parts);
   const renderView = useRef<()=>void>(()=>{});
+  const rotate = useRef<()=>void>(()=>{});
   const reset = useRef<()=>void>(()=>{});
   const [status,setStatus] = useState("Chargement du modèle Monster…");
 
@@ -41,6 +42,14 @@ export default function MonsterPreview3D({color,colorName,parts}:{color:string;c
     const camera=new THREE.PerspectiveCamera(34,1,.1,2000);
     const controls=new OrbitControls(camera,renderer.domElement);
     controls.enablePan=false;
+    const touchDevice=window.matchMedia("(any-pointer: coarse), (max-width: 767px)");
+    function updateInteraction() {
+      controls.enabled=!touchDevice.matches;
+      renderer.domElement.style.touchAction=touchDevice.matches?"pan-y":"none";
+      renderer.domElement.style.pointerEvents=touchDevice.matches?"none":"auto";
+    }
+    updateInteraction();
+    touchDevice.addEventListener("change",updateInteraction);
     controls.minDistance=100;controls.maxDistance=850;
     const render=()=>{if(!disposed)renderer.render(scene,camera);};
     renderView.current=render;controls.addEventListener("change",render);
@@ -59,6 +68,10 @@ export default function MonsterPreview3D({color,colorName,parts}:{color:string;c
       controls.target.set(0,0,0);controls.update();controls.saveState();render();
     }
     reset.current=fit;
+    rotate.current=()=>{
+      camera.position.sub(controls.target).applyAxisAngle(new THREE.Vector3(0,1,0),Math.PI/4).add(controls.target);
+      controls.update();render();
+    };
     const observer=new ResizeObserver(resize);observer.observe(element);resize();
     function disposeModel(root:THREE.Group) {
       root.traverse(object=>{if(object instanceof THREE.Mesh){object.geometry.dispose();(Array.isArray(object.material)?object.material:[object.material]).forEach(material=>material.dispose());}});
@@ -84,20 +97,21 @@ export default function MonsterPreview3D({color,colorName,parts}:{color:string;c
       scene.add(model);fit();setStatus("");
     }).catch(()=>{if(!disposed)setStatus("Le modèle 3D n’a pas pu être chargé. Consultez la photo ou rechargez la page.");});
     return()=>{
-      disposed=true;observer.disconnect();controls.dispose();
+      disposed=true;observer.disconnect();touchDevice.removeEventListener("change",updateInteraction);controls.dispose();
       if(model)disposeModel(model);
-      bodyMaterials.current=[];renderView.current=()=>{};reset.current=()=>{};
+      bodyMaterials.current=[];renderView.current=()=>{};reset.current=()=>{};rotate.current=()=>{};
       renderer.dispose();renderer.forceContextLoss();renderer.domElement.remove();
     };
   },[]);
 
   return <div className="overflow-hidden rounded-2xl border-2 border-ink bg-cream">
     <div className="relative">
-      <div ref={host} role="img" aria-label={`Aperçu 3D du porte-boisson Monster — ${colorName}`} data-monster-preview-color={color} className="h-[390px] w-full touch-none sm:h-[520px]" />
+      <div ref={host} role="img" aria-label={`Aperçu 3D du porte-boisson Monster — ${colorName}`} data-monster-preview-color={color} className="h-[390px] w-full touch-pan-y sm:h-[520px]" />
       <span className="pointer-events-none absolute left-4 top-4 text-xs font-bold uppercase tracking-wide">Aperçu 3D · {colorName}</span>
       <button type="button" onClick={()=>reset.current()} aria-label="Réinitialiser la vue du Monster" className="absolute right-3 top-3 rounded-full bg-white/90 px-3 py-2">↺</button>
+      <button type="button" onClick={()=>rotate.current()} aria-label="Faire pivoter le Monster" className="absolute bottom-3 right-3 flex h-12 w-12 items-center justify-center rounded-full border border-sand bg-white/95 text-2xl shadow-soft">↻</button>
       {status&&<p role="status" className="absolute inset-0 flex items-center justify-center bg-cream/95 p-6 text-center text-sm">{status}</p>}
     </div>
-    <p className="border-t border-ink/15 px-4 py-3 text-xs text-ink-soft">Griffes et anneaux assortis au coloris choisi. Faites glisser pour tourner et pincez pour zoomer. Coloris indicatifs selon votre écran.</p>
+    <p className="border-t border-ink/15 px-4 py-3 text-xs text-ink-soft">Griffes et anneaux assortis au coloris choisi. Sur mobile, utilisez le bouton ↻ pour tourner ; le glissement fait défiler la page. À la souris, faites glisser pour tourner et utilisez la molette pour zoomer. Coloris indicatifs selon votre écran.</p>
   </div>;
 }

@@ -1399,3 +1399,8 @@ export async function downloadKeychainFile(id: string) {
   if(!response.ok)throw new Error("Fichier indisponible.");
   return {record,response};
 }
+
+export async function updateCustomerProfile(id: string, profile: Pick<Customer, "name" | "phone" | "addressLine1" | "addressLine2" | "postalCode" | "city" | "country">): Promise<void> {
+  if (!/^[a-z0-9]{15}$/.test(id)) throw new Error("Compte invalide.");
+  await pb(`/collections/customers/records/${id}`, { method: "PATCH", body: profile });
+}

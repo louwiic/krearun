@@ -46,3 +46,19 @@ export function resolveOrderColor(name: string, item: Pick<OrderItem, "productId
 export function isOrderColorDetail(label: string): boolean {
   return ["Coloris", "Base", "Caps", "Lettres et symbole", "Couleur de la lettre", "Couleur du prénom"].includes(label);
 }
+
+/** Keep historical/custom colors selectable even when absent from today's catalogue. */
+export function orderItemColorChoices(item: Pick<OrderItem, "productId" | "variantId" | "color">, catalog?: OrderColorCatalog): string[] {
+  const product = catalog?.products[item.productId];
+  return [...new Set([item.color, ...(item.variantId ? product?.variants[item.variantId] ?? [] : [] ).map(color => color.name), ...(product?.colors ?? []).map(color => color.name), ...(catalog?.inventory ?? []).map(color => color.name)])];
+}
+
+export function updateOrderItemColors(items: OrderItem[], data: FormData, catalog: OrderColorCatalog): OrderItem[] {
+  return items.map((item, index) => {
+    const key = `itemColor_${index}`;
+    if (!data.has(key)) return item;
+    const color = String(data.get(key) ?? "").trim();
+    if (!orderItemColorChoices(item, catalog).includes(color)) throw new Error("Coloris invalide pour cet article. Recharge la page et réessaie.");
+    return color === item.color ? item : { ...item, color };
+  });
+}

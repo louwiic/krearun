@@ -9,11 +9,17 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { findReward, rewardDiscount } from "@/lib/rewards";
 import { MONSTER_GIFT } from "@/lib/monster-gift";
 import type { CartItem } from "@/lib/types";
 import { cartUnitPriceCents } from "@/lib/quantity-discounts";
 
 interface CartContextValue {
+  manualPromoCode: string;
+  setManualPromoCode: (code: string) => void;
+  rewardCode: string;
+  rewardDiscountCents: number;
+  selectReward: (code: string) => void;
   items: CartItem[];
   count: number;
   subtotalCents: number;
@@ -65,17 +71,22 @@ function sameLine(
 }
 
 export function CartProvider({ children }: { children: ReactNode }) {
+  const [manualPromoCode, setManualPromoCode] = useState("");
+  const [rewardCode, setRewardCode] = useState("");
   const [items, setItems] = useState<CartItem[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     try {
+      const savedReward = localStorage.getItem("krearun-reward-v1") ?? "";
+      // Restore the browser-only reward alongside the persisted cart after hydration.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      if (findReward(savedReward)) setRewardCode(savedReward);
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
         const saved = JSON.parse(raw) as CartItem[];
         // Le panier persistant est restauré une seule fois après l'hydratation client.
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         setItems(
           saved.map((item) =>
             item.slug === "porte-canette-monster"
@@ -103,8 +114,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (hydrated) localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-  }, [items, hydrated]);
+    if (hydrated) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+      localStorage.setItem("krearun-reward-v1", rewardCode);
+    }
+  }, [items, hydrated, rewardCode]);
 
   const addItem = useCallback(
     (item: Omit<CartItem, "quantity">, quantity = 1) => {
@@ -153,11 +167,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const restoreCart = useCallback((restored: CartItem[]) => setItems(restored), []);
 
-  const clearCart = useCallback(() => setItems([]), []);
+  const clearCart = useCallback(() => { setItems([]); setRewardCode(""); setManualPromoCode(""); }, []);
+  const selectReward = useCallback((code: string) => { setRewardCode(findReward(code)?.code ?? ""); if (findReward(code)) setManualPromoCode(""); }, []);
 
   const value = useMemo<CartContextValue>(
     () => ({
       items,
+      rewardCode,
+      manualPromoCode,
+      setManualPromoCode,
+      selectReward,
+      rewardDiscountCents: rewardDiscount(rewardCode, items.reduce((n, i) => n + cartUnitPriceCents(i) * i.quantity, 0)),
       count: items.reduce((n, i) => n + i.quantity, 0),
       subtotalCents: items.reduce((n, i) => n + cartUnitPriceCents(i) * i.quantity, 0),
       totalWeightGrams: items.reduce((n, i) => n + (i.weightGrams ?? 0) * i.quantity, 0),
@@ -171,7 +191,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       clearCart,
       restoreCart,
     }),
-    [items, isOpen, hydrated, addItem, removeItem, setQuantity, clearCart, restoreCart]
+    [items, rewardCode, manualPromoCode, selectReward, isOpen, hydrated, addItem, removeItem, setQuantity, clearCart, restoreCart]
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
