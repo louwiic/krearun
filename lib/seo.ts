@@ -51,7 +51,7 @@ export function productStructuredData(product: Product, categoryLabel: string, r
     offers: {
       "@type": "Offer", price: ((prices.length ? Math.min(...prices) : product.priceCents) / 100).toFixed(2),
       priceCurrency: "EUR", itemCondition: "https://schema.org/NewCondition",
-      availability: `https://schema.org/${product.slug === "lettre-de-naissance-personnalisee" ? "InStock" : product.preorder ? "PreOrder" : stock > 0 ? "InStock" : "OutOfStock"}`, url,
+      availability: `https://schema.org/${product.slug === "lettre-de-naissance-personnalisee" || (product.category === "gta-6" && product.preorder) ? "InStock" : product.preorder ? "PreOrder" : stock > 0 ? "InStock" : "OutOfStock"}`, url,
     },
     ...(approved.length ? {
       aggregateRating: { "@type": "AggregateRating", ratingValue: Number((approved.reduce((sum, review) => sum + review.rating, 0) / approved.length).toFixed(2)), reviewCount: approved.length },

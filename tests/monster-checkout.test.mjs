@@ -270,3 +270,10 @@ test('automatic quantity discounts count before reward eligibility',async()=>{
  const response=await post(request({quantity:2},true,{}, {promoCode:'KREA2'}));
  assert.equal(response.status,400);assert.equal(sessions.length,0);
 });
+
+test('GTA made-to-order products can be purchased without fictitious stock',async()=>{
+ const {post,sessions}=checkout('porte-boisson-gta-vi',0,{}, {category:'gta-6',stock:0,preorder:true,priceCents:2490});
+ assert.equal((await post(request())).status,200);
+ assert.equal(sessions[0].line_items[0].price_data.unit_amount,2490);
+ assert.equal(sessions[0].line_items[0].price_data.product_data.description,'Fabrication sur commande');
+});

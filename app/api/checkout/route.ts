@@ -292,7 +292,7 @@ async function prepareCheckout(req: Request) {
           name: optionParts.length
             ? `${product.name} — ${optionParts.join(" · ")}`
             : product.name,
-          description: product.preorder ? "Pré-commande · bientôt disponible" : undefined,
+          description: product.preorder ? product.category === "gta-6" ? "Fabrication sur commande" : "Pré-commande · bientôt disponible" : undefined,
           images: product.images[0]?.startsWith("http")
             ? [product.images[0]]
             : undefined,

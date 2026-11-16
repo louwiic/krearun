@@ -119,7 +119,7 @@ export default async function ProductPage({
           <div className="mb-4 flex flex-wrap gap-2">
             {product.preorder && (
               <span className="inline-block rounded-full bg-terra px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-cream">
-                Pré-commande · bientôt disponible
+                {product.category === "gta-6" ? "Fabrication sur commande" : "Pré-commande · bientôt disponible"}
               </span>
             )}
             {product.isNew && !product.preorder && (
@@ -181,12 +181,12 @@ export default async function ProductPage({
                 product.category === "lunette"
                   ? "Votre paire est préparée avec soin avant l’envoi"
                   : product.preorder
-                  ? "Pré-commande — fabrication au lancement du prochain lot"
+                  ? product.category === "gta-6" ? "Fabrication sur commande à l’atelier" : "Pré-commande — fabrication au lancement du prochain lot"
                   : "Fabriqué à la commande — 2 à 4 jours de préparation",
               ],
               ["🚚", hasFreeShipping(product.slug) ? "Livraison offerte sur ce produit" : "Préparé avec soin, suivi inclus"],
               ...(product.category === "lunette" ? [] : [
-                ["⚖️", `Poids colis estimé : ${formatWeight(product.weightGrams)}`],
+                ["⚖️", product.category === "gta-6" && product.weightGrams <= 0 ? "Poids colis à préciser" : `Poids colis estimé : ${formatWeight(product.weightGrams)}`],
                 ["💚", "Matière légère, emballage recyclé et recyclable"],
               ]),
             ].map(([icon, text]) => (

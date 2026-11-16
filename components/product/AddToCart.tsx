@@ -337,7 +337,7 @@ export default function AddToCart({ product }: { product: Product }) {
             : missingCustomName
               ? birthLetter ? "Compléter la lettre de naissance" : "Indiquer le prénom"
             : product.preorder
-              ? "Pré-commander"
+              ? product.category === "gta-6" ? "Commander — fabrication sur commande" : "Pré-commander"
               : `Ajouter au panier — ${formatPrice(discountedConfiguredPriceCents * quantity)}${
                   quantityDiscount > 0 ? ` (−${quantityDiscount} %)` : ""
                 }`}
@@ -346,7 +346,7 @@ export default function AddToCart({ product }: { product: Product }) {
 
       {product.preorder && (
         <p className="rounded-2xl bg-sand/40 px-4 py-3 text-xs font-semibold leading-relaxed text-ink-soft">
-          Bientôt disponible : votre pièce sera fabriquée dès le prochain lot.
+          {product.category === "gta-6" ? "Votre pièce sera fabriquée à la commande dans notre atelier." : "Bientôt disponible : votre pièce sera fabriquée dès le prochain lot."}
         </p>
       )}
 

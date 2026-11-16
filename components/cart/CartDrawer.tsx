@@ -160,7 +160,7 @@ export default function CartDrawer({
                         )}
                         {item.preorder && (
                           <p className="mt-1 text-xs font-bold text-terra-deep">
-                            Pré-commande · bientôt disponible
+                            {item.slug === "porte-boisson-gta-vi" || item.slug.startsWith("porte-cles-gta-vi-") ? "Fabrication sur commande" : "Pré-commande · bientôt disponible"}
                           </p>
                         )}
                       </div>

@@ -18,7 +18,7 @@ export default function ProductCard({ product, className = "", showCta = false, 
     <div className="editorial-product-image">
       <img src={product.images[0] ?? "/products/hero.svg"} alt={product.name} width={800} height={800} decoding="async" loading={priority ? "eager" : "lazy"} className={`aspect-square h-full w-full ${product.category === "gta-6" ? "object-contain" : "object-cover"}`} />
       {product.images[1] && <img src={product.images[1]} alt="" aria-hidden width={800} height={800} decoding="async" loading="lazy" className={`absolute inset-0 h-full w-full ${product.category === "gta-6" ? "object-contain" : "object-cover"} opacity-0 transition-opacity duration-500 group-hover:opacity-100`} />}
-      {(soldOut || product.preorder || product.isNew) && <span className="editorial-product-badge">{soldOut ? "Épuisé" : product.slug === "lettre-de-naissance-personnalisee" ? "Sur commande" : product.preorder ? "Précommande" : "Nouveau"}</span>}
+      {(soldOut || product.preorder || product.isNew) && <span className="editorial-product-badge">{soldOut ? "Épuisé" : product.slug === "lettre-de-naissance-personnalisee" || (product.category === "gta-6" && product.preorder) ? "Sur commande" : product.preorder ? "Précommande" : "Nouveau"}</span>}
     </div>
     <div className="pt-4">
       <h3 className="editorial-product-title">{product.name}</h3>
