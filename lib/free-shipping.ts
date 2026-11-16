@@ -2,6 +2,10 @@ import type { CartItem, Product } from "./types";
 
 const FREE_SHIPPING_SLUGS = new Set([
   "porte-cles-prenom",
+  "porte-cles-gta-vi-r-etoile",
+  "porte-cles-gta-vi-personnage",
+  "porte-cles-gta-vi-logo",
+  "porte-cles-gta-vi-vice-city",
   "porte-cle-coupe-du-monde-fifa",
   "decapsuleur-a-levier",
   "lunettes-ecaille-bourbon",

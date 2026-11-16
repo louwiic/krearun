@@ -8,6 +8,7 @@ export function siteOrigin(): string {
 }
 
 export const CATEGORY_DESCRIPTIONS: Record<string, string> = {
+  "gta-6": "Collection GTA 6 · Exclusivité : porte-boisson à 24,90 €, lampe à 45 € et porte-clés individuels à 14,90 €, livraison incluse pour les porte-clés.",
   personnalisation: "Créez un cadeau personnalisé à La Réunion : initiale, prénom, couleurs et détails de naissance, fabriqués à la commande dans notre atelier.",
   veilleuses: "Découvrez nos veilleuses et lampes personnalisées, préparées dans notre atelier à La Réunion. Choisissez un modèle et composez un cadeau à votre image.",
   bureau: "Des accessoires pour votre bureau, préparés par Kréarun à La Réunion. Découvrez les modèles disponibles pour organiser et personnaliser votre espace.",

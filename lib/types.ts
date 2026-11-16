@@ -2,7 +2,7 @@ import type { KeychainConfiguration } from "./name-keychain";
 import type { LetterConfiguration } from "./custom-letter-settings";
 
 export type Category =
-  "veilleuses" | "vases" | "bureau" | "rangement" | "salle-de-bain" | "deco" | "porte-boisson" | "lunette" | "noel" | "personnalisation";
+  "veilleuses" | "vases" | "bureau" | "rangement" | "salle-de-bain" | "deco" | "porte-boisson" | "lunette" | "noel" | "personnalisation" | "gta-6";
 
 export const CATEGORIES: { value: Category; label: string }[] = [
   { value: "veilleuses", label: "Veilleuses & Lampes" },
@@ -15,6 +15,7 @@ export const CATEGORIES: { value: Category; label: string }[] = [
   { value: "lunette", label: "Lunette" },
   { value: "noel", label: "Noël" },
   { value: "personnalisation", label: "Personnalisation" },
+  { value: "gta-6", label: "GTA 6 · Exclusivité" },
 ];
 
 export interface ProductColor {
