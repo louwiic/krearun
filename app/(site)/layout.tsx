@@ -12,7 +12,7 @@ import PrivacyPreferences from "@/components/site/PrivacyPreferences";
 import Navbar from "@/components/site/Navbar";
 import Footer from "@/components/site/Footer";
 import CartDrawer from "@/components/cart/CartDrawer";
-import NewsletterPopup from "@/components/site/NewsletterPopup";
+import GtaGiftPopup from "@/components/site/GtaGiftPopup";
 import { getSettings, getInventoryColors } from "@/lib/store";
 import { getVisibleCategories } from "@/lib/categories";
 
@@ -69,14 +69,7 @@ export default async function SiteLayout({
         shippingFlatCents={settings.shipping_flat_cents}
         shippingRatesJson={settings.shipping_rates_json}
       />
-      <NewsletterPopup
-        enabled={settings.newsletter_popup_enabled}
-        discountPct={settings.newsletter_popup_discount_pct}
-        delaySeconds={settings.newsletter_popup_delay_seconds}
-        title={settings.newsletter_popup_title}
-        text={settings.newsletter_popup_text}
-        storeName={settings.store_name}
-      />
+      <GtaGiftPopup />
     <RewardsLauncher />
     <PrivacyPreferences />
     <ProductTracking /><PurchaseTracking /><PresenceTracking />

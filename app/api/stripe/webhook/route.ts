@@ -1,3 +1,4 @@
+import { GTA_GIFT_OFFER, gtaGiftOrderItems } from "@/lib/gta-gift";
 import { parseKeychainConfiguration, KEYCHAIN_ID, keychainLabel, type KeychainConfiguration } from "@/lib/name-keychain";
 import { fulfillOrderKeychains } from "@/lib/name-keychain-fulfillment";
 import { readShippingQuote } from "@/lib/metropolitan-shipping";
@@ -135,6 +136,11 @@ export async function POST(req: Request) {
       });
     }
 
+    // Gift eligibility was derived from current paid catalog products at checkout,
+    // and persisted in the signed Stripe session. Gifts never decrement paid stock.
+    if (session.metadata?.giftOffer === GTA_GIFT_OFFER) {
+      items.push(...gtaGiftOrderItems(session.metadata?.giftName ?? ""));
+    }
     const customer = metadataCustomer(session);
     const details = session.collected_information?.shipping_details ??
       // fallback selon versions d'API
@@ -163,6 +169,7 @@ export async function POST(req: Request) {
     const orderNote = [
       customerNote ? `Note du client : ${customerNote}` : "",
       pickupNote,
+      session.metadata?.giftOffer === GTA_GIFT_OFFER ? `CADEAUX GTA OFFERTS — porte-clés GTA VI rose et bleu${session.metadata?.giftName ? ` + prénom : ${session.metadata.giftName} · POLICE GTA` : " (prénom non renseigné)"}` : "",
       session.metadata?.giftOffer === "name_keychain_v1" && session.metadata?.giftName
         ? `CADEAU OFFERT — 1 porte-clés prénom : ${session.metadata.giftName}` : "",
     ]

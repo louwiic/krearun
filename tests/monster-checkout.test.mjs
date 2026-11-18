@@ -24,6 +24,7 @@ const require=createRequire(import.meta.url);
 function checkout(slug='porte-canette-monster',weightGrams=180, settings={}, productOverrides={}, inventory=[], promotion=null, failures={}) {
  const sessions=[];
  const mocks={
+  "@/lib/gta-gift":loadTs(new URL("../lib/gta-gift.ts",import.meta.url)),
   "@/lib/rewards":rewards,
   "@/lib/reward-checkout":rewardCheckout,
   "@/lib/birth-letter":birth,
@@ -276,4 +277,26 @@ test('GTA made-to-order products can be purchased without fictitious stock',asyn
  assert.equal((await post(request())).status,200);
  assert.equal(sessions[0].line_items[0].price_data.unit_amount,2490);
  assert.equal(sessions[0].line_items[0].price_data.product_data.description,'Fabrication sur commande');
+});
+
+test('paid GTA order receives exactly one free pair and keeps paid subtotal / stock metadata separate',async()=>{
+ const {sessions,post}=checkout('porte-boisson-gta-vi',190,{cart_name_gift_enabled:false},{category:'gta-6'});
+ const response=await post(request({quantity:3},true,{}, {giftName:'Loïc'}));
+ assert.equal(response.status,200);
+ const session=sessions[0];
+ assert.equal(session.line_items.length,3);
+ assert.equal(session.line_items[0].quantity,3);
+ assert.ok(session.line_items.slice(1).every(line=>line.price_data.unit_amount===0 && line.quantity===1));
+ assert.match(session.line_items[2].price_data.product_data.name,/Loïc.*police GTA/);
+ assert.equal(session.metadata.giftOffer,'gta_keychain_and_name_v1');
+ assert.equal(JSON.parse(metadata.readCheckoutItems(session.metadata)).length,1);
+});
+test('GTA keychain remains free without a name; unrelated products do not get the GTA gift',async()=>{
+ const gta=checkout('lampe-gta-vi',600);
+ assert.equal((await gta.post(request())).status,200);
+ assert.equal(gta.sessions[0].line_items.length,2);
+ assert.equal(gta.sessions[0].metadata.giftOffer,'gta_keychain_and_name_v1');
+ const other=checkout();assert.equal((await other.post(request())).status,200);
+ assert.equal(other.sessions[0].metadata.giftOffer,undefined);
+ assert.equal(other.sessions[0].line_items.length,1);
 });

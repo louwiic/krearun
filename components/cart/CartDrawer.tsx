@@ -5,6 +5,7 @@ import { personalizationLabel } from "@/lib/nos";
 import { monsterGiftLabel } from "@/lib/monster-gift";
 
 import CartRewards from "./CartRewards";
+import { qualifiesForGtaGift } from "@/lib/gta-gift";
 import Link from "next/link";
 import { useCart } from "./CartContext";
 import { publicColorName } from "@/lib/colors";
@@ -104,6 +105,7 @@ export default function CartDrawer({
 
             <div className="soft-scroll min-h-0 flex-1 overflow-y-auto px-4 sm:px-6">
             <div className="my-4"><CartRewards /></div>
+            {items.some(qualifiesForGtaGift) && <div className="mb-4 rounded-xl border border-terra bg-terra/5 p-4 text-sm"><p className="font-bold">Ton porte-clés GTA 6 est offert !</p><p className="mt-2 leading-6">Le modèle rose et bleu sera ajouté au colis. Renseigne aussi ton prénom à l’étape suivante pour ton second porte-clés offert, en police GTA.</p></div>}
             <ul className="divide-y divide-sand/50">
               {items.map((item) => {
                 const unitPriceCents = cartUnitPriceCents(item);

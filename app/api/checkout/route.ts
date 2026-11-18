@@ -1,3 +1,4 @@
+import { GTA_GIFT_OFFER, GTA_GIFT_NAME, qualifiesForGtaGift } from "@/lib/gta-gift";
 import { findReward, rewardDiscount } from "@/lib/rewards";
 import { checkoutRewardCoupon } from "@/lib/reward-checkout";
 import {birthLetterDetailColors} from "@/lib/birth-letter";
@@ -162,7 +163,6 @@ async function prepareCheckout(req: Request) {
   }
 
   const settings = await getSettings();
-  if (giftName && !settings.cart_name_gift_enabled) return NextResponse.json({ code: "GIFT_EXPIRED", error: "L’offre de porte-clés prénom est terminée. Actualisez votre panier pour continuer." }, { status: 400 });
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
   const pickupPoint =
     fulfillmentMethod === "pickup"
@@ -185,6 +185,7 @@ async function prepareCheckout(req: Request) {
     quantity: number;
   }[] = [];
   const metadataItems: { p: string; q: number; c: string; u: number; n?: string; v?: string; k?: string; d?: string; h?: KeychainConfiguration }[] = [];
+  let gtaGiftEligible = false;
   let subtotalCents = 0;
   let totalWeightGrams = 0;
   let physicalWeightGrams = 0;
@@ -279,6 +280,7 @@ async function prepareCheckout(req: Request) {
       discountedUnitPriceCents(selectedPrice, variantQuantityDiscounts(product, variant?.id), quantity) +
       (customName && !personalizedLamp ? product.namePersonalizationPriceCents : 0) +
       (monsterParts ? MONSTER_MULTICOLOR_CENTS : 0);
+    gtaGiftEligible ||= qualifiesForGtaGift({slug: product.slug, priceCents: unitAmount});
     subtotalCents += unitAmount * quantity;
     const pricedProduct = { ...product, weightGrams: selectedWeight };
     physicalWeightGrams += (selectedWeight || 0) * quantity;
@@ -313,6 +315,11 @@ async function prepareCheckout(req: Request) {
     });
   }
 
+  if (giftName && !gtaGiftEligible && !settings.cart_name_gift_enabled) return NextResponse.json({ code: "GIFT_EXPIRED", error: "L’offre de porte-clés prénom est terminée. Actualisez votre panier pour continuer." }, { status: 400 });
+  if (gtaGiftEligible) {
+    lineItems.push({ price_data: { currency: "eur", unit_amount: 0, product_data: { name: `${GTA_GIFT_NAME} — offert`, description: "Un cadeau GTA par commande éligible." } }, quantity: 1 });
+    if (giftName) lineItems.push({ price_data: { currency: "eur", unit_amount: 0, product_data: { name: `Porte-clés prénom « ${giftName} » · police GTA — offert` } }, quantity: 1 });
+  }
   const shippingRates = parseShippingRates(settings.shipping_rates_json);
   const shipping = calculateShippingCents(totalWeightGrams || 1, shippingRates);
   const freeShipping =
@@ -403,7 +410,7 @@ async function prepareCheckout(req: Request) {
         pickupPointSchedule: pickupPoint?.schedule ?? "",
         promoCode,
         orderNote,
-        ...(giftName ? { giftName, giftOffer: "name_keychain_v1" } : {}),
+        ...(gtaGiftEligible ? { giftOffer: GTA_GIFT_OFFER, ...(giftName ? { giftName } : {}) } : giftName ? { giftName, giftOffer: "name_keychain_v1" } : {}),
       },
       discounts: discounts.length ? discounts : undefined,
       success_url: `${siteUrl}/commande/succes?session_id={CHECKOUT_SESSION_ID}`,

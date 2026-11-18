@@ -1,4 +1,6 @@
 "use client";
+import { qualifiesForGtaGift, GTA_GIFT_IMAGE, GTA_GIFT_NAME } from "@/lib/gta-gift";
+
 
 import { checkoutDiagnostic, type CheckoutDiagnostic } from "@/lib/purchase-journey";
 import { journeySessionId, trackJourney } from "@/lib/journey-tracking";
@@ -81,6 +83,7 @@ export default function CheckoutForm({
   pickupPointsJson: string;
 }) {
   const { items, subtotalCents, rewardCode, selectReward, manualPromoCode, setManualPromoCode: setPromoCode, setQuantity, removeItem } = useCart();
+  const gtaGiftEligible = items.some(qualifiesForGtaGift);
   const postalCodeInput = useRef<HTMLInputElement>(null);
   const countryNotice = useRef<HTMLDialogElement>(null);
   const [loading, setLoading] = useState(false);
@@ -146,7 +149,7 @@ export default function CheckoutForm({
           termsAccepted, termsVersion: LEGAL_VERSION,
           promoCode,
           note: orderNote,
-          giftName: nameGiftEnabled ? giftName : "",
+          giftName: (nameGiftEnabled || gtaGiftEligible) ? giftName : "",
           fulfillmentMethod,
           pickupPointId: isPickup ? selectedPickupPoint.id : "",
           items: items.map((item) => ({
@@ -199,7 +202,12 @@ export default function CheckoutForm({
 
   return (
     <form onSubmit={submit} className="mt-10 grid gap-8 lg:grid-cols-[minmax(0,1fr)_400px]">
-      {nameGiftEnabled && <CartNameGift value={giftName} onChange={setGiftName} {...nameGiftContent} />}
+      {(nameGiftEnabled || gtaGiftEligible) && <CartNameGift value={giftName} onChange={setGiftName} {...(gtaGiftEligible ? {
+        title: "Ton porte-clés GTA 6 + ton prénom offerts !",
+        description: "Le porte-clés GTA VI rose et bleu est ajouté gratuitement. Choisis aussi le prénom de ton second porte-clés offert, en police GTA. Une paire par commande.",
+        image: GTA_GIFT_IMAGE, cta: "Je choisis mon prénom offert",
+      } : nameGiftContent)} gta={gtaGiftEligible} />}
+      {gtaGiftEligible && <section aria-label="Cadeaux GTA inclus" className="rounded-2xl border-2 border-terra bg-cream p-5 lg:col-span-2"><h2 className="font-bold">Tes cadeaux GTA — 0 €</h2><p className="mt-2 text-sm">1 × {GTA_GIFT_NAME} offert</p><p className="mt-2 text-sm">{giftName ? `1 × Porte-clés « ${giftName} » en police GTA offert` : "Ajoute ton prénom avec le bouton cadeau pour recevoir aussi ton porte-clés prénom en police GTA."}</p></section>}
       <section className="space-y-6 bg-cream p-5 shadow-soft sm:p-8">
         <div>
           <h2 className="font-display text-2xl font-semibold">Coordonnées</h2>
