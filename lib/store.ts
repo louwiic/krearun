@@ -1414,3 +1414,37 @@ export async function downloadLibrarySnapshot(): Promise<Uint8Array> {
   if(!response.ok)throw new Error("Inventaire privé indisponible.");
   return new Uint8Array(await response.arrayBuffer());
 }
+
+// Postage originals and combined address PDFs are private manufacturing documents.
+let postageSchema:Promise<void>|undefined;
+async function ensurePostageSchema(){
+ postageSchema??=(async()=>{
+  const existing=await pb<{items:{id:string}[]}>(`/collections?filter=${encodeURIComponent("name='postage_labels'")}`);
+  if(existing.items[0]){
+   const schema=await pb<{fields:{name:string;protected?:boolean}[];[key:string]:unknown}>(`/collections/${existing.items[0].id}`);
+   if(['listRule','viewRule','createRule','updateRule','deleteRule'].some(k=>schema[k]!==null)||['source','preview','output'].some(name=>!schema.fields.some(f=>f.name===name&&f.protected)))throw Error('Le gestionnaire d’étiquettes doit rester privé.');return;
+  }
+  await pb('/collections',{method:'POST',body:{name:'postage_labels',type:'base',listRule:null,viewRule:null,createRule:null,updateRule:null,deleteRule:null,fields:[
+   {name:'label',type:'text'},{name:'sourceName',type:'text'},{name:'settings',type:'json',maxSize:5000},{name:'address',type:'json',maxSize:5000},{name:'printed',type:'bool'},
+   ...['source','preview','output'].map(name=>({name,type:'file',protected:true,maxSelect:1,maxSize:15*1024*1024})),{name:'created',type:'autodate',onCreate:true,onUpdate:false},
+  ]}});
+ })().catch(e=>{postageSchema=undefined;throw e;});return postageSchema;
+}
+export async function listPostageLabels(){await ensurePostageSchema();return (await pb<{items:import('./postage-labels').PostageLabelRecord[]}>('/collections/postage_labels/records?perPage=100&sort=-created')).items;}
+export async function getPostageLabel(id:string){if(!/^[a-z0-9]{15}$/.test(id))return null;await ensurePostageSchema();return pb<import('./postage-labels').PostageLabelRecord>('/collections/postage_labels/records/'+id);}
+async function postageForm(form:FormData,id?:string){
+ await getToken();const send=()=>fetch(`${PB_URL}/api/collections/postage_labels/records${id?'/'+id:''}`,{method:id?'PATCH':'POST',headers:{Authorization:cachedToken?.value||''},body:form,cache:'no-store'});
+ let response=await send();if(response.status===401){cachedToken=null;await getToken();response=await send();}if(!response.ok)throw Error('Impossible d’enregistrer l’étiquette privée.');return response.json() as Promise<import('./postage-labels').PostageLabelRecord>;
+}
+export async function savePostageSource(input:{label:string;sourceName:string;settings:import('./postage-labels').PostageSettings},source:Uint8Array,preview:Uint8Array){
+ await ensurePostageSchema();const form=new FormData();for(const [key,value]of Object.entries(input))form.set(key,typeof value==='object'?JSON.stringify(value):value);
+ form.set('address',JSON.stringify({}));form.set('printed','false');form.set('source',new Blob([new Uint8Array(source)],{type:'application/pdf'}),'timbre-original.pdf');form.set('preview',new Blob([new Uint8Array(preview)],{type:'image/png'}),'apercu-timbre.png');return postageForm(form);
+}
+export async function updatePostageLabel(id:string,input:{settings?:import('./postage-labels').PostageSettings;address?:import('./postage-labels').PostageAddress;printed?:boolean},output?:Uint8Array){
+ if(!/^[a-z0-9]{15}$/.test(id))throw Error('Étiquette introuvable.');const form=new FormData();for(const [key,value]of Object.entries(input))form.set(key,typeof value==='object'?JSON.stringify(value):String(value));
+ if(output)form.set('output',new Blob([new Uint8Array(output)],{type:'application/pdf'}),'timbre-et-adresse.pdf');return postageForm(form,id);
+}
+export async function downloadPostageDocument(record:import('./postage-labels').PostageLabelRecord,type:'source'|'preview'|'output'){
+ const filename=record[type];if(!filename)return null;const {token}=await pb<{token:string}>('/files/token',{method:'POST'});
+ const response=await fetch(`${PB_URL}/api/files/postage_labels/${record.id}/${encodeURIComponent(filename)}?token=${encodeURIComponent(token)}`,{cache:'no-store'});if(!response.ok)throw Error('Document privé indisponible.');return response;
+}
