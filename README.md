@@ -186,7 +186,9 @@ son GLB réel et ses contours en millimètres. Les anciens choix absents du pack
 le marquage de surface pour l’historique ; ils ne sont plus proposés pour une nouvelle création.
 L’assemblage du clicker à l’écran reste indicatif ; les GLB ne sont pas des fichiers de fabrication.
 
-Dans `/admin/porte-cles`, le générateur « Symboles et éléments du 3MF » compose
+Dans `/admin/porte-cles`, l’outil « Porte-clés » permet de choisir entre « Prénom » et
+« Symboles ». Le formulaire actif conserve ses réglages lors du changement de mode.
+Le générateur de symboles compose
 un porte-clés plat avec 1 à 8 éléments, du texte natif, un fond continu et un œillet
 latéral traversant de 4 mm. Le fond fait 2,4 mm et le relief 1,2 mm. La largeur de contour
 se règle de 0,8 à 4 mm, les couleurs proviennent de l’inventaire. Le 3MF bicolore contient

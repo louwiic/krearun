@@ -33,7 +33,7 @@ export default function ElementKeychainGenerator({inventory}:{inventory:ColorAva
   }
   const shapes=result.shapes;
   return <section id="elements-3mf" className="mb-12 rounded-2xl border-2 border-sand bg-cream p-5 sm:p-7">
-    <h2 className="font-display text-2xl font-bold">Porte-clés symboles et éléments du 3MF</h2>
+    <h2 className="font-display text-2xl font-bold">Porte-clés symboles</h2>
     <p className="mt-2 text-sm text-ink-soft">Compose un porte-clé plat avec les motifs en relief du pack : symboles, lettres, chiffres, accents et touche vierge. Fond relié et trou latéral de 4 mm, comme pour les prénoms.</p>
     <div className="mt-6 grid gap-8 lg:grid-cols-2"><div>
       <label className="text-sm font-bold">Catalogue — {CLICKER_ELEMENTS.length} éléments<select value={group} onChange={e=>setGroup(e.target.value)} className={field}>{CLICKER_ELEMENT_GROUPS.map(g=><option key={g}>{g}</option>)}</select></label>

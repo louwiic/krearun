@@ -8,7 +8,7 @@ export default function Generateur3DPage() {
       <p className="mb-8 mt-1 max-w-3xl text-sm text-ink-soft">
         Créez rapidement un prénom avec un fond plat qui suit la forme des lettres, puis exportez-le en STL pour Bambu Studio.
       </p>
-      <Link href="/admin/porte-cles" className="mb-6 inline-block rounded-full bg-terra px-6 py-3 text-sm font-bold text-white">Porte-clés prénoms, symboles et éléments du 3MF →</Link>
+      <Link href="/admin/porte-cles" className="mb-6 inline-block rounded-full bg-terra px-6 py-3 text-sm font-bold text-white">Générateur de porte-clés →</Link>
       <NameplateGenerator />
     </div>
   );
