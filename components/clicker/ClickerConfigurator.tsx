@@ -7,19 +7,12 @@ import type { InventoryColor } from "@/lib/types";
 import { publicColorName } from "@/lib/colors";
 import { formatPrice } from "@/lib/format";
 import { CLICKER_PRICE_CENTS, CLICKER_PRODUCT_ID } from "@/lib/clicker";
+import { CLICKER_ELEMENTS, CLICKER_ELEMENT_GROUPS, clickerCharacters, clickerElement, printableClickerText } from "@/lib/clicker-elements";
 import { useCart } from "@/components/cart/CartContext";
 
 const OrbitPreview=dynamic(()=>import('./ClickerOrbitPreview'),{ssr:false,loading:()=> <div className="flex h-[280px] items-center justify-center text-xs">Chargement de l’aperçu 3D…</div>});
 
 const CHARACTER_COUNTS = Array.from({ length: 14 }, (_, index) => index + 1);
-const SYMBOLS = [
-  { value: "★", label: "Étoile" },
-  { value: "♥", label: "Cœur" },
-  { value: "✦", label: "Éclat" },
-  { value: "☀", label: "Soleil" },
-  { value: "☁", label: "Nuage" },
-  { value: "♣", label: "Trèfle" },
-];
 const FALLBACK_COLORS: InventoryColor[] = [
   { id: "blue", name: "Bleu", hex: "#2f62c9", stockGrams: 0, active: true, note: "", sortOrder: 1, createdAt: "", updatedAt: "" },
   { id: "pink", name: "Rose", hex: "#e86a91", stockGrams: 0, active: true, note: "", sortOrder: 2, createdAt: "", updatedAt: "" },
@@ -46,7 +39,7 @@ function ColorPicker({ label, colors, value, onChange }: { label: string; colors
 }
 
 function ClickerPreview({ text, symbol, baseColor, capColor, letterColor }: { text: string; symbol: string; baseColor: string; capColor: string; letterColor: string }) {
-  const tiles = symbol ? [...text.split(""), symbol] : text.split("");
+  const tiles = symbol ? [...clickerCharacters(text), symbol] : clickerCharacters(text);
   const perRow = tiles.length > 8 ? 6 : tiles.length;
   const rows = Array.from({ length: Math.ceil(tiles.length / perRow) }, (_, index) => tiles.slice(index * perRow, (index + 1) * perRow));
   const tileSize = 62;
@@ -68,12 +61,11 @@ function ClickerPreview({ text, symbol, baseColor, capColor, letterColor }: { te
             <path d={`M 7 ${y + tileSize / 2} C -8 ${y - 5}, -8 ${y + tileSize + 5}, 7 ${y + tileSize / 2}`} fill="none" stroke="url(#clicker-gold)" strokeWidth="4" strokeLinecap="round" />
             {row.map((tile, index) => {
               const x = 17 + index * (tileSize + gap);
-              const isSymbol = Boolean(symbol) && rowIndex === rows.length - 1 && index === row.length - 1;
               return (
                 <g key={`${tile}-${index}`} transform={`translate(${x} ${y})`}>
                   <rect width={tileSize} height={tileSize} rx="16" fill={baseColor} stroke="#fff" strokeWidth="4" />
                   <rect x="5" y="5" width={tileSize - 10} height={tileSize - 10} rx="12" fill={capColor} stroke="#17120f" strokeOpacity=".18" strokeWidth="2" />
-                  <text x={tileSize / 2} y={isSymbol ? 42 : 43} textAnchor="middle" fontFamily="Arial, sans-serif" fontSize={isSymbol ? 31 : 34} fontWeight="800" fill={letterColor}>{tile}</text>
+                  {(()=>{const item=clickerElement(tile);if(!item || item.id==="blank")return item?null:<text x={31} y={43} textAnchor="middle" fill={letterColor}>{tile}</text>;const [minX,minY,maxX,maxY]=item.boundsMm;const scale=36/Math.max(maxX-minX,maxY-minY);return <g transform={`translate(31 31) scale(${scale} ${-scale}) translate(${-(minX+maxX)/2} ${-(minY+maxY)/2})`}><path d={item.contours.map(r=>`M${r.map(p=>p.join(",")).join("L")}Z`).join(" ")} fill={letterColor} fillRule="nonzero"/></g>;})()}
                 </g>
               );
             })}
@@ -119,7 +111,7 @@ export default function ClickerConfigurator({ colors: inventoryColors }: { color
   const [letterColor, setLetterColor] = useState(colors[2] ?? colors[0]);
 
   const price = CLICKER_PRICE_CENTS;
-  const displayedText = (text || "KREA").slice(0, characterCount).toUpperCase();
+  const displayedText = clickerCharacters(text || (symbol ? "" : "KREA")).slice(0, Math.max(0,characterCount - (symbol ? 1 : 0))).join("");
   const clickerConfiguration = {
     text: displayedText,
     characterCount,
@@ -167,22 +159,22 @@ export default function ClickerConfigurator({ colors: inventoryColors }: { color
           <div className="space-y-8">
             <div>
             <label htmlFor="clicker-text" className="mb-2 block text-sm font-bold uppercase tracking-[0.08em] text-ink-soft">Ton texte</label>
-            <input id="clicker-text" value={text} onChange={(event) => setText(event.target.value.replace(/[^a-zA-ZÀ-ÿ0-9 ]/g, "").slice(0, characterCount))} placeholder="Ex. KREA" className="w-full rounded-lg border-2 border-sand bg-white px-4 py-3 text-lg uppercase outline-none focus:border-terra" />
-            <p className="mt-2 text-xs text-ink-faint">{text.length}/{characterCount} caractère{characterCount > 1 ? "s" : ""}</p>
+            <input id="clicker-text" value={text} onChange={(event) => setText(clickerCharacters(printableClickerText(event.target.value)).slice(0, characterCount - (symbol ? 1 : 0)).join(""))} placeholder="Ex. KREA" className="w-full rounded-lg border-2 border-sand bg-white px-4 py-3 text-lg uppercase outline-none focus:border-terra" />
+            <p className="mt-2 text-xs text-ink-faint">{clickerCharacters(text).length + (symbol ? 1 : 0)}/{characterCount} caractère{characterCount > 1 ? "s" : ""}</p>
             </div>
 
             <div>
             <label htmlFor="clicker-count" className="mb-2 block text-sm font-bold uppercase tracking-[0.08em] text-ink-soft">Nombre de caractères (lettres + symboles)</label>
-            <select id="clicker-count" value={characterCount} onChange={(event) => { const count = Number(event.target.value); setCharacterCount(count); setText((current) => current.slice(0, count)); }} className="w-full rounded-lg border-2 border-sand bg-white px-4 py-3 text-lg outline-none focus:border-terra">
+            <select id="clicker-count" value={characterCount} onChange={(event) => { const count = Number(event.target.value); setCharacterCount(count); setText((current) => clickerCharacters(current).slice(0, count - (symbol ? 1 : 0)).join("")); }} className="w-full rounded-lg border-2 border-sand bg-white px-4 py-3 text-lg outline-none focus:border-terra">
               {CHARACTER_COUNTS.map((count) => <option key={count} value={count}>{count}</option>)}
             </select>
             </div>
 
             <div>
             <label htmlFor="clicker-symbol" className="mb-2 block text-sm font-bold uppercase tracking-[0.08em] text-ink-soft">Symbole</label>
-            <select id="clicker-symbol" value={symbol} onChange={(event) => setSymbol(event.target.value)} className="w-full rounded-lg border-2 border-sand bg-white px-4 py-3 text-lg outline-none focus:border-terra">
+            <select id="clicker-symbol" value={symbol} onChange={(event) => { const value=event.target.value;setSymbol(value);setText(current=>clickerCharacters(current).slice(0, characterCount - (value ? 1 : 0)).join("")); }} className="w-full rounded-lg border-2 border-sand bg-white px-4 py-3 text-lg outline-none focus:border-terra">
               <option value="">Aucun symbole</option>
-              {SYMBOLS.map((item) => <option key={item.value} value={item.value}>{item.value} · {item.label}</option>)}
+              {CLICKER_ELEMENT_GROUPS.map(group=><optgroup key={group} label={group}>{CLICKER_ELEMENTS.filter(item=>item.group===group).map(item=><option key={item.id} value={item.value}>{item.value} · {item.label}</option>)}</optgroup>)}
             </select>
             <label htmlFor="clicker-symbol-note" className="mt-4 block text-xs font-bold uppercase tracking-[0.08em] text-ink-soft">Note sur le placement du symbole <span className="font-normal normal-case text-ink-faint">(facultatif)</span></label>
             <textarea id="clicker-symbol-note" value={symbolNote} onChange={(event) => setSymbolNote(event.target.value.slice(0, 240))} placeholder="Ex. symbole à la fin, après les lettres" rows={2} className="mt-2 w-full resize-none rounded-lg border-2 border-sand bg-white px-3 py-2.5 text-sm outline-none focus:border-terra" />

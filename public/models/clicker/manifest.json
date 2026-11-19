@@ -208,6 +208,17 @@
         5.0
       ]
     },
+    "moon": {
+      "file": "cap-moon.glb",
+      "triangles": 6108,
+      "bytes": 111536,
+      "sourceName": "keycap - moon",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
     "cloud": {
       "file": "cap-cloud.glb",
       "triangles": 6124,
@@ -219,11 +230,121 @@
         5.0
       ]
     },
+    "ribbon": {
+      "file": "cap-ribbon.glb",
+      "triangles": 6600,
+      "bytes": 120396,
+      "sourceName": "keycap - ribbon",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "lightning": {
+      "file": "cap-lightning.glb",
+      "triangles": 5580,
+      "bytes": 102032,
+      "sourceName": "keycap - lightning",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "duck": {
+      "file": "cap-duck.glb",
+      "triangles": 6596,
+      "bytes": 120300,
+      "sourceName": "keycap - duck",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "fire": {
+      "file": "cap-fire.glb",
+      "triangles": 6220,
+      "bytes": 113556,
+      "sourceName": "keycap - fire",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "cat": {
+      "file": "cap-cat.glb",
+      "triangles": 6996,
+      "bytes": 127476,
+      "sourceName": "keycap - cat",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
     "clover": {
       "file": "cap-clover.glb",
       "triangles": 7016,
       "bytes": 127884,
       "sourceName": "keycap - clover",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "airplane": {
+      "file": "cap-airplane.glb",
+      "triangles": 5978,
+      "bytes": 109200,
+      "sourceName": "keycap - airplane",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "music": {
+      "file": "cap-music.glb",
+      "triangles": 6088,
+      "bytes": 111180,
+      "sourceName": "keycap - music",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "coffee": {
+      "file": "cap-coffee.glb",
+      "triangles": 5588,
+      "bytes": 102104,
+      "sourceName": "keycap - coffee",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "flower": {
+      "file": "cap-flower.glb",
+      "triangles": 6860,
+      "bytes": 125052,
+      "sourceName": "keycap - flower",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "paw": {
+      "file": "cap-paw.glb",
+      "triangles": 7076,
+      "bytes": 129060,
+      "sourceName": "keycap - paw",
       "sizeMm": [
         18.0,
         18.0,
@@ -635,6 +756,457 @@
         18.0,
         18.0,
         5.0
+      ]
+    },
+    "apple": {
+      "file": "cap-apple.glb",
+      "triangles": 7670,
+      "bytes": 139612,
+      "sourceName": "keycap - apple",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "grapes": {
+      "file": "cap-grapes.glb",
+      "triangles": 9212,
+      "bytes": 167296,
+      "sourceName": "keycap - grapes",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "banana": {
+      "file": "cap-banana.glb",
+      "triangles": 11216,
+      "bytes": 203440,
+      "sourceName": "keycap - banana",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "basketball": {
+      "file": "cap-basketball.glb",
+      "triangles": 7204,
+      "bytes": 131432,
+      "sourceName": "keycap - basketball",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "rugby": {
+      "file": "cap-rugby.glb",
+      "triangles": 5180,
+      "bytes": 94760,
+      "sourceName": "keycap - rugby",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "soccer": {
+      "file": "cap-soccer.glb",
+      "triangles": 5004,
+      "bytes": 91400,
+      "sourceName": "keycap - soccer",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "question_mark": {
+      "file": "cap-question_mark.glb",
+      "triangles": 5900,
+      "bytes": 107820,
+      "sourceName": "keycap-char-question_mark",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "exclamation_mark": {
+      "file": "cap-exclamation_mark.glb",
+      "triangles": 5764,
+      "bytes": 105372,
+      "sourceName": "keycap-char-exclamation_mark",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "ampersand": {
+      "file": "cap-ampersand.glb",
+      "triangles": 6152,
+      "bytes": 112284,
+      "sourceName": "keycap-char-ampersand",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "at": {
+      "file": "cap-at.glb",
+      "triangles": 6308,
+      "bytes": 115116,
+      "sourceName": "keycap-char-at",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "dollar": {
+      "file": "cap-dollar.glb",
+      "triangles": 6064,
+      "bytes": 110748,
+      "sourceName": "keycap-char-dollar",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "a_ring_above": {
+      "file": "cap-a_ring_above.glb",
+      "triangles": 6784,
+      "bytes": 123540,
+      "sourceName": "a_ring_above",
+      "sizeMm": [
+        8.218978879999995,
+        12.217689520000008,
+        0.5999999039999997
+      ]
+    },
+    "ae_ligature": {
+      "file": "cap-ae_ligature.glb",
+      "triangles": 6988,
+      "bytes": 127240,
+      "sourceName": "ae_ligature",
+      "sizeMm": [
+        12.203361520000001,
+        9.920783999999998,
+        0.5999999039999997
+      ]
+    },
+    "o_stroke": {
+      "file": "cap-o_stroke.glb",
+      "triangles": 6720,
+      "bytes": 122316,
+      "sourceName": "o_stroke",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "o_ligature": {
+      "file": "cap-o_ligature.glb",
+      "triangles": 7648,
+      "bytes": 139048,
+      "sourceName": "o_ligature",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "c_cedilla": {
+      "file": "cap-c_cedilla.glb",
+      "triangles": 6796,
+      "bytes": 123924,
+      "sourceName": "c_cedilla",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "a_diaeresis": {
+      "file": "cap-a_diaeresis.glb",
+      "triangles": 6716,
+      "bytes": 122384,
+      "sourceName": "a_diaeresis",
+      "sizeMm": [
+        8.218975060000005,
+        12.441658020000006,
+        0.5999999039999997
+      ]
+    },
+    "n_tilde": {
+      "file": "cap-n_tilde.glb",
+      "triangles": 6972,
+      "bytes": 127000,
+      "sourceName": "n_tilde",
+      "sizeMm": [
+        8.098823539999998,
+        12.649683,
+        0.6000003820000002
+      ]
+    },
+    "u_ring_above": {
+      "file": "cap-u_ring_above.glb",
+      "triangles": 6856,
+      "bytes": 124884,
+      "sourceName": "u_ring_above",
+      "sizeMm": [
+        7.364013679999999,
+        12.356369020000002,
+        0.5999999039999997
+      ]
+    },
+    "y_diaeresis": {
+      "file": "cap-y_diaeresis.glb",
+      "triangles": 6632,
+      "bytes": 120904,
+      "sourceName": "y_diaeresis",
+      "sizeMm": [
+        8.391311639999998,
+        12.444747919999998,
+        0.5999999039999997
+      ]
+    },
+    "a_acute_accent": {
+      "file": "cap-a_acute_accent.glb",
+      "triangles": 6732,
+      "bytes": 122652,
+      "sourceName": "a_acute_accent",
+      "sizeMm": [
+        8.21897126,
+        12.602634420000001,
+        0.5999999039999997
+      ]
+    },
+    "a_grave_accent": {
+      "file": "cap-a_grave_accent.glb",
+      "triangles": 6732,
+      "bytes": 122656,
+      "sourceName": "a_grave_accent",
+      "sizeMm": [
+        8.218975059999998,
+        12.547332760000003,
+        0.5999999039999997
+      ]
+    },
+    "a_circumflex": {
+      "file": "cap-a_circumflex.glb",
+      "triangles": 6956,
+      "bytes": 126688,
+      "sourceName": "a_circumflex",
+      "sizeMm": [
+        8.218975060000005,
+        12.407726280000006,
+        0.5999999039999997
+      ]
+    },
+    "a_tilde": {
+      "file": "cap-a_tilde.glb",
+      "triangles": 6888,
+      "bytes": 125464,
+      "sourceName": "a_tilde",
+      "sizeMm": [
+        8.218971260000004,
+        12.464927680000002,
+        0.6000003820000002
+      ]
+    },
+    "e_acute_accent": {
+      "file": "cap-e_acute_accent.glb",
+      "triangles": 6856,
+      "bytes": 124912,
+      "sourceName": "e_acute_accent",
+      "sizeMm": [
+        6.5893402,
+        12.592348099999999,
+        0.5999999039999997
+      ]
+    },
+    "e_circumflex": {
+      "file": "cap-e_circumflex.glb",
+      "triangles": 7080,
+      "bytes": 128944,
+      "sourceName": "e_circumflex",
+      "sizeMm": [
+        6.589336399999993,
+        12.39744186,
+        0.5999999039999997
+      ]
+    },
+    "e_diaeresis": {
+      "file": "cap-e_diaeresis.glb",
+      "triangles": 6840,
+      "bytes": 124648,
+      "sourceName": "e_diaeresis",
+      "sizeMm": [
+        6.589336399999993,
+        12.431375499999998,
+        0.5999999039999997
+      ]
+    },
+    "e_grave_accent": {
+      "file": "cap-e_grave_accent.glb",
+      "triangles": 6856,
+      "bytes": 124912,
+      "sourceName": "e_grave_accent",
+      "sizeMm": [
+        6.5893364000000005,
+        12.537050240000003,
+        0.5999999039999997
+      ]
+    },
+    "i_acute_accent": {
+      "file": "cap-i_acute_accent.glb",
+      "triangles": 6316,
+      "bytes": 115188,
+      "sourceName": "i_acute_accent",
+      "sizeMm": [
+        3.38053512,
+        12.39579582,
+        0.5999999039999997
+      ]
+    },
+    "i_circumflex": {
+      "file": "cap-i_circumflex.glb",
+      "triangles": 6540,
+      "bytes": 119220,
+      "sourceName": "i_circumflex",
+      "sizeMm": [
+        4.058658600000001,
+        12.200889580000002,
+        0.5999999039999997
+      ]
+    },
+    "i_diaeresis": {
+      "file": "cap-i_diaeresis.glb",
+      "triangles": 6300,
+      "bytes": 115040,
+      "sourceName": "i_diaeresis",
+      "sizeMm": [
+        18.0,
+        18.0,
+        5.0
+      ]
+    },
+    "i_grave_accent": {
+      "file": "cap-i_grave_accent.glb",
+      "triangles": 6316,
+      "bytes": 115192,
+      "sourceName": "i_grave_accent",
+      "sizeMm": [
+        3.385101319999997,
+        12.340497980000002,
+        0.5999999039999997
+      ]
+    },
+    "o_acute_accent": {
+      "file": "cap-o_acute_accent.glb",
+      "triangles": 6736,
+      "bytes": 122720,
+      "sourceName": "o_acute_accent",
+      "sizeMm": [
+        8.08642578,
+        12.656764979999998,
+        0.5999999039999997
+      ]
+    },
+    "o_circumflex": {
+      "file": "cap-o_circumflex.glb",
+      "triangles": 6960,
+      "bytes": 126760,
+      "sourceName": "o_circumflex",
+      "sizeMm": [
+        8.086429600000002,
+        12.461856839999998,
+        0.5999999039999997
+      ]
+    },
+    "o_diaeresis": {
+      "file": "cap-o_diaeresis.glb",
+      "triangles": 6720,
+      "bytes": 122456,
+      "sourceName": "o_diaeresis",
+      "sizeMm": [
+        8.086425780000006,
+        12.495784759999998,
+        0.5999999039999997
+      ]
+    },
+    "o_grave_accent": {
+      "file": "cap-o_grave_accent.glb",
+      "triangles": 6736,
+      "bytes": 122724,
+      "sourceName": "o_grave_accent",
+      "sizeMm": [
+        8.086429600000002,
+        12.6014595,
+        0.5999999039999997
+      ]
+    },
+    "o_tilde": {
+      "file": "cap-o_tilde.glb",
+      "triangles": 6892,
+      "bytes": 125528,
+      "sourceName": "o_tilde",
+      "sizeMm": [
+        8.086425779999999,
+        12.412643440000004,
+        0.6000003820000002
+      ]
+    },
+    "u_acute_accent": {
+      "file": "cap-u_acute_accent.glb",
+      "triangles": 6700,
+      "bytes": 122100,
+      "sourceName": "u_acute_accent",
+      "sizeMm": [
+        7.36401368,
+        12.595355980000004,
+        0.5999999039999997
+      ]
+    },
+    "u_circumflex": {
+      "file": "cap-u_circumflex.glb",
+      "triangles": 6924,
+      "bytes": 126132,
+      "sourceName": "u_circumflex",
+      "sizeMm": [
+        7.364009859999996,
+        12.400447839999998,
+        0.5999999039999997
+      ]
+    },
+    "u_diaeresis": {
+      "file": "cap-u_diaeresis.glb",
+      "triangles": 6684,
+      "bytes": 121836,
+      "sourceName": "u_diaeresis",
+      "sizeMm": [
+        7.364013679999999,
+        12.434375759999998,
+        0.5999999039999997
+      ]
+    },
+    "u_grave_accent": {
+      "file": "cap-u_grave_accent.glb",
+      "triangles": 6700,
+      "bytes": 122100,
+      "sourceName": "u_grave_accent",
+      "sizeMm": [
+        7.364013679999999,
+        12.540050499999996,
+        0.5999999039999997
       ]
     }
   },

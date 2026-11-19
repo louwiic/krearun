@@ -262,7 +262,7 @@ async function prepareCheckout(req: Request) {
       if(birthLetterDetailColors(customName).some(name=>!detailPalette.some(color=>colorKey(color.name)===colorKey(name))))return NextResponse.json({code:"COLOR_OUT_OF_STOCK",error:"Choisissez des couleurs disponibles pour le fond et le dessus des éléments."},{status:400});
     }
     const clicker = product.id === CLICKER_PRODUCT_ID ? item.clickerConfiguration : undefined;
-    if (product.id === CLICKER_PRODUCT_ID && (!clicker?.text || !clicker.baseColor || !clicker.capColor || !clicker.letterColor)) {
+    if (product.id === CLICKER_PRODUCT_ID && (!clicker || (!clicker.text && !clicker.symbol) || !clicker.baseColor || !clicker.capColor || !clicker.letterColor)) {
       return NextResponse.json({ code: "PERSONALIZATION_INVALID", error: "La configuration du clicker est incomplète." }, { status: 400 });
     }
     const keychainChoice = product.slug === "porte-canette-monster" ? MONSTER_GIFT : "";

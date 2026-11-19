@@ -19,6 +19,7 @@ test('webhook retries recover a missing manufacturing file without creating or d
  const event={type:'checkout.session.completed',data:{object:session}};
  const route=loadTs(new URL('../app/api/stripe/webhook/route.ts',import.meta.url),{
   '@/lib/name-keychain':keychains,
+  '@/lib/gta-gift':loadTs(new URL('../lib/gta-gift.ts',import.meta.url)),
   '@/lib/name-keychain-fulfillment':{fulfillOrderKeychains:async()=>{generated++;if(generated===1)throw new Error('temporarily unavailable');}},
   '@/lib/metropolitan-shipping':{readShippingQuote:()=>undefined},'@/lib/checkout-item-metadata':packed,
   '@/lib/stripe':{getStripe:()=>({webhooks:{constructEvent:()=>event}})},

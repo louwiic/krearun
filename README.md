@@ -179,12 +179,26 @@ la configuration. Le placement libre du symbole demandé en note reste vérifié
 et `Chunky+Keycaps+-+Alphabets,+Numbers,+Icons,+and+Blank` du dossier
 `/Users/loic/3D/Bibliotheque_3D/clicker 3D print`. Les bases 1 à 10 touches
 sont celles du fichier ; les bases 11 à 15 répètent son module central de 20,5 mm,
-sans étirer les logements. Les lettres A–Z, chiffres et symboles étoile/cœur/nuage/
-trèfle utilisent leurs reliefs natifs. Les autres caractères utilisent la touche
-vierge réelle et un marquage de surface. L’assemblage à l’écran est indicatif ;
-ces fichiers d’aperçu ne sont pas des fichiers de fabrication.
+sans étirer les logements. Les 93 éléments du 3MF utilisent leurs reliefs natifs : 26 lettres,
+10 chiffres, 30 caractères accentués, 21 symboles, 5 ponctuations et une touche vierge.
+Le catalogue commun `public/models/clicker/elements.json` associe chaque choix à son objet source,
+son GLB réel et ses contours en millimètres. Les anciens choix absents du pack conservent
+le marquage de surface pour l’historique ; ils ne sont plus proposés pour une nouvelle création.
+L’assemblage du clicker à l’écran reste indicatif ; les GLB ne sont pas des fichiers de fabrication.
 
-`export-clicker-preview.py` génère les GLB publics et leur manifeste avec empreintes
+Dans `/admin/porte-cles`, le générateur « Symboles et éléments du 3MF » compose
+un porte-clés plat avec 1 à 8 éléments, du texte natif, un fond continu et un œillet
+latéral traversant de 4 mm. Le fond fait 2,4 mm et le relief 1,2 mm. La largeur de contour
+se règle de 0,8 à 4 mm, les couleurs proviennent de l’inventaire. Le 3MF bicolore contient
+la configuration ; le ZIP STL contient le fond, les motifs alignés et une variante fusionnée.
+Ces téléchargements directs ne créent pas de commande ni de fichier dans l’historique des prénoms.
+L’API `/api/admin/keychains/elements` contrôle l’authentification, les éléments du catalogue et
+les couleurs. Les contours sont projetés depuis les reliefs natifs puis simplifiés à 0,012 mm ;
+aucune police de remplacement ni glyphe emoji n’est utilisé pour la fabrication.
+Les îlots et accents sont reliés par le même calcul de fond que les porte-clés prénom.
+Le tranchage et un premier exemplaire restent à contrôler avant fabrication en série.
+
+`export-clicker-preview.py` génère les bases puis appelle `export-clicker-elements.py` pour exporter tous les éléments. Le second script peut également régénérer seul le catalogue. Ces scripts génèrent les GLB publics et leur manifeste avec empreintes
 des sources. La vignette de boutique du porte-boisson est également calculée depuis
 le GLB réel : `node scripts/render-holder-catalog.mjs` régénère
 `public/products/porte-boisson-personnalise.svg` avec le marquage KREARUN,

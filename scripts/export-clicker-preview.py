@@ -79,4 +79,7 @@ def main():
         for part in entry['parts']:part['mesh'].apply_translation([-center[0],-center[1],-low])
         report['caps'][key]={**export(f'cap-{key}',entry['parts']),'sourceName':entry['name'],'sizeMm':cap.extents.tolist()}
     (OUT/'manifest.json').write_text(json.dumps(report,indent=2,ensure_ascii=False));print('Exported',len(report['bases']),'bases and',len(report['caps']),'keycaps')
-if __name__=='__main__':main()
+if __name__=='__main__':
+    main()
+    import runpy
+    runpy.run_path(str(ROOT/'scripts/export-clicker-elements.py'),run_name='__main__')

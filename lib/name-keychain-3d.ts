@@ -1,7 +1,7 @@
 import jscad from "@jscad/modeling";
 import ClipperLib from "clipper-lib";
 import type { Font } from "opentype.js";
-import { calculateNameplateLayout, type NameplateModel, type NameplateContour } from "./nameplate-3d";
+import { calculateNameplateLayout, type NameplateModel, type NameplateContour, type NameplateLayout } from "./nameplate-3d";
 import { parseKeychainConfiguration, type KeychainConfiguration } from "./name-keychain";
 const { geometries, booleans, extrusions, transforms, measurements } = jscad;
 function area(contour: NameplateContour) { return contour.reduce((sum, [x,y], i) => { const next=contour[(i+1)%contour.length];return sum+x*next[1]-next[0]*y; },0)/2; }
@@ -9,9 +9,12 @@ const path = (contours: NameplateContour[]) => contours.map(contour => `M ${cont
 export function keychainShapes(value: KeychainConfiguration, font: Font) {
   const config = parseKeychainConfiguration(value);
   for (const character of config.name) if (character.trim() && font.charToGlyphIndex(character.replace("’", "'")) === 0) throw new Error("Cette police ne contient pas tous les caractères du prénom.");
+  const layout = calculateNameplateLayout({ name: config.name.replace(/’/g,"'"), maxWidth: 80, maxHeight: 25, baseThickness: 2.4, reliefHeight: 1.2, contourWidth: config.style === "relief" ? 2.2 : 0.8 },font);
+  return backedKeychainShapes(config, layout);
+}
+export function backedKeychainShapes(config: KeychainConfiguration, layout: NameplateLayout) {
   const rim = config.borderWidthMm!;
   const eyeletRadius = 5 + rim / 2;
-  const layout = calculateNameplateLayout({ name: config.name.replace(/’/g,"'"), maxWidth: 80, maxHeight: 25, baseThickness: 2.4, reliefHeight: 1.2, contourWidth: config.style === "relief" ? 2.2 : 0.8 },font);
   const areas=layout.contours.map(area);
   const reference=areas.reduce((largest,a,i)=>Math.abs(a)>Math.abs(areas[largest])?i:largest,0);
   const sign=Math.sign(areas[reference]);
@@ -62,7 +65,9 @@ export function keychainShapes(value: KeychainConfiguration, font: Font) {
   return {config,layout,baseShape,lettersShape,width:max[0]-min[0],height:max[1]-min[1],previewFlipY:min[1]+max[1],viewBox:`${min[0]-2} ${min[1]-2} ${max[0]-min[0]+4} ${max[1]-min[1]+4}`,basePath:path(geometries.geom2.toOutlines(baseShape) as NameplateContour[]),lettersPath:path(contours(letterPaths))};
 }
 export function buildKeychainModel(value: KeychainConfiguration, font: Font): NameplateModel {
-  const shapes=keychainShapes(value,font);
+  return modelFromKeychainShapes(keychainShapes(value,font));
+}
+export function modelFromKeychainShapes(shapes: ReturnType<typeof backedKeychainShapes>): NameplateModel {
   const baseThickness=2.4,reliefHeight=1.2;
   const rawBase=extrusions.extrudeLinear({height:baseThickness},shapes.baseShape);
   const rawLetters=transforms.translateZ(baseThickness,extrusions.extrudeLinear({height:reliefHeight},shapes.lettersShape));
