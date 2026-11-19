@@ -4,6 +4,8 @@ import os from 'node:os';
 import env from '@next/env';
 import {zipSync} from 'fflate';
 import {createHash} from 'node:crypto';
+import {execFileSync} from 'node:child_process';
+import sharp from 'sharp';
 import {fileURLToPath} from 'node:url';
 export const DEFAULT_LIBRARY_ROOT=path.join(os.homedir(),'3D','Bibliotheque_3D');
 const decode=s=>s.replace(/&(?:amp|lt|gt|quot|#39|apos);/g,m=>({'&amp;':'&','&lt;':'<','&gt;':'>','&quot;':'"','&#39;':"'",'&apos;':"'"}[m])).replace(/&#(\d+);/g,(_,n)=>String.fromCodePoint(Number(n)));
@@ -36,6 +38,19 @@ export async function syncLibrary(root=DEFAULT_LIBRARY_ROOT,destination=path.res
   if(!image.startsWith((await realpath(root))+path.sep))throw Error('Aperçu hors bibliothèque');
   const ext=path.extname(image).toLowerCase();project.previewFile=project.previewId+ext;
   await copyFile(image,path.join(destination,'previews',project.previewFile));
+ }
+ manifest.filePreviews={};
+ for(const entry of manifest.entries.filter(e=>e.kind==='file'&&e.path.toLowerCase().endsWith('.3mf'))){
+  try{
+   const absolute=path.join(root,entry.path);
+   const names=execFileSync('/usr/bin/unzip',['-Z','-1',absolute],{encoding:'utf8',maxBuffer:4*1024*1024,timeout:10000,stdio:['ignore','pipe','ignore']}).split('\n');
+   const candidate=names.find(n=>/(^|\/)plate_1\.png$/i.test(n))||names.find(n=>/(^|\/)(thumbnail|preview|plate_1_small)\.(png|jpe?g)$/i.test(n));
+   if(!candidate)continue;
+   const bytes=execFileSync('/usr/bin/unzip',['-p',absolute,candidate],{maxBuffer:16*1024*1024,timeout:10000,stdio:['ignore','pipe','ignore']});
+   const previewId=createHash('sha256').update('file:'+entry.path).digest('hex').slice(0,24),previewFile=previewId+'.webp';
+   await sharp(bytes).resize(480,360,{fit:'inside',withoutEnlargement:true}).webp({quality:78}).toFile(path.join(destination,'previews',previewFile));
+   manifest.filePreviews[entry.path]={previewId,previewFile};
+  }catch{/* Some 3MF files contain no usable embedded image; keep the project preview. */}
  }
  await writeFile(path.join(destination,'manifest.json'),JSON.stringify(manifest));
  await copyFile(path.join(root,'INDEX.html'),path.join(destination,'original-index.html'));

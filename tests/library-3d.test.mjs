@@ -77,3 +77,13 @@ test('deployed library reads the protected archive when the Mac snapshot directo
  assert.equal(new TextDecoder().decode(await deployed.libraryAsset('rangement-report.html')),'Bilan privé');
  assert.equal(downloads,1);
 });
+test('file explorer includes embedded 3MF thumbnail references and project folder previews',()=>{
+ const data={entries:[{path:'Cat',parent:'',name:'Cat',kind:'directory'},{path:'Cat/model.3mf',parent:'Cat',name:'model.3mf',kind:'file'}],projects:[{path:'Cat',previewId:'project-thumb'}],filePreviews:{'Cat/model.3mf':{previewId:'file-thumb',previewFile:'file-thumb.webp'}}};
+ assert.equal(library.libraryView(data,{folder:'Cat'}).entries[0].previewId,'file-thumb');
+ assert.equal(library.libraryView(data).entries[0].previewId,'project-thumb');
+});
+test('protected preview route serves embedded file images as WebP',async()=>{
+ const api=loadTs(new URL('../app/api/admin/library-3d/preview/route.ts',import.meta.url),{'@/lib/auth':{isAdmin:async()=>true},'@/lib/library-3d':{readLibrary:async()=>({projects:[],filePreviews:{'model.3mf':{previewId:'file-thumb',previewFile:'file-thumb.webp'}}}),libraryAsset:async name=>{assert.equal(name,'previews/file-thumb.webp');return new Uint8Array([1,2,3]);}}});
+ const response=await api.GET(new Request('http://localhost/api/admin/library-3d/preview?id=file-thumb'));
+ assert.equal(response.status,200);assert.equal(response.headers.get('content-type'),'image/webp');assert.deepEqual([...new Uint8Array(await response.arrayBuffer())],[1,2,3]);
+});

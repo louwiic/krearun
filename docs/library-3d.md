@@ -13,7 +13,9 @@ peut être fourni avec `npm run library:sync -- /chemin/vers/la/bibliotheque`.
 
 La commande copie localement les aperçus et documents de l’index, recense tous les
 fichiers sans les déplacer, puis publie une archive dans la collection privée
-PocketBase `library_snapshots`. Les modèles eux-mêmes ne sont pas téléversés.
+PocketBase `library_snapshots`. Les modèles eux-mêmes ne sont pas téléversés. Les miniatures intégrées aux 3MF
+sont extraites sans modifier les originaux, puis incluses dans le même stockage
+privé. L’explorateur affiche aussi l’aperçu du projet courant.
 La collection a toutes ses règles verrouillées et son fichier protégé. Elle est
 créée lors de la première synchronisation avec les identifiants PocketBase du
 projet. Les anciens instantanés restent conservés.
