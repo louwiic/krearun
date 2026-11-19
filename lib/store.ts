@@ -1404,3 +1404,13 @@ export async function updateCustomerProfile(id: string, profile: Pick<Customer, 
   if (!/^[a-z0-9]{15}$/.test(id)) throw new Error("Compte invalide.");
   await pb(`/collections/customers/records/${id}`, { method: "PATCH", body: profile });
 }
+
+/** Private library inventory and previews, never served via the public media proxy. */
+export async function downloadLibrarySnapshot(): Promise<Uint8Array> {
+  const record=(await pb<{items:{id:string;bundle:string}[]}>("/collections/library_snapshots/records?perPage=1&sort=-created")).items[0];
+  if(!record?.bundle)throw new Error("Aucun inventaire de bibliothèque synchronisé.");
+  const {token}=await pb<{token:string}>("/files/token",{method:"POST"});
+  const response=await fetch(`${PB_URL}/api/files/library_snapshots/${record.id}/${encodeURIComponent(record.bundle)}?token=${encodeURIComponent(token)}`,{cache:"no-store"});
+  if(!response.ok)throw new Error("Inventaire privé indisponible.");
+  return new Uint8Array(await response.arrayBuffer());
+}

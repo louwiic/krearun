@@ -7,3 +7,5 @@ npm-debug.log
 .env*
 Dockerfile
 README.md
+
+assets/library-3d
