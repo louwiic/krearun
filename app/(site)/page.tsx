@@ -24,6 +24,7 @@ import { formatPrice } from "@/lib/format";
 import { publicProductCopy } from "@/lib/public-copy";
 import { getApprovedReviews, getProducts, getSettings } from "@/lib/store";
 import { getVisibleCategories } from "@/lib/categories";
+import coffretCatalogue from "@/data/coffrets-catalogue.json";
 
 export const dynamic = "force-dynamic";
 
@@ -33,7 +34,9 @@ export default async function HomePage() {
   const visible = products.filter(product => visibleValues.has(product.category));
   const featured = visible.filter(product => product.featured);
   const main = visible.find(product => product.slug === settings.homepage_featured_product_slug) ?? featured[0] ?? visible[0];
-  const selection = [...featured, ...visible.filter(product => !product.featured)].slice(0, 6);
+  const selection = [...featured, ...visible.filter(product => !product.featured)]
+    .filter(product => product.slug !== "coffrets-bijoux")
+    .slice(0, 5);
   const newArrivals = visible
     .filter(product => product.active && !product.privateSale && product.isNew && product.id !== main?.id && product.images?.length)
     .sort((a, b) => Number(b.slug === "porte-boisson-sweat-monster") - Number(a.slug === "porte-boisson-sweat-monster") || Date.parse(b.createdAt) - Date.parse(a.createdAt))
@@ -115,7 +118,24 @@ export default async function HomePage() {
 
     {collections.length > 0 && <section className="editorial-collections" aria-label="Nos collections">{collections.map(collection => <Link key={collection.name} href={collection.href}><div className="aspect-square overflow-hidden bg-cream"><img src={collection.product!.images[0]} alt={collection.name} loading="lazy" width={700} height={700} className="h-full w-full object-cover transition-transform duration-700 hover:scale-[1.025]" /></div><h2>{collection.name} <span aria-hidden>↗</span></h2></Link>)}</section>}
 
-    {selection.length > 0 && <section className="editorial-section"><div className="editorial-section-heading"><h2>Des créations qui vous ressemblent.</h2><Link href="/boutique">Tous les objets ↗</Link></div><div className="grid grid-cols-2 gap-x-4 gap-y-10 lg:grid-cols-3 lg:gap-x-6">{selection.map(product => <ProductCard key={product.id} product={product} />)}</div></section>}
+    <section className="editorial-section" aria-labelledby="home-creations-title">
+      <div className="editorial-section-heading"><h2 id="home-creations-title">Des créations qui vous ressemblent.</h2><Link href="/boutique">Tous les objets ↗</Link></div>
+      <div className="grid grid-cols-2 gap-x-4 gap-y-10 lg:grid-cols-3 lg:gap-x-6">
+        <Link href="/boutique/coffrets-bijoux" data-product-impression="coffrets-bijoux" data-product-click="coffrets-bijoux" className="editorial-product-card group">
+          <div className="editorial-product-image">
+            <img src="/coffrets/Photos/Coco-ouvert-v01.webp" alt="Coffret à bijoux tropical Coco ouvert avec ses supports à bijoux" width={800} height={800} decoding="async" loading="lazy" className="aspect-square h-full w-full object-cover" />
+            <span className="editorial-product-badge">Nouveau</span>
+          </div>
+          <div className="pt-4">
+            <h3 className="editorial-product-title">Coffrets à bijoux tropicaux</h3>
+            <p className="mt-2 text-xs sm:text-sm">À partir de {formatPrice(Math.round(coffretCatalogue.prix_krearun_eur.coffret_avec_poissons.petit * 100))}</p>
+            <p className="mt-2 text-xs text-ink-soft">8 motifs · 2 formats · Vos couleurs</p>
+            <span className="mt-4 inline-block text-xs underline underline-offset-4">Composer mon coffret ↗</span>
+          </div>
+        </Link>
+        {selection.map(product => <ProductCard key={product.id} product={product} />)}
+      </div>
+    </section>
 
     <section id="atelier" className="editorial-workshop"><img src="/brand/krearun-nozzle.webp" alt="" width={310} height={410} loading="lazy"/><div><p className="editorial-eyebrow">L’atelier Kréarun</p><h2>Une idée ?<br/>On lui donne forme.</h2><p>Dans notre atelier de fabrication artisanale, nous préparons vos créations avec soin. Une couleur, un prénom, un logo ou une idée à imaginer ensemble : parlons-en.</p><Link href="/contact" className="editorial-pill">Rencontrer l’atelier ↗</Link></div></section>
 
