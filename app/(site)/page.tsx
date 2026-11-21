@@ -36,15 +36,20 @@ export default async function HomePage() {
   const main = visible.find(product => product.slug === settings.homepage_featured_product_slug) ?? featured[0] ?? visible[0];
   const selection = [...featured, ...visible.filter(product => !product.featured)]
     .filter(product => product.slug !== "coffrets-bijoux")
-    .slice(0, 5);
-  const newArrivals = visible
-    .filter(product => product.active && !product.privateSale && product.isNew && product.id !== main?.id && product.images?.length)
+    .slice(0, 4);
+  const newArrivals = [{
+    id: "coffrets-bijoux", slug: "coffrets-bijoux", name: "Coffrets à bijoux tropicaux",
+    image: "/coffrets/Photos/Coco-ouvert-v01.webp",
+    priceCents: Math.round(coffretCatalogue.prix_krearun_eur.coffret_avec_poissons.petit * 100),
+    fromPrice: true, freeShipping: false,
+  }, ...visible
+    .filter(product => product.active && !product.privateSale && product.isNew && product.id !== main?.id && product.slug !== "coffrets-bijoux" && product.images?.length)
     .sort((a, b) => Number(b.slug === "porte-boisson-sweat-monster") - Number(a.slug === "porte-boisson-sweat-monster") || Date.parse(b.createdAt) - Date.parse(a.createdAt))
     .slice(0, 12)
     .map(product => {
       const prices = product.variants.filter(variant => variant.active).map(variant => variant.priceCents || product.priceCents);
       return { id: product.id, slug: product.slug, name: product.name, image: product.images[0], priceCents: prices.length ? Math.min(...prices) : product.priceCents, fromPrice: prices.length > 1, freeShipping: hasFreeShipping(product.slug) };
-    });
+    })];
   const spotlight = settings.homepage_mode === "single_product" && main;
   const collections = [
     { name: "Porte-boisson", href: "/boutique?categorie=porte-boisson", product: main?.category === "porte-boisson" && main.images?.length ? main : visible.find(product => product.category === "porte-boisson" && product.images?.length) },
@@ -66,8 +71,6 @@ export default async function HomePage() {
       <h1 className="sr-only">Découvrez nos produits personnalisés — Kréarun, la personnalisation à fond !</h1>
       <img src="/brand/krearun-hero.webp" alt="Kréarun — La personnalisation à fond ! Tes idées. Tes couleurs. Ton style. Porte-boisson et porte-clés personnalisés." width={2017} height={780} fetchPriority="high" className="block h-auto w-full" />
     </section>
-
-    <NewArrivalsCarousel items={newArrivals} />
 
     <ExpressOfferBanner enabled={settings.express_offer_enabled} title={settings.express_offer_title} description={settings.express_offer_description} image={settings.express_offer_image} cta={settings.express_offer_cta} href={settings.express_offer_href} />
 
@@ -120,7 +123,7 @@ export default async function HomePage() {
 
     <section className="editorial-section" aria-labelledby="home-creations-title">
       <div className="editorial-section-heading"><h2 id="home-creations-title">Des créations qui vous ressemblent.</h2><Link href="/boutique">Tous les objets ↗</Link></div>
-      <div className="grid grid-cols-2 gap-x-4 gap-y-10 lg:grid-cols-3 lg:gap-x-6">
+      <div className="home-creations-grid grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-3 xl:grid-cols-5 xl:gap-x-6">
         <Link href="/boutique/coffrets-bijoux" data-product-impression="coffrets-bijoux" data-product-click="coffrets-bijoux" className="editorial-product-card group">
           <div className="editorial-product-image">
             <img src="/coffrets/Photos/Coco-ouvert-v01.webp" alt="Coffret à bijoux tropical Coco ouvert avec ses supports à bijoux" width={800} height={800} decoding="async" loading="lazy" className="aspect-square h-full w-full object-cover" />
@@ -136,6 +139,8 @@ export default async function HomePage() {
         {selection.map(product => <ProductCard key={product.id} product={product} />)}
       </div>
     </section>
+
+    <NewArrivalsCarousel items={newArrivals} />
 
     <section id="atelier" className="editorial-workshop"><img src="/brand/krearun-nozzle.webp" alt="" width={310} height={410} loading="lazy"/><div><p className="editorial-eyebrow">L’atelier Kréarun</p><h2>Une idée ?<br/>On lui donne forme.</h2><p>Dans notre atelier de fabrication artisanale, nous préparons vos créations avec soin. Une couleur, un prénom, un logo ou une idée à imaginer ensemble : parlons-en.</p><Link href="/contact" className="editorial-pill">Rencontrer l’atelier ↗</Link></div></section>
 
