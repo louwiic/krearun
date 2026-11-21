@@ -33,6 +33,7 @@ import { packCheckoutItems } from "@/lib/checkout-item-metadata";
 import { isPersonalizedLamp, normalizeLampPersonalization } from "@/lib/lamp-personalization";
 
 interface CheckoutItem {
+  coffretConfiguration?: unknown;
   productId: string;
   variantId?: string;
   quantity: number;
@@ -184,7 +185,7 @@ async function prepareCheckout(req: Request) {
     };
     quantity: number;
   }[] = [];
-  const metadataItems: { p: string; q: number; c: string; u: number; n?: string; v?: string; k?: string; d?: string; h?: KeychainConfiguration }[] = [];
+  const metadataItems: { p: string; q: number; c: string; u: number; n?: string; v?: string; k?: string; d?: string; h?: KeychainConfiguration; b?: import("@/lib/coffrets").CoffretConfiguration }[] = [];
   let gtaGiftEligible = false;
   let subtotalCents = 0;
   let totalWeightGrams = 0;
@@ -193,6 +194,21 @@ async function prepareCheckout(req: Request) {
 
   let inventory: ColorAvailability[] | undefined;
   for (const item of items) {
+    if (item.productId === "coffrets-bijoux") {
+      try {
+        const { coffretQuote, coffretLineId, coffretLabel, coffretDetails } = await import("@/lib/coffrets");
+        const quote = coffretQuote(item.coffretConfiguration, item.quantity);
+        const c = quote.configuration;
+        subtotalCents += quote.totalCents;
+        totalWeightGrams += quote.weightGrams * quote.quantity;
+        physicalWeightGrams += quote.weightGrams * quote.quantity;
+        lineItems.push({price_data:{currency:"eur",unit_amount:quote.priceCents,product_data:{name:coffretLabel(c),description:coffretDetails(c).map(d => `${d.label} : ${d.value}`).join(" · ")}},quantity:quote.quantity});
+        metadataItems.push({p:item.productId,q:quote.quantity,c:c.couleur || "",u:quote.priceCents,v:coffretLineId(c),b:c});
+      } catch (cause) {
+        return NextResponse.json({code:"PERSONALIZATION_INVALID",error:cause instanceof Error ? cause.message : "Configuration de coffret invalide."},{status:400});
+      }
+      continue;
+    }
     const product = item.productId === CLICKER_PRODUCT_ID ? CLICKER_PRODUCT : await getProductById(item.productId);
     if (!product || !product.active) {
       return NextResponse.json(

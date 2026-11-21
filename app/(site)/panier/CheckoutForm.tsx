@@ -1,4 +1,8 @@
 "use client";
+
+import dynamic from "next/dynamic";
+
+import { coffretDetails } from "@/lib/coffrets";
 import { qualifiesForGtaGift, GTA_GIFT_IMAGE, GTA_GIFT_NAME } from "@/lib/gta-gift";
 
 
@@ -62,6 +66,8 @@ function Field({
     </label>
   );
 }
+
+const CoffretLivePreview = dynamic(() => import("@/components/coffrets/CoffretLivePreview"));
 
 export default function CheckoutForm({
   initialCustomer,
@@ -160,6 +166,7 @@ export default function CheckoutForm({
             variantId: item.variantId,
             keychainChoice: item.keychainChoice,
             clickerConfiguration: item.clickerConfiguration,
+            coffretConfiguration: item.coffretConfiguration,
             keychainConfiguration: item.keychainConfiguration,
           })),
         }),
@@ -427,11 +434,11 @@ export default function CheckoutForm({
               className="flex gap-3 py-4"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              {item.coffretConfiguration?.modele && item.coffretConfiguration.police ? <CoffretLivePreview model={item.coffretConfiguration.modele} font={item.coffretConfiguration.police} color={item.coffretConfiguration.couleur} className="h-16 w-16 shrink-0 rounded-2xl object-cover"/> : <img
                 src={item.image || "/products/sur-mesure.svg"}
                 alt={item.name}
                 className="h-16 w-16 shrink-0 rounded-2xl object-cover"
-              />
+              />}
               <div className="min-w-0 flex-1">
                 <div className="flex items-start justify-between gap-3">
                   <div>
@@ -439,7 +446,8 @@ export default function CheckoutForm({
                     {item.color && (
                       <p className="text-xs text-ink-soft">Coloris : {publicColorName(item.color)}</p>
                     )}
-                    {item.variantName && (
+                    {item.coffretConfiguration && <dl className="mt-2 text-sm text-ink-soft">{coffretDetails(item.coffretConfiguration).map(d => <div key={d.label}><dt className="inline font-semibold">{d.label} : </dt><dd className="inline">{d.value}</dd></div>)}</dl>}
+                        {item.variantName && (
                       <p className="text-xs font-semibold text-ink-soft">Modèle : {item.variantName}</p>
                     )}
                     {item.keychainChoice && (

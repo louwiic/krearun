@@ -127,6 +127,7 @@ export const ORDER_STATUSES: { value: OrderStatus; label: string }[] = [
 ];
 
 export interface OrderItem {
+  coffretConfiguration?: import("./coffrets").CoffretConfiguration;
   holderRequestId?: string;
   letterConfiguration?: LetterConfiguration;
   clickerConfiguration?: ClickerConfiguration;
@@ -247,6 +248,7 @@ export interface Settings {
 }
 
 export interface CartItem {
+  coffretConfiguration?: import("./coffrets").CoffretConfiguration;
   clickerConfiguration?: ClickerConfiguration;
   keychainConfiguration?: KeychainConfiguration;
   productId: string;

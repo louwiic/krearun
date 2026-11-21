@@ -1,4 +1,5 @@
 import { loadTs } from './load-ts.mjs';
+const coffrets=loadTs(new URL('../lib/coffrets.ts',import.meta.url));
 const rewards=loadTs(new URL('../lib/rewards.ts',import.meta.url));
 const rewardCheckout=loadTs(new URL('../lib/reward-checkout.ts',import.meta.url));
 const birth=loadTs(new URL('../lib/birth-letter.ts',import.meta.url));
@@ -24,6 +25,7 @@ const require=createRequire(import.meta.url);
 function checkout(slug='porte-canette-monster',weightGrams=180, settings={}, productOverrides={}, inventory=[], promotion=null, failures={}) {
  const sessions=[];
  const mocks={
+  "@/lib/coffrets":{...coffrets,coffretQuote:(v,q)=>coffrets.coffretQuote(v,q,failures.coffretTariffs)},
   "@/lib/gta-gift":loadTs(new URL("../lib/gta-gift.ts",import.meta.url)),
   "@/lib/rewards":rewards,
   "@/lib/reward-checkout":rewardCheckout,
@@ -299,4 +301,40 @@ test('GTA keychain remains free without a name; unrelated products do not get th
  const other=checkout();assert.equal((await other.post(request())).status,200);
  assert.equal(other.sessions[0].metadata.giftOffer,undefined);
  assert.equal(other.sessions[0].line_items.length,1);
+});
+
+
+test('coffret checkout keeps two configurations separate and recalculates prices before packing workshop choices',async()=>{
+ const tariffs={petit:{coffret_avec_poissons:2000,poissons_seuls:900,poids_coffret_g:80,poids_poissons_g:15},grand:{coffret_avec_poissons:3000,poissons_seuls:1200,poids_coffret_g:150,poids_poissons_g:25}};
+ const small={formule:'coffret_avec_poissons',format:'petit',modele:'Coco',couleur:'bleu',police:'F2'};
+ const large={...small,format:'grand',modele:'Sardine',police:'F4'};
+ const entries=[small,large].map(coffretConfiguration=>({productId:coffrets.COFFRET_ID,quantity:2,priceCents:1,coffretConfiguration}));
+ const s=checkout('other',100,{}, {},[],null,{coffretTariffs:tariffs});
+ assert.equal((await s.post(request({},true,{}, {items:entries}))).status,200);
+ assert.deepEqual(s.sessions[0].line_items.map(i=>i.price_data.unit_amount),[2000,3000]);
+ let packed=JSON.parse(metadata.readCheckoutItems(s.sessions[0].metadata));
+ assert.equal(packed.length,2);assert.notEqual(packed[0].v,packed[1].v);
+ assert.equal(packed[0].b.titre,'Range ton coco');assert.equal(packed[1].b.phrase,'Poisson y bek su le tard');assert.equal(packed[1].b.police,'F4');
+ entries[1].coffretConfiguration={...large,formule:'poissons_seuls'};
+ assert.equal((await s.post(request({},true,{}, {items:entries}))).status,200);
+ packed=JSON.parse(metadata.readCheckoutItems(s.sessions[1].metadata));
+ assert.equal(packed[1].u,1200);assert.equal(packed[1].c,'');assert.equal(packed[1].b.modele,undefined);assert.equal(packed[1].b.police,undefined);
+});
+test('coffret checkout rejects invalid options, noninteger quantities and missing Kréarun tariffs before charging',async()=>{
+ const config={formule:'coffret_avec_poissons',format:'petit',modele:'Coco',couleur:'bleu',police:'F2'};
+ for(const extra of [{quantity:0},{quantity:1.5},{quantity:1,coffretConfiguration:{...config,formule:'poissons_seuls'}},{quantity:1,coffretConfiguration:{...config,police:'fake'}}]){
+  const s=checkout();const response=await s.post(request({productId:coffrets.COFFRET_ID,coffretConfiguration:config,...extra}));
+  assert.equal(response.status,400);assert.equal(s.sessions.length,0);
+ }
+});
+
+
+test('confirmed coffret prices charge 9.90 and 14.90 euros from the server, irrespective of client prices',async()=>{
+ const small={formule:'coffret_avec_poissons',format:'petit',modele:'Coco',couleur:'bleu',police:'F2'};
+ const large={...small,format:'grand',modele:'Sardine',police:'F4'};
+ const entries=[small,large].map(coffretConfiguration=>({productId:coffrets.COFFRET_ID,quantity:2,priceCents:1,coffretConfiguration}));
+ const s=checkout();assert.equal((await s.post(request({},true,{}, {items:entries}))).status,200);
+ assert.deepEqual(s.sessions[0].line_items.map(i=>i.price_data.unit_amount),[990,1490]);
+ const packed=JSON.parse(metadata.readCheckoutItems(s.sessions[0].metadata));assert.deepEqual(packed.map(i=>[i.u,i.q]),[[990,2],[1490,2]]);
+ for(const config of [small,large])assert.equal(coffrets.coffretQuote(config,1).weightGrams,100);
 });

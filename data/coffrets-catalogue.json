@@ -1,0 +1,136 @@
+{
+  "modeles": {
+    "Ananas": {
+      "titre": "Ananas",
+      "phrase": "princesse victoria",
+      "svg": "SVG/Ananas.svg",
+      "apercu": "Photos/Ananas-ouvert-v01.webp",
+      "decor": "Apercus/Ananas.webp",
+      "vignette": "Photos/vignettes/Ananas-ouvert-v01.webp",
+      "fond_sans_texte": "Live/Ananas-sans-texte-v01.webp"
+    },
+    "Coco": {
+      "titre": "Range ton coco",
+      "phrase": "",
+      "svg": "SVG/Coco.svg",
+      "apercu": "Photos/Coco-ouvert-v01.webp",
+      "decor": "Apercus/Coco.webp",
+      "vignette": "Photos/vignettes/Coco-ouvert-v01.webp",
+      "fond_sans_texte": "Live/Coco-sans-texte-v01.webp"
+    },
+    "Banane": {
+      "titre": "Banane",
+      "phrase": "oubli pas tir la peau",
+      "svg": "SVG/Banane.svg",
+      "apercu": "Photos/Banane-ouvert-v01.webp",
+      "decor": "Apercus/Banane.webp",
+      "vignette": "Photos/vignettes/Banane-ouvert-v01.webp",
+      "fond_sans_texte": "Live/Banane-sans-texte-v01.webp"
+    },
+    "Girl-box": {
+      "titre": "Girl box",
+      "phrase": "",
+      "svg": "SVG/Girl-box.svg",
+      "apercu": "Photos/Girl-box-ouvert-v01.webp",
+      "decor": "Apercus/Girl-box.webp",
+      "vignette": "Photos/vignettes/Girl-box-ouvert-v01.webp",
+      "fond_sans_texte": "Live/Girl-box-sans-texte-v01.webp"
+    },
+    "Sardine": {
+      "titre": "Sardine",
+      "phrase": "Poisson y bek su le tard",
+      "svg": "SVG/Sardine.svg",
+      "apercu": "Photos/Sardine-ouvert-v01.webp",
+      "decor": "Apercus/Sardine.webp",
+      "vignette": "Photos/vignettes/Sardine-ouvert-v01.webp",
+      "fond_sans_texte": "Live/Sardine-sans-texte-v01.webp"
+    },
+    "Hibiscus": {
+      "titre": "Hibiscus",
+      "phrase": "",
+      "svg": "SVG/Hibiscus.svg",
+      "apercu": "Photos/Hibiscus-ouvert-v01.webp",
+      "decor": "Apercus/Hibiscus.webp",
+      "vignette": "Photos/vignettes/Hibiscus-ouvert-v01.webp",
+      "fond_sans_texte": "Live/Hibiscus-sans-texte-v01.webp"
+    },
+    "Mangue": {
+      "titre": "Mangue",
+      "phrase": "",
+      "svg": "SVG/Mangue.svg",
+      "apercu": "Photos/Mangue-ouvert-v01.webp",
+      "decor": "Apercus/Mangue.webp",
+      "vignette": "Photos/vignettes/Mangue-ouvert-v01.webp",
+      "fond_sans_texte": "Live/Mangue-sans-texte-v01.webp"
+    },
+    "Letchi": {
+      "titre": "Letchi",
+      "phrase": "",
+      "svg": "SVG/Letchi.svg",
+      "apercu": "Photos/Letchi-ouvert-v01.webp",
+      "decor": "Apercus/Letchi.webp",
+      "vignette": "Photos/vignettes/Letchi-ouvert-v01.webp",
+      "fond_sans_texte": "Live/Letchi-sans-texte-v01.webp"
+    }
+  },
+  "polices": {
+    "F1": "Allura",
+    "F2": "Jost",
+    "F3": "Arimo",
+    "F4": "Caladea italique",
+    "F5": "Norican",
+    "F6": "Great Vibes",
+    "F7": "Sofia",
+    "F8": "Libre Baskerville",
+    "F9": "Niconne"
+  },
+  "formats_mm": {
+    "petit": [
+      101.6,
+      60.96,
+      30.48
+    ],
+    "grand": [
+      160.02,
+      91.44,
+      40.64
+    ]
+  },
+  "couleurs": [
+    "bleu",
+    "jaune",
+    "rose",
+    "violet",
+    "Pink2",
+    "orange",
+    "vert",
+    "argenté"
+  ],
+  "formules": [
+    "coffret_avec_poissons",
+    "poissons_seuls"
+  ],
+  "option_source_a_clarifier": "Ensemble rose et poisson",
+  "prix_krearun_eur": {
+    "coffret_avec_poissons": {
+      "petit": 9.9,
+      "grand": 14.9
+    },
+    "poissons_seuls": null
+  },
+  "polices_reference": {
+    "F1": "Autography",
+    "F2": "Century Gothic",
+    "F3": "Arial",
+    "F4": "Cambria",
+    "F5": "Norican",
+    "F6": "Great Vibes",
+    "F7": "Sofia",
+    "F8": "Calisto MT",
+    "F9": "Niconne"
+  },
+  "poids_coffret_avec_poissons_g": {
+    "petit": 100,
+    "grand": 100
+  }
+}

@@ -93,7 +93,7 @@ export async function POST(req: Request) {
     }
 
     const raw = readCheckoutItems(session.metadata);
-    const parsed: { p: string; q: number; c: string; u?: number; n?: string; v?: string; k?: string; d?: string; h?: KeychainConfiguration }[] = raw
+    const parsed: { p: string; q: number; c: string; u?: number; n?: string; v?: string; k?: string; d?: string; h?: KeychainConfiguration; b?: import("@/lib/coffrets").CoffretConfiguration }[] = raw
       ? JSON.parse(raw)
       : [];
 
@@ -108,6 +108,12 @@ export async function POST(req: Request) {
       });
     }
     for (const it of parsed) {
+      if (it.p === "coffrets-bijoux" && it.b) {
+        const { coffretLabel, coffretImage } = await import("@/lib/coffrets");
+        // The server-validated configuration in signed Stripe metadata is the workshop snapshot.
+        items.push({productId:it.p,name:coffretLabel(it.b),priceCents:it.u!,quantity:it.q,color:it.b.couleur || "",variantId:it.v,image:coffretImage(it.b),coffretConfiguration:it.b});
+        continue;
+      }
       const product = it.p === CLICKER_PRODUCT_ID ? CLICKER_PRODUCT : await getProductById(it.p);
       const variant = product?.variants.find((candidate) => candidate.id === it.v);
       let clickerConfiguration: ClickerConfiguration | undefined;
@@ -203,7 +209,7 @@ export async function POST(req: Request) {
     });
 
     await decrementStock(
-      parsed.map((it) => ({ productId: it.p, quantity: it.q, variantId: it.v }))
+      parsed.filter(it => it.p !== "coffrets-bijoux").map((it) => ({ productId: it.p, quantity: it.q, variantId: it.v }))
     );
 
     // E-mails non bloquants : un échec d'envoi ne doit pas faire

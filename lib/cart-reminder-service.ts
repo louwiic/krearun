@@ -95,6 +95,14 @@ export async function restoreReminderCart(token: string): Promise<CartItem[]> {
   if (await purchased(row)) { await updateCartReminder(row.id, { status: "purchased", cart: [], deliveryToken: "" }); return []; }
   const result: CartItem[] = [];
   for (const saved of row.cart) {
+    if (saved.productId === "coffrets-bijoux") {
+      try {
+        const { coffretQuote, coffretLineId, coffretLabel, coffretImage, COFFRET_SLUG } = await import("./coffrets");
+        const quote = coffretQuote(saved.coffretConfiguration, saved.quantity);
+        result.push({productId:saved.productId,slug:COFFRET_SLUG,name:coffretLabel(quote.configuration),quantity:quote.quantity,priceCents:quote.priceCents,weightGrams:quote.weightGrams,stock:20,color:quote.configuration.couleur || "",variantId:coffretLineId(quote.configuration),image:coffretImage(quote.configuration),coffretConfiguration:quote.configuration});
+      } catch { /* A withdrawn or unpriced formula cannot be restored for purchase. */ }
+      continue;
+    }
     const product = saved.productId === CLICKER_PRODUCT_ID ? CLICKER_PRODUCT : await getProductById(saved.productId);
     if (!product?.active || product.privateSale) continue;
     const activeVariants = product.variants.filter(v => v.active);

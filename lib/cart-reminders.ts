@@ -1,3 +1,4 @@
+import { coffretConfiguration, coffretLineId } from "./coffrets";
 import { parseKeychainConfiguration } from "./name-keychain";
 import type { CartItem } from "./types";
 
@@ -5,7 +6,7 @@ export const CART_REMINDER_CONSENT_VERSION = "2026-11-09-v1";
 export const CART_REMINDER_CONSENT = "J’accepte de recevoir un seul rappel par email pour ce panier. Je peux annuler cette demande à tout moment.";
 export const REMINDER_DELAY_MS = 60 * 60_000;
 export const REMINDER_RETENTION_MS = 30 * 86400_000;
-export type ReminderCartItem = Pick<CartItem, "productId" | "quantity" | "color" | "variantId" | "customName" | "clickerConfiguration" | "keychainConfiguration">;
+export type ReminderCartItem = Pick<CartItem, "productId" | "quantity" | "color" | "variantId" | "customName" | "clickerConfiguration" | "keychainConfiguration" | "coffretConfiguration">;
 export type CartReminder = {
   id: string; email: string; emailHash: string; tokenHash: string; deliveryToken: string; cart: ReminderCartItem[];
   status: "unconfirmed" | "pending" | "sent" | "cancelled" | "purchased" | "failed";
@@ -21,7 +22,7 @@ export function reminderEmail(value: unknown): string {
 export function reminderCart(value: unknown): ReminderCartItem[] {
   if (!Array.isArray(value) || !value.length || value.length > 30) throw new Error("Votre panier doit contenir au moins un article.");
   return value.map(item => {
-    if (!item || typeof item !== "object" || !/^(?:[a-z0-9]{15}|clicker-studio|name-keychain)$/.test(item.productId) || !Number.isInteger(item.quantity) || item.quantity < 1 || item.quantity > 100) throw new Error("Panier invalide.");
+    if (!item || typeof item !== "object" || !/^(?:[a-z0-9]{15}|clicker-studio|name-keychain|coffrets-bijoux)$/.test(item.productId) || !Number.isInteger(item.quantity) || item.quantity < 1 || item.quantity > 100) throw new Error("Panier invalide.");
     const clean: ReminderCartItem = { productId: item.productId, quantity: item.quantity, color: typeof item.color === "string" ? item.color.slice(0, 240) : "" };
     if (typeof item.variantId === "string") clean.variantId = item.variantId.slice(0, 80);
     if (typeof item.customName === "string") clean.customName = item.customName.slice(0, 1000);
@@ -32,6 +33,12 @@ export function reminderCart(value: unknown): ReminderCartItem[] {
       clean.clickerConfiguration = { text, characterCount: Array.from(text).length, baseColor: string("baseColor"), capColor: string("capColor"), letterColor: string("letterColor"), symbol: string("symbol"), symbolNote: string("symbolNote") };
     }
     if (item.productId === "name-keychain") clean.keychainConfiguration = parseKeychainConfiguration(item.keychainConfiguration);
+    if (item.productId === "coffrets-bijoux") {
+      clean.coffretConfiguration = coffretConfiguration(item.coffretConfiguration);
+      clean.variantId = coffretLineId(clean.coffretConfiguration);
+      clean.color = clean.coffretConfiguration.couleur || "";
+      delete clean.customName;
+    }
     return clean;
   });
 }

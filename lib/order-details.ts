@@ -1,8 +1,10 @@
+import { coffretDetails } from "./coffrets";
 import { monsterGiftLabel } from "./monster-gift";
 import type { Order, OrderItem } from "./types";
 
 export function orderItemDetails(item: OrderItem) {
   return [
+    ...(item.coffretConfiguration ? coffretDetails(item.coffretConfiguration) : []),
     { label: "Modèle", value: item.variantName },
     { label: "Coloris", value: item.color },
     { label: "Prénom / personnalisation", value: item.customName },
