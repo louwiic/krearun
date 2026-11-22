@@ -1,6 +1,7 @@
 import { loadTs } from './load-ts.mjs';
 const coffrets=loadTs(new URL('../lib/coffrets.ts',import.meta.url));
 const rewards=loadTs(new URL('../lib/rewards.ts',import.meta.url));
+const blackFriday=loadTs(new URL('../lib/black-friday.ts',import.meta.url));
 const rewardCheckout=loadTs(new URL('../lib/reward-checkout.ts',import.meta.url));
 const birth=loadTs(new URL('../lib/birth-letter.ts',import.meta.url));
 const lampPersonalizations=loadTs(new URL('../lib/lamp-personalization.ts',import.meta.url));
@@ -38,6 +39,7 @@ function checkout(slug='porte-canette-monster',weightGrams=180, settings={}, pro
   "@/lib/auth":{isAdmin:async()=>false},
   "@/lib/purchase-journey":journeys,
   '@/lib/promotion-details':promotionDetails,'@/lib/color-availability':availability,'@/lib/metropolitan-shipping':metropolitan,'@/lib/nos':nos,
+  '@/lib/black-friday':{isBlackFridayCode:code=>blackFriday.isBlackFridayCode(code,failures.now)},
   '@/lib/monster-gift':gift,'@/lib/legal':legal,'@/lib/checkout-item-metadata':metadata,
   '@/lib/store':{getInventoryColors:async()=>inventory,getNosLogo:async id=>id==='abc123def456ghi'?{id}:null,getSettings:async()=>settings,getProductById:async()=>{if(failures.store)throw new Error('private@example.fr');return ({id:'monster',slug,name:'Produit',active:true,variants:[],stock:10,priceCents:1790,weightGrams,images:[],colors:slug===nos.NOS_SLUG?nos.NOS_COLORS:[],...productOverrides});}},
   '@/lib/stripe':{stripeConfigured:()=>!failures.configuration,getStripe:()=>({coupons:{retrieve:async id=>({id,valid:true,amount_off:Number(id.split("-").at(-1)),currency:"eur",duration:"once"})},promotionCodes:{list:async()=>({data:promotion?[promotion]:[]})},checkout:{sessions:{create:async data=>{if(failures.stripe)throw {type:failures.stripe,message:"private@example.fr"};sessions.push(data);return {url:'https://checkout.invalid/test'};}}}})},
@@ -272,6 +274,26 @@ test('automatic quantity discounts count before reward eligibility',async()=>{
  const {post,sessions}=checkout('other',180,{}, {priceCents:1800,quantityDiscounts:[{minQuantity:2,percent:10}]});
  const response=await post(request({quantity:2},true,{}, {promoCode:'KREA2'}));
  assert.equal(response.status,400);assert.equal(sessions.length,0);
+});
+
+test('BLACK20 adds one named gift for Monster before the campaign deadline', async () => {
+ const promotion={id:'promo_black20',active:true,restrictions:{},promotion:{coupon:{valid:true,percent_off:20}}};
+ const body={promoCode:'BLACK20',giftName:'Léa'};
+ const current=checkout('porte-canette-monster',180,{}, {}, [], promotion,{now:blackFriday.BLACK_FRIDAY_EXPIRES_AT-1});
+ assert.equal((await current.post(request({quantity:2},true,{},body))).status,200);
+ const [session]=current.sessions;
+ assert.deepEqual(session.discounts,[{promotion_code:'promo_black20'}]);
+ assert.equal(session.line_items.length,2);
+ assert.equal(session.line_items[1].price_data.unit_amount,0);
+ assert.equal(session.line_items[1].quantity,1);
+ assert.equal(session.metadata.giftName,'Léa');
+ assert.equal(session.metadata.giftOffer,'name_keychain_v1');
+ for(const [slug,now] of [['other',blackFriday.BLACK_FRIDAY_EXPIRES_AT-1],['porte-canette-monster',blackFriday.BLACK_FRIDAY_EXPIRES_AT]]) {
+  const rejected=checkout(slug,180,{}, {}, [], promotion,{now});
+  const response=await rejected.post(request({},true,{},body));
+  assert.equal((await response.json()).code,'GIFT_EXPIRED');
+  assert.equal(rejected.sessions.length,0);
+ }
 });
 
 test('GTA made-to-order products can be purchased without fictitious stock',async()=>{

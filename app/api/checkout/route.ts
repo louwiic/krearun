@@ -13,6 +13,7 @@ import { colorKey, inventoryColorAvailable, availableInventoryPalette, usesInven
 import { NOS_SLUG, NOS_TEXT_MAX, nosLogoId } from "@/lib/nos";
 import { parseMetropolitanShipping, shippingZone, metropolitanQuote, shippingQuoteMetadata } from "@/lib/metropolitan-shipping";
 import { MONSTER_GIFT, monsterGiftLabel } from "@/lib/monster-gift";
+import { isBlackFridayCode } from "@/lib/black-friday";
 import { LEGAL_VERSION } from "@/lib/legal";
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
@@ -187,6 +188,7 @@ async function prepareCheckout(req: Request) {
   }[] = [];
   const metadataItems: { p: string; q: number; c: string; u: number; n?: string; v?: string; k?: string; d?: string; h?: KeychainConfiguration; b?: import("@/lib/coffrets").CoffretConfiguration }[] = [];
   let gtaGiftEligible = false;
+  let hasMonster = false;
   let subtotalCents = 0;
   let totalWeightGrams = 0;
   let physicalWeightGrams = 0;
@@ -282,6 +284,7 @@ async function prepareCheckout(req: Request) {
       return NextResponse.json({ code: "PERSONALIZATION_INVALID", error: "La configuration du clicker est incomplète." }, { status: 400 });
     }
     const keychainChoice = product.slug === "porte-canette-monster" ? MONSTER_GIFT : "";
+    hasMonster ||= Boolean(keychainChoice);
     const optionParts = [
       variant?.name || "",
       orderColor,
@@ -331,10 +334,14 @@ async function prepareCheckout(req: Request) {
     });
   }
 
-  if (giftName && !gtaGiftEligible && !settings.cart_name_gift_enabled) return NextResponse.json({ code: "GIFT_EXPIRED", error: "L’offre de porte-clés prénom est terminée. Actualisez votre panier pour continuer." }, { status: 400 });
+  const blackFridayGiftEligible = hasMonster && isBlackFridayCode(promoCode);
+  if (giftName && !gtaGiftEligible && !blackFridayGiftEligible && !settings.cart_name_gift_enabled) return NextResponse.json({ code: "GIFT_EXPIRED", error: "L’offre de porte-clés prénom est terminée. Actualisez votre panier pour continuer." }, { status: 400 });
   if (gtaGiftEligible) {
     lineItems.push({ price_data: { currency: "eur", unit_amount: 0, product_data: { name: `${GTA_GIFT_NAME} — offert`, description: "Un cadeau GTA par commande éligible." } }, quantity: 1 });
     if (giftName) lineItems.push({ price_data: { currency: "eur", unit_amount: 0, product_data: { name: `Porte-clés prénom « ${giftName} » · police GTA — offert` } }, quantity: 1 });
+  }
+  if (blackFridayGiftEligible && !gtaGiftEligible && giftName) {
+    lineItems.push({ price_data: { currency: "eur", unit_amount: 0, product_data: { name: `Porte-clés prénom « ${giftName} » — offert` } }, quantity: 1 });
   }
   const shippingRates = parseShippingRates(settings.shipping_rates_json);
   const shipping = calculateShippingCents(totalWeightGrams || 1, shippingRates);

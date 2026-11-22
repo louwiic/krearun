@@ -11,6 +11,8 @@ import { journeySessionId, trackJourney } from "@/lib/journey-tracking";
 import { parseMetropolitanShipping, shippingZone, metropolitanQuote } from "@/lib/metropolitan-shipping";
 
 import { monsterGiftLabel } from "@/lib/monster-gift";
+import { isBlackFridayCode } from "@/lib/black-friday";
+import { MONSTER_SLUG } from "@/lib/monster-preview";
 
 import Link from "next/link";
 import CartRewards from "@/components/cart/CartRewards";
@@ -96,6 +98,8 @@ export default function CheckoutForm({
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [error, setError] = useState("");
   const promoCode = manualPromoCode || (rewardDiscount(rewardCode, subtotalCents) ? rewardCode : "");
+  const blackFridayGiftEligible = isBlackFridayCode(promoCode) && items.some((item) => item.slug === MONSTER_SLUG);
+  const giftEligible = nameGiftEnabled || gtaGiftEligible || blackFridayGiftEligible;
   const rewardDiscountCents = rewardDiscount(promoCode, subtotalCents);
   const [orderNote, setOrderNote] = useState("");
   const [giftName, setGiftName] = useState("");
@@ -155,7 +159,7 @@ export default function CheckoutForm({
           termsAccepted, termsVersion: LEGAL_VERSION,
           promoCode,
           note: orderNote,
-          giftName: (nameGiftEnabled || gtaGiftEligible) ? giftName : "",
+          giftName: giftEligible ? giftName : "",
           fulfillmentMethod,
           pickupPointId: isPickup ? selectedPickupPoint.id : "",
           items: items.map((item) => ({
@@ -209,10 +213,13 @@ export default function CheckoutForm({
 
   return (
     <form onSubmit={submit} className="mt-10 grid gap-8 lg:grid-cols-[minmax(0,1fr)_400px]">
-      {(nameGiftEnabled || gtaGiftEligible) && <CartNameGift value={giftName} onChange={setGiftName} {...(gtaGiftEligible ? {
+      {giftEligible && <CartNameGift value={giftName} onChange={setGiftName} {...(gtaGiftEligible ? {
         title: "Ton porte-clés GTA 6 + ton prénom offerts !",
         description: "Le porte-clés GTA VI rose et bleu est ajouté gratuitement. Choisis aussi le prénom de ton second porte-clés offert, en police GTA. Une paire par commande.",
         image: GTA_GIFT_IMAGE, cta: "Je choisis mon prénom offert",
+      } : blackFridayGiftEligible ? {
+        ...nameGiftContent, title: "Ton porte-clés prénom offert",
+        description: "Avec BLACK20 et un porte-canette Monster dans le panier, choisis le prénom de ton porte-clés offert.",
       } : nameGiftContent)} gta={gtaGiftEligible} />}
       {gtaGiftEligible && <section aria-label="Cadeaux GTA inclus" className="rounded-2xl border-2 border-terra bg-cream p-5 lg:col-span-2"><h2 className="font-bold">Tes cadeaux GTA — 0 €</h2><p className="mt-2 text-sm">1 × {GTA_GIFT_NAME} offert</p><p className="mt-2 text-sm">{giftName ? `1 × Porte-clés « ${giftName} » en police GTA offert` : "Ajoute ton prénom avec le bouton cadeau pour recevoir aussi ton porte-clés prénom en police GTA."}</p></section>}
       <section className="space-y-6 bg-cream p-5 shadow-soft sm:p-8">
