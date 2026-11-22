@@ -8,6 +8,7 @@ import type { Order } from "./types";
 const labels: Record<Order["status"], string> = {
   review: "À vérifier",
   pending: "À faire",
+  on_hold: "En attente",
   paid: "Payée",
   preparing: "En préparation",
   ready: "Prête",

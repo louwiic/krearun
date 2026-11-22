@@ -29,6 +29,14 @@ function stepIndex(status: OrderStatus): number {
 }
 
 function Timeline({ order }: { order: Order }) {
+  if (order.status === "on_hold") {
+    return (
+      <div className="rounded-blob bg-cream p-8 text-center shadow-soft">
+        <p className="font-display text-xl">Votre commande est en attente</p>
+      </div>
+    );
+  }
+
   if (order.status === "cancelled") {
     return (
       <div className="rounded-blob bg-cream p-8 text-center shadow-soft">

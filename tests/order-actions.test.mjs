@@ -5,6 +5,7 @@ import { readFileSync } from "node:fs";
 import vm from "node:vm";
 import ts from "typescript";
 import * as orderImages from "../lib/order-images.ts";
+import * as orderColors from "../lib/order-colors.ts";
 import * as management from "../lib/order-management.ts";
 import * as tracking from "../lib/order-tracking.ts";
 
@@ -41,6 +42,7 @@ function fixture() {
     },
   };
   const mocks = {
+    "@/lib/order-colors": orderColors,
     "@/lib/order-images": orderImages,
     "@/lib/order-tracking": tracking,
     "@/lib/auth": { isAdmin: async () => authorized },
@@ -178,10 +180,11 @@ test("quick production edits preserve payment and stale edits are rejected", asy
     id: order.id,
     updatedAt: order.updatedAt,
     kind: "production",
-    value: "preparing",
+    value: "on_hold",
   }).forEach(([k, v]) => data.set(k, v));
   const result = await f.actions.quickOrderAction(data);
   assert.equal(result.error, undefined);
+  assert.equal(f.records.get(order.id).status, "on_hold");
   assert.equal(f.statusEmails.length, 0);
   assert.equal(f.records.get(order.id).amountPaidCents, 1000);
   assert.equal(f.records.get(order.id).paymentStatus, "deposit");

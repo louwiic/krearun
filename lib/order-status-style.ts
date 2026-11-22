@@ -5,6 +5,7 @@ const neutral = "border-slate-300 bg-slate-100 text-slate-800";
 const productionStyles: Record<string, string> = {
   review: "border-orange-300 bg-orange-100 text-orange-950",
   pending: "border-amber-300 bg-amber-100 text-amber-950",
+  on_hold: "border-indigo-300 bg-indigo-100 text-indigo-950",
   preparing: "border-sky-300 bg-sky-100 text-sky-950",
   ready: "border-violet-300 bg-violet-100 text-violet-950",
   shipped: "border-teal-300 bg-teal-100 text-teal-950",

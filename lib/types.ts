@@ -108,6 +108,7 @@ export type NewsletterContact = { id: string; email: string; createdAt: string; 
 export type OrderStatus =
   | "review"
   | "pending"
+  | "on_hold"
   | "paid"
   | "preparing"
   | "ready"
@@ -118,6 +119,7 @@ export type OrderStatus =
 export const ORDER_STATUSES: { value: OrderStatus; label: string }[] = [
   { value: "review", label: "À vérifier" },
   { value: "pending", label: "En attente" },
+  { value: "on_hold", label: "En attente" },
   { value: "paid", label: "Payée" },
   { value: "preparing", label: "En préparation" },
   { value: "ready", label: "Prêt" },

@@ -9,7 +9,7 @@ const fields = structuredClone(schema.fields);
 const status = fields.find((field) => field.name === "status");
 if (!status || status.type !== "select")
   throw new Error("Schéma de statut inattendu.");
-for (const value of ["ready", "review"]) {
+for (const value of ["ready", "review", "on_hold"]) {
   if (!status.values.includes(value)) status.values.push(value);
 }
 const text = (name, max = 20000) => ({ name, type: "text", max });
@@ -59,6 +59,7 @@ console.log(
       .map((field) => field.name),
     ready: true,
     review: true,
+    onHold: true,
   }),
 );
 if (process.argv.includes("--apply")) {

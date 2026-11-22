@@ -353,6 +353,7 @@ export async function sendAdminOrderStatus(
   const labels: Record<Order["status"], string> = {
     review: "À vérifier",
     pending: "En attente",
+    on_hold: "En attente",
     paid: "Payée",
     preparing: "En préparation",
     ready: "Prêt",

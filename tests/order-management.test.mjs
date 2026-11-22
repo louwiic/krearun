@@ -88,6 +88,7 @@ test("payment and production are independent", () => {
   assert.equal(productionStatus("paid"), "pending");
   assert.equal(normalizeLegacyStatus("prêt"), "ready");
   assert.equal(normalizeLegacyStatus("terminé"), "delivered");
+  assert.equal(normalizeLegacyStatus("En attente"), "on_hold");
   assert.deepEqual(paymentAmounts(4500, 1000, "deposit"), {
     amountPaidCents: 1000,
     remainingCents: 3500,

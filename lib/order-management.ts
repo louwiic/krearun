@@ -3,6 +3,7 @@ import type { CreateOrderInput, Order, OrderStatus } from "./types";
 export const PRODUCTION_STATUSES: { value: OrderStatus; label: string }[] = [
   { value: "review", label: "À vérifier" },
   { value: "pending", label: "À faire" },
+  { value: "on_hold", label: "En attente" },
   { value: "preparing", label: "En cours" },
   { value: "ready", label: "Prêt" },
   { value: "shipped", label: "Expédiée" },
@@ -172,6 +173,8 @@ export function normalizeLegacyStatus(value: unknown): OrderStatus {
     review: "review",
     "a faire": "pending",
     pending: "pending",
+    "en attente": "on_hold",
+    on_hold: "on_hold",
     "en cours": "preparing",
     preparing: "preparing",
     pret: "ready",

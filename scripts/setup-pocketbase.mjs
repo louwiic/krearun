@@ -98,7 +98,7 @@ const collections = [
         name: "status",
         type: "select",
         maxSelect: 1,
-        values: ["pending", "paid", "preparing", "shipped", "delivered", "cancelled"],
+        values: ["pending", "on_hold", "paid", "preparing", "shipped", "delivered", "cancelled"],
       },
       { name: "stripeSessionId", type: "text" },
       { name: "note", type: "text", max: 5000 },
