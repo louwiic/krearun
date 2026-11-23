@@ -1,5 +1,6 @@
 "use client";
 
+import { publicProductReferences } from "@/lib/public-copy";
 import { colorSwatchStyle } from "@/lib/color-swatches";
 import NoelKitOptions from "./NoelKitOptions";
 import { noelKitCount, noelKitVariants, variantQuantityDiscounts } from "@/lib/noel-kits";
@@ -169,7 +170,7 @@ export default function AddToCart({ product }: { product: Product }) {
       {availableColors.length > 0 && (
         <div className={product.slug === MONSTER_SLUG ? "hidden" : "space-y-3"}>
           <p className="mb-2 text-sm font-bold">
-            {birthLetter ? "Couleur de la grande lettre" : "Coloris"} — <span className="font-semibold text-ink-soft">{color ? publicColorName(color) : "Aucun coloris disponible"}</span>
+            {birthLetter ? "Couleur de la grande lettre" : "Coloris"} — <span className="font-semibold text-ink-soft">{color ? publicProductReferences(publicColorName(color)) : "Aucun coloris disponible"}</span>
           </p>
           <div className="flex flex-wrap gap-2.5">
             {availableColors.map((c) => (
@@ -190,8 +191,8 @@ export default function AddToCart({ product }: { product: Product }) {
                     );
                   }
                 }}
-                title={`${publicColorName(c.name)}${isColorAvailable(c) ? "" : " — Rupture de stock"}`}
-                aria-label={`Coloris ${publicColorName(c.name)}${isColorAvailable(c) ? "" : " — Rupture de stock"}`}
+                title={`${publicProductReferences(publicColorName(c.name))}${isColorAvailable(c) ? "" : " — Rupture de stock"}`}
+                aria-label={`Coloris ${publicProductReferences(publicColorName(c.name))}${isColorAvailable(c) ? "" : " — Rupture de stock"}`}
                 className={`relative h-8 w-8 rounded-full border-2 transition-all disabled:cursor-not-allowed disabled:opacity-60 ${!isColorAvailable(c) ? "color-swatch-unavailable" : ""} ${
                   color === c.name
                     ? "scale-110 border-terra shadow-soft"

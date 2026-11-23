@@ -1,3 +1,4 @@
+import { withPublicProductName } from "@/lib/public-copy";
 import { GTA_GIFT_OFFER, GTA_GIFT_NAME, qualifiesForGtaGift } from "@/lib/gta-gift";
 import { findReward, rewardDiscount } from "@/lib/rewards";
 import { checkoutRewardCoupon } from "@/lib/reward-checkout";
@@ -211,7 +212,8 @@ async function prepareCheckout(req: Request) {
       }
       continue;
     }
-    const product = item.productId === CLICKER_PRODUCT_ID ? CLICKER_PRODUCT : await getProductById(item.productId);
+    const record = item.productId === CLICKER_PRODUCT_ID ? CLICKER_PRODUCT : await getProductById(item.productId);
+    const product = record && withPublicProductName(record);
     if (!product || !product.active) {
       return NextResponse.json(
         { code: "PRODUCT_UNAVAILABLE", error: "Un article du panier n'est plus disponible." },
@@ -249,7 +251,7 @@ async function prepareCheckout(req: Request) {
       );
     }
     const monsterParts = product.slug === "porte-canette-monster" ? parseMonsterColors(item.color) : undefined;
-    if(product.slug === "porte-canette-monster" && item.color?.startsWith("Multicolore") && !monsterParts) return NextResponse.json({code:"COLOR_INVALID",error:"Vérifiez les trois couleurs du Monster."},{status:400});
+    if(product.slug === "porte-canette-monster" && item.color?.startsWith("Multicolore") && !monsterParts) return NextResponse.json({code:"COLOR_INVALID",error:"Vérifiez les trois couleurs du porte-boisson Griffe."},{status:400});
     const orderColor = keychainConfiguration ? `${keychainConfiguration.baseColorName} / ${keychainConfiguration.textColorName}` : publicColorName(item.color || "");
     if (product.category !== "lunette" && product.id !== CLICKER_PRODUCT_ID && product.id !== KEYCHAIN_ID && (product.colors?.length || usesInventoryPalette(product))) {
       try { inventory ??= await getInventoryColors({ includeInactive: true }); }

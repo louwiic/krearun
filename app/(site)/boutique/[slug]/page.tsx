@@ -17,7 +17,7 @@ import ReviewForm from "@/components/product/ReviewForm";
 import { getInventoryColors, getApprovedReviews, getProductBySlug, getProducts, getSettings } from "@/lib/store";
 import { formatPrice } from "@/lib/format";
 import { hasFreeShipping } from "@/lib/free-shipping";
-import { publicProductCopy } from "@/lib/public-copy";
+import { publicProductCopy, withPublicProductName } from "@/lib/public-copy";
 import { formatWeight } from "@/lib/shipping";
 import { getVisibleCategories } from "@/lib/categories";
 import { HOLDER_SLUG } from "@/lib/custom-holder";
@@ -31,7 +31,8 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const [product, settings] = await Promise.all([getProductBySlug(slug), getSettings()]);
+  const [record, settings] = await Promise.all([getProductBySlug(slug), getSettings()]);
+  const product = record && withPublicProductName(record);
   const visibleCategories = getVisibleCategories(settings.categories_json);
   if (!product || !product.active || (!product.privateSale && !visibleCategories.some((category) => category.value === product.category))) {
     return { title: "Objet introuvable" };
@@ -56,7 +57,8 @@ export default async function ProductPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const [product, settings] = await Promise.all([getProductBySlug(slug), getSettings()]);
+  const [record, settings] = await Promise.all([getProductBySlug(slug), getSettings()]);
+  const product = record && withPublicProductName(record);
   const categories = getVisibleCategories(settings.categories_json);
   if (
     !product ||

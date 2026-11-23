@@ -14,7 +14,7 @@ export default function HomeHighlight({config,products}:{config:HighlightConfig;
    <div className="min-w-0">
     <p className="editorial-eyebrow">{config.heading||"À ne pas rater"}</p>
     <h2 id="home-highlight-title" className="mt-3 font-display text-3xl font-bold sm:text-4xl">{product.name}</h2>
-    <p className="mt-5 whitespace-pre-line leading-relaxed text-ink-soft">{config.description||publicProductCopy(product.tagline)}</p>
+    <p className="mt-5 whitespace-pre-line leading-relaxed text-ink-soft">{publicProductCopy(config.description || product.tagline)}</p>
     {image&&video&&<Link href={href} className="mt-5 inline-block rounded-xl border border-sand bg-linen p-2"><img src={image} alt={product.name} width={140} height={140} loading="lazy" className="h-28 w-28 rounded-lg object-contain"/></Link>}
     <p className="mt-5 font-display text-2xl font-bold">{prices.length>1&&"Dès "}{formatPrice(price)}</p>
     {hasFreeShipping(product.slug)&&<p className="mt-1 text-sm font-semibold text-terra">Livraison incluse</p>}

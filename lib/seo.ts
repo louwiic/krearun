@@ -14,7 +14,7 @@ export const CATEGORY_DESCRIPTIONS: Record<string, string> = {
   bureau: "Des accessoires pour votre bureau, préparés par Kréarun à La Réunion. Découvrez les modèles disponibles pour organiser et personnaliser votre espace.",
   rangement: "Découvrez les objets de rangement Kréarun pour organiser votre quotidien. Des créations préparées avec soin dans notre atelier à La Réunion.",
   deco: "Découvrez les objets de décoration Kréarun et trouvez une idée cadeau pour votre intérieur. Des créations préparées dans notre atelier à La Réunion.",
-  "porte-boisson": "Porte-canettes Monster, Red Bull, NOS et porte-boisson personnalisé : choisissez votre modèle et vos couleurs. Fabrication dans notre atelier à La Réunion.",
+  "porte-boisson": "Porte-boissons Griffe, Taureau et NOS : choisissez votre modèle et vos couleurs. Fabrication dans notre atelier à La Réunion.",
   lunette: "Découvrez nos lunettes et choisissez votre monture préférée. La paire à 15,90 € avec livraison offerte : retrouvez les modèles disponibles en boutique.",
   noel: "Préparez Noël avec nos décorations thermoformées : choisissez un kit créatif avec moules réutilisables ou une décoration déjà mise en forme dans notre atelier.",
 };
@@ -22,8 +22,8 @@ export const SHOP_DESCRIPTION = "Découvrez la boutique Kréarun à La Réunion 
 
 export function productDescription(product: Pick<Product, "slug" | "name" | "description" | "tagline">): string {
   const descriptions: Record<string, string> = {
-    "porte-canette-monster": "Porte-canette Monster avec ou sans griffes 3D. Choisissez vos couleurs et ajoutez un prénom en option. Fabriqué à la commande à La Réunion par Kréarun.",
-    "porte-canette-red-bull": "Découvrez le porte-canette Red Bull Kréarun. Choisissez vos couleurs et personnalisez votre modèle avec un prénom en option. Fabriqué à La Réunion.",
+    "porte-canette-monster": "Porte-boisson personnalisé Griffe avec ou sans griffes 3D. Choisissez vos couleurs et ajoutez un prénom en option. Fabriqué à la commande à La Réunion par Kréarun.",
+    "porte-canette-red-bull": "Découvrez le porte-boisson Taureau Kréarun. Choisissez vos couleurs et personnalisez votre modèle avec un prénom en option. Fabriqué à La Réunion.",
     "porte-boisson-nos-500ml": "Porte-boisson NOS pour canette de 500 ml, personnalisable avec un texte ou votre logo. Choisissez votre couleur et découvrez l’aperçu 3D avant de commander.",
     "porte-boisson-500ml-personnalise": "Créez votre porte-boisson 500 ml avec votre logo, vos couleurs et vos textes. Aperçu 3D et validation par notre atelier à La Réunion avant le paiement.",
   };

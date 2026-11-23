@@ -1,3 +1,4 @@
+import { publicProductReferences } from "@/lib/public-copy";
 import { monsterGiftLabel } from "@/lib/monster-gift";
 import type { Metadata } from "next";
 import { getOrderByNumberAndEmail } from "@/lib/store";
@@ -112,7 +113,7 @@ function Timeline({ order }: { order: Order }) {
         {order.items.map((item, i) => (
           <li key={i} className="flex justify-between">
             <span>
-              {item.name}
+              {publicProductReferences(item.name)}
               {item.variantName ? ` — Modèle : ${item.variantName}` : ""}
               {item.keychainChoice ? ` — Porte-clés offert : ${monsterGiftLabel(item.keychainChoice, item.color)}` : ""}
               {item.color ? ` — ${item.color}` : ""}

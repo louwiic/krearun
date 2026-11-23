@@ -72,8 +72,10 @@ test("unlisted offer pages use noindex even when their catalog category is hidde
     "@/lib/name-keychain": keychains,
     "@/components/custom-holder/CustomHolderProduct": () => null,
     "@/components/product/NosProductGallery": () => null, "@/lib/nos": { NOS_SLUG: "nos", NOS_COLORS: [] },
+    "@/components/product/MonsterProductGallery": () => null, "@/lib/monster-preview": { MONSTER_SLUG: "monster" },
+    "@/components/product/SweatProductGallery": () => null, "@/lib/sweat-preview": { SWEAT_SLUG: "sweat" },
     "@/lib/store": { getProductBySlug: async () => product, getSettings: async () => ({}) },
-    "@/lib/format": {}, "@/lib/free-shipping": {}, "@/lib/public-copy": { publicProductCopy: value => value },
+    "@/lib/format": {}, "@/lib/free-shipping": {}, "@/lib/public-copy": load("../lib/public-copy.ts"),
     "@/lib/shipping": {}, "@/lib/categories": { getVisibleCategories: () => [] }, "@/lib/custom-holder": {},
   });
   assert.deepEqual((await generateMetadata({ params: Promise.resolve({ slug: "secret" }) })).robots, { index: false, follow: false });

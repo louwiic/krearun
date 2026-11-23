@@ -1,5 +1,6 @@
 "use client";
 
+import { publicProductReferences } from "@/lib/public-copy";
 import dynamic from "next/dynamic";
 
 import { coffretDetails } from "@/lib/coffrets";
@@ -138,7 +139,7 @@ export default function CartDrawer({
                           {item.name}
                         </Link>
                         {item.color && (
-                          <p className="text-xs text-ink-soft">Coloris : {publicColorName(item.color)}</p>
+                          <p className="text-xs text-ink-soft">Coloris : {publicProductReferences(publicColorName(item.color))}</p>
                         )}
                         {item.coffretConfiguration && <dl className="mt-2 text-sm text-ink-soft">{coffretDetails(item.coffretConfiguration).map(d => <div key={d.label}><dt className="inline font-semibold">{d.label} : </dt><dd className="inline">{d.value}</dd></div>)}</dl>}
                         {item.variantName && (
@@ -146,7 +147,7 @@ export default function CartDrawer({
                         )}
                         {item.keychainChoice && (
                           <p className="text-xs font-semibold text-terra-deep">
-                            Porte-clés offert : {monsterGiftLabel(item.keychainChoice, item.color)}
+                            Porte-clés offert : {publicProductReferences(monsterGiftLabel(item.keychainChoice, item.color))}
                           </p>
                         )}
                         {item.slug === "porte-canette-monster" && (

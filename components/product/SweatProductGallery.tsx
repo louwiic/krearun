@@ -21,7 +21,7 @@ export default function SweatProductGallery({images,videoUrl,name,initialColor}:
     return()=>window.removeEventListener(SWEAT_COLOR_EVENT,select);
   },[]);
   return <div className="min-w-0 space-y-3">
-    <div className="flex gap-2" role="group" aria-label="Vue du Sweat Monster">
+    <div className="flex gap-2" role="group" aria-label="Vue du porte-boisson à capuche">
       <button type="button" aria-pressed={view==="3d"} onClick={()=>{setHasPreview(true);setView("3d");}} className={`rounded-full border px-5 py-2 text-sm font-semibold ${view==="3d"?"border-ink bg-ink text-white":"border-sand"}`}>Aperçu 3D</button>
       <button type="button" aria-pressed={view==="photo"} onClick={()=>setView("photo")} className={`rounded-full border px-5 py-2 text-sm font-semibold ${view==="photo"?"border-ink bg-ink text-white":"border-sand"}`}>Photo réelle</button>
     </div>

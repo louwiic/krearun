@@ -36,7 +36,7 @@ export default function SingleProductGallery({
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/api/r2/products/monster/accessoires-monster-assortis.png"
-              alt="Accessoires Monster offerts"
+              alt="Accessoires offerts avec le modèle Griffe"
               className="h-full w-full object-cover"
             />
             <p className="absolute bottom-1 right-1 border-2 border-ink bg-cream px-1.5 py-0.5 text-center text-[8px] font-bold uppercase leading-none text-ink sm:text-[9px]">

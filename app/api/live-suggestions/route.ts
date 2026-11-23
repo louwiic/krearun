@@ -1,3 +1,4 @@
+import { withPublicProductName } from "@/lib/public-copy";
 import { getProducts } from "@/lib/store";
 import { siteOrigin } from "@/lib/seo";
 import { CATEGORIES } from "@/lib/types";
@@ -13,7 +14,7 @@ const globalState = globalThis as unknown as { __liveSuggestions?: { products: P
 async function activeProducts(): Promise<Product[]> {
   const cached = globalState.__liveSuggestions;
   if (cached && cached.until > Date.now()) return cached.products;
-  const products = (await getProducts()).filter(product => product.active);
+  const products = (await getProducts()).filter(product => product.active).map(withPublicProductName);
   globalState.__liveSuggestions = { products, until: Date.now() + 5 * 60_000 };
   return products;
 }

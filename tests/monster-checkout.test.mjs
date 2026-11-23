@@ -40,6 +40,7 @@ function checkout(slug='porte-canette-monster',weightGrams=180, settings={}, pro
   "@/lib/purchase-journey":journeys,
   '@/lib/promotion-details':promotionDetails,'@/lib/color-availability':availability,'@/lib/metropolitan-shipping':metropolitan,'@/lib/nos':nos,
   '@/lib/black-friday':{isBlackFridayCode:code=>blackFriday.isBlackFridayCode(code,failures.now)},
+  '@/lib/public-copy':loadTs(new URL('../lib/public-copy.ts',import.meta.url)),
   '@/lib/monster-gift':gift,'@/lib/legal':legal,'@/lib/checkout-item-metadata':metadata,
   '@/lib/store':{getInventoryColors:async()=>inventory,getNosLogo:async id=>id==='abc123def456ghi'?{id}:null,getSettings:async()=>settings,getProductById:async()=>{if(failures.store)throw new Error('private@example.fr');return ({id:'monster',slug,name:'Produit',active:true,variants:[],stock:10,priceCents:1790,weightGrams,images:[],colors:slug===nos.NOS_SLUG?nos.NOS_COLORS:[],...productOverrides});}},
   '@/lib/stripe':{stripeConfigured:()=>!failures.configuration,getStripe:()=>({coupons:{retrieve:async id=>({id,valid:true,amount_off:Number(id.split("-").at(-1)),currency:"eur",duration:"once"})},promotionCodes:{list:async()=>({data:promotion?[promotion]:[]})},checkout:{sessions:{create:async data=>{if(failures.stripe)throw {type:failures.stripe,message:"private@example.fr"};sessions.push(data);return {url:'https://checkout.invalid/test'};}}}})},

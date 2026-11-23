@@ -12,7 +12,7 @@ export default function SweatPreview3D({color,colorName}:{color:string;colorName
   const currentColor = useRef(color);
   const renderView = useRef<()=>void>(()=>{});
   const reset = useRef<()=>void>(()=>{});
-  const [status,setStatus] = useState("Chargement du modèle Sweat Monster…");
+  const [status,setStatus] = useState("Chargement du modèle à capuche…");
 
   useEffect(()=>{
     currentColor.current=color;
@@ -89,9 +89,9 @@ export default function SweatPreview3D({color,colorName}:{color:string;colorName
 
   return <div className="overflow-hidden rounded-2xl border-2 border-ink bg-cream">
     <div className="relative">
-      <div ref={host} role="img" aria-label={`Aperçu 3D du porte-boisson Sweat Monster — ${colorName}`} data-sweat-preview-color={color} className="h-[390px] w-full touch-none sm:h-[520px]" />
+      <div ref={host} role="img" aria-label={`Aperçu 3D du porte-boisson à capuche — ${colorName}`} data-sweat-preview-color={color} className="h-[390px] w-full touch-none sm:h-[520px]" />
       <span className="pointer-events-none absolute left-4 top-4 text-xs font-bold uppercase tracking-wide">Aperçu 3D · {colorName}</span>
-      <button type="button" onClick={()=>reset.current()} aria-label="Réinitialiser la vue du Sweat Monster" className="absolute right-3 top-3 rounded-full bg-white/90 px-3 py-2">↺</button>
+      <button type="button" onClick={()=>reset.current()} aria-label="Réinitialiser la vue du porte-boisson à capuche" className="absolute right-3 top-3 rounded-full bg-white/90 px-3 py-2">↺</button>
       {status&&<p role="status" className="absolute inset-0 flex items-center justify-center bg-cream/95 p-6 text-center text-sm">{status}</p>}
     </div>
     <p className="border-t border-ink/15 px-4 py-3 text-xs text-ink-soft">Faites glisser pour tourner, pincez pour zoomer. Aperçu des couleurs indicatif selon votre écran.</p>

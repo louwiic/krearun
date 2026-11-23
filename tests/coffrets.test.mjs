@@ -66,6 +66,8 @@ test('signed paid webhook preserves both workshop snapshots and does not look up
   '@/lib/store':{getOrderByStripeSession:async()=>order,getProductById:async()=>{throw Error('Virtual product lookup');},createOrder:async input=>(order={...input,id:'coffrets_test',number:17}),decrementStock:async input=>stockCalls.push(input)},
   '@/lib/email':{sendOrderConfirmation:async()=>{},sendAdminNewOrder:async()=>{}},
   '@/lib/custom-letter-settings':{},'@/lib/clicker':{},'@/lib/custom-holder-fulfillment':{},
+  '@/lib/shared-cart':loadTs(new URL('../lib/shared-cart.ts',import.meta.url)),
+  '@/lib/public-copy':loadTs(new URL('../lib/public-copy.ts',import.meta.url)),
   '@/lib/cart-reminder-service':{stopCartReminderAfterPurchase:async()=>{}},
  });
  const previous=process.env.STRIPE_WEBHOOK_SECRET;process.env.STRIPE_WEBHOOK_SECRET='test';

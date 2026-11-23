@@ -23,13 +23,13 @@ export default function HomeHeroCarousel({ campaignActive }: { campaignActive: b
     <section aria-label="À la une" aria-roledescription="carrousel" className="border-b-2 border-ink bg-linen">
       <div id={slideId} role="group" aria-roledescription="diapositive" aria-label={`${active + 1} sur ${slides.length} · ${slides[active]}`} className="aspect-[4/5] sm:aspect-[2017/780]">
         {promotion ? (
-          <Link href={`/boutique/${MONSTER_SLUG}`} aria-label={`Black Friday Monster, −20 % et un porte-clé prénom offert. Code promo ${promoCode}. Découvrir le porte-canette`} className="group flex h-full w-full flex-col items-center justify-center bg-[#101010] text-[#fff5df] focus-visible:outline-2 focus-visible:-outline-offset-4 sm:flex-row">
+          <Link href={`/boutique/${MONSTER_SLUG}`} aria-label={`Black Friday Griffe, −20 % et un porte-clé prénom offert. Code promo ${promoCode}. Découvrir le porte-boisson`} className="group flex h-full w-full flex-col items-center justify-center bg-[#101010] text-[#fff5df] focus-visible:outline-2 focus-visible:-outline-offset-4 sm:flex-row">
             <div aria-hidden="true" className="hidden w-1/2 flex-col items-start justify-center pl-[7vw] sm:flex">
               <p className="font-display text-[clamp(1.25rem,4.1vw,5rem)] font-extrabold uppercase leading-none">Black Friday</p>
               <p className="mt-2 font-display text-[clamp(2rem,8vw,9rem)] font-extrabold leading-none text-[#ff4164]">−20 %</p>
               <p className="mt-2 font-display text-[clamp(.85rem,2vw,2.3rem)] font-bold">+ 1 porte-clé prénom offert</p>
               <p className="mt-2 rounded border border-[#fff5df]/50 px-3 py-1 text-xs lg:mt-4 lg:text-base">Code promo <strong className="ml-1 tracking-wide">{promoCode}</strong></p>
-              <span className="mt-2 rounded-full bg-[#fff5df] px-4 py-2 text-xs font-bold text-[#101010] group-hover:underline lg:mt-4 lg:text-sm">Découvrir le porte-canette ↗</span>
+              <span className="mt-2 rounded-full bg-[#fff5df] px-4 py-2 text-xs font-bold text-[#101010] group-hover:underline lg:mt-4 lg:text-sm">Découvrir le porte-boisson ↗</span>
             </div>
             <img src="/brand/black-friday-monster.webp" alt="" width={1122} height={1402} fetchPriority="high" className="min-h-0 w-full flex-1 object-contain sm:h-full sm:w-1/2 sm:flex-none" />
             <p aria-hidden="true" className="m-2 shrink-0 rounded border border-[#fff5df]/50 px-4 py-1.5 text-sm sm:hidden">Code promo <strong className="ml-1 tracking-wide">{promoCode}</strong></p>

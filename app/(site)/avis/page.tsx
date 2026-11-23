@@ -1,3 +1,4 @@
+import { withPublicProductName } from "@/lib/public-copy";
 import type { Metadata } from "next";
 import ReviewPicker from "@/components/product/ReviewPicker";
 import { getProducts } from "@/lib/store";
@@ -11,7 +12,7 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function ReviewsPage() {
-  const products = (await getProducts()).filter((product) => product.active).map(({ id, name }) => ({ id, name }));
+  const products = (await getProducts()).map(withPublicProductName).filter((product) => product.active).map(({ id, name }) => ({ id, name }));
   return (
     <main className="mx-auto max-w-2xl px-4 py-12 sm:px-6">
       <p className="text-xs font-bold uppercase tracking-wide text-terra">Votre expérience</p>

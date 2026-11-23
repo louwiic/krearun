@@ -7,7 +7,7 @@ const groups: {label:string; items:[string,string,AdminIconName][]}[] = [
   {label:"Pilotage",items:[["/admin","Tableau de bord","dashboard"],["/admin/assistant","Assistant IA","assistant"]]},
   {label:"Catalogue",items:[["/admin/produits","Produits","products"],["/admin/categories","Catégories","categories"]]},
   {label:"Production",items:[["/admin/commandes","Commandes","orders"],["/admin/personnalisations","Personnalisations","customize"],["/admin/inventaire","Inventaire","inventory"],["/admin/bibliotheque-3d","Bibliothèque 3D","docs"],["/admin/etiquettes","Étiquettes colis","docs"],["/admin/porte-cles","Porte-clés","nozzle"],["/admin/generateur-3d","Prénoms 3D","nozzle"],["/admin/calculateur","Calculateur","calculator"]]},
-  {label:"Ventes & marketing",items:[["/admin/parcours-achat","Parcours d’achat","journey"],["/admin/codes-promo","Codes promo","promo"],["/admin/newsletter","Newsletter","newsletter"]]},
+  {label:"Ventes & marketing",items:[["/admin/paniers-a-partager","Paniers à partager","orders"],["/admin/parcours-achat","Parcours d’achat","journey"],["/admin/codes-promo","Codes promo","promo"],["/admin/newsletter","Newsletter","newsletter"]]},
   {label:"Relation client",items:[["/admin/clients","Clients","clients"],["/admin/messages","Messages","messages"],["/admin/avis","Avis","reviews"],["/admin/retractations","Rétractations","orders"]]},
   {label:"Administration",items:[["/admin/parametres","Réglages","settings"],["/admin/doc","Documentation","docs"]]},
 ];

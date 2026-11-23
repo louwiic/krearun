@@ -1,3 +1,4 @@
+import { publicProductReferences } from "@/lib/public-copy";
 import type { Review } from "@/lib/types";
 
 export default function HomeReviews({ reviews }: { reviews: Review[] }) {
@@ -21,7 +22,7 @@ export default function HomeReviews({ reviews }: { reviews: Review[] }) {
             ) : <div aria-hidden="true" />}
             <figcaption className="text-base">
               <p className="font-bold">{review.authorName}</p>
-              {review.productName && <p className="mt-1 text-sm text-ink-soft">{review.productName}</p>}
+              {review.productName && <p className="mt-1 text-sm text-ink-soft">{publicProductReferences(review.productName)}</p>}
             </figcaption>
           </figure>
         ))}

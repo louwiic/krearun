@@ -23,7 +23,7 @@ import MonsterProductGallery from "@/components/product/MonsterProductGallery";
 import { MONSTER_SLUG } from "@/lib/monster-preview";
 import AddToCart from "@/components/product/AddToCart";
 import { formatPrice } from "@/lib/format";
-import { publicProductCopy } from "@/lib/public-copy";
+import { publicProductCopy, withPublicProductName } from "@/lib/public-copy";
 import { getApprovedReviews, getProducts, getSettings } from "@/lib/store";
 import { getVisibleCategories } from "@/lib/categories";
 import coffretCatalogue from "@/data/coffrets-catalogue.json";
@@ -33,7 +33,7 @@ export const dynamic = "force-dynamic";
 export default async function HomePage() {
   const [products, settings, reviews] = await Promise.all([getProducts(), getSettings(), getApprovedReviews()]);
   const visibleValues = new Set(getVisibleCategories(settings.categories_json).map(category => category.value));
-  const visible = products.filter(product => visibleValues.has(product.category));
+  const visible = products.filter(product => visibleValues.has(product.category)).map(withPublicProductName);
   const featured = visible.filter(product => product.featured);
   const main = visible.find(product => product.slug === settings.homepage_featured_product_slug) ?? featured[0] ?? visible[0];
   const selection = [...featured, ...visible.filter(product => !product.featured)]
@@ -98,9 +98,9 @@ export default async function HomePage() {
       <div className="editorial-section-heading"><h2 id="home-selection-title">Votre sélection</h2><Link href="/boutique">Voir la boutique ↗</Link></div>
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
         {[
-          { image: "monster-blue", title: "Monster bleu & violet", alt: "Photo réelle de deux porte-canettes Monster bleu reflet mauve avec leurs porte-clés, détourés", slug: "porte-canette-monster" },
+          { image: "monster-blue", title: "Griffe bleu & violet", alt: "Photo réelle de deux porte-boissons Griffe bleu reflet mauve avec leurs porte-clés, détourés", slug: "porte-canette-monster" },
           { image: "nos-blue", title: "Porte-boisson NOS", alt: "Porte-boisson NOS bleu avec sa chaîne et son médaillon sur fond uni", slug: "porte-boisson-nos-500ml" },
-          { image: "monster-gold", title: "Monster argent & or", alt: "Porte-canette Monster noir, griffes argent et or, avec ses accessoires sur fond uni", slug: "porte-canette-monster" },
+          { image: "monster-gold", title: "Griffe argent & or", alt: "Porte-boisson Griffe noir, griffes argent et or, avec ses accessoires sur fond uni", slug: "porte-canette-monster" },
         ].map(item => <Link key={item.image} href={`/boutique/${item.slug}`} className="group min-w-0">
           <div className="aspect-square overflow-hidden rounded-2xl border border-ink/10 bg-[#F6F2ED]">
             <img src={`/products/home-selection/${item.image}.webp`} alt={item.alt} width={1000} height={1000} loading="lazy" className={`h-full w-full object-contain object-center ${item.image === "monster-blue" ? "rotate-90" : ""}`} />

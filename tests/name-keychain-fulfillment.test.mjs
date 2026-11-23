@@ -26,6 +26,8 @@ test('webhook retries recover a missing manufacturing file without creating or d
   '@/lib/store':{getOrderByStripeSession:async()=>order,getProductById:async()=>keychains.KEYCHAIN_PRODUCT,createOrder:async input=>{created++;order={...input,id:'abcdefghijklmno',number:17};return order;},decrementStock:async()=>{stock++;}},
   '@/lib/email':{sendOrderConfirmation:async()=>{},sendAdminNewOrder:async()=>{}},
   '@/lib/custom-letter-settings':{},'@/lib/clicker':{},'@/lib/custom-holder-fulfillment':{},
+  '@/lib/shared-cart':loadTs(new URL('../lib/shared-cart.ts',import.meta.url)),
+  '@/lib/public-copy':loadTs(new URL('../lib/public-copy.ts',import.meta.url)),
   '@/lib/cart-reminder-service':{stopCartReminderAfterPurchase:async()=>{}},
  });
  const previous=process.env.STRIPE_WEBHOOK_SECRET;process.env.STRIPE_WEBHOOK_SECRET='test';

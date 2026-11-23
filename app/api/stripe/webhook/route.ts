@@ -24,6 +24,8 @@ import { CUSTOM_LETTER_PRICE_CENTS, parseLetterConfiguration } from "@/lib/custo
 import { CLICKER_PRODUCT, CLICKER_PRODUCT_ID } from "@/lib/clicker";
 import type { ClickerConfiguration } from "@/lib/types";
 import { fulfillHolderPayment } from "@/lib/custom-holder-fulfillment";
+import { sharedCartOrderItems, type SharedCartLine } from "@/lib/shared-cart";
+import { publicProductName } from "@/lib/public-copy";
 
 function metadataCustomer(session: Stripe.Checkout.Session): CheckoutCustomer | null {
   const metadata = session.metadata ?? {};
@@ -93,11 +95,13 @@ export async function POST(req: Request) {
     }
 
     const raw = readCheckoutItems(session.metadata);
+    const sharedCart = session.metadata?.sharedCart === "1";
+    const sharedLines: SharedCartLine[] = sharedCart && raw ? JSON.parse(raw) : [];
     const parsed: { p: string; q: number; c: string; u?: number; n?: string; v?: string; k?: string; d?: string; h?: KeychainConfiguration; b?: import("@/lib/coffrets").CoffretConfiguration }[] = raw
-      ? JSON.parse(raw)
+      && !sharedCart ? JSON.parse(raw)
       : [];
 
-    const items: OrderItem[] = [];
+    const items: OrderItem[] = sharedCartOrderItems(sharedLines);
     if (session.metadata?.customLetter) {
       const configuration = parseLetterConfiguration(JSON.parse(session.metadata.customLetter));
       if (!configuration) return NextResponse.json({ error: "Configuration de lettre invalide." }, { status: 400 });
@@ -123,7 +127,7 @@ export async function POST(req: Request) {
       const keychainConfiguration = it.p === KEYCHAIN_ID ? parseKeychainConfiguration(it.h) : undefined;
       items.push({
         productId: it.p,
-        name: product?.name ?? "Article",
+        name: product ? publicProductName(product.slug, product.name) : "Article",
         priceCents: Math.max(
           0,
           Number(it.u) ||
@@ -203,13 +207,16 @@ export async function POST(req: Request) {
       status: "paid",
       stripeSessionId: session.id,
       trackingNumber: "",
-      internalNote: session.metadata?.termsVersion ? `CGV ${session.metadata.termsVersion} acceptées le ${session.metadata.termsAcceptedAt || "date non transmise"}.` : "",
+      internalNote: sharedCart
+        ? `Panier partagé. CGV ${session.metadata?.termsVersion ?? ""} présentées avant le paiement Stripe.`
+        : session.metadata?.termsVersion ? `CGV ${session.metadata.termsVersion} acceptées le ${session.metadata.termsAcceptedAt || "date non transmise"}.` : "",
       note: orderNote,
       items,
     });
 
     await decrementStock(
-      parsed.filter(it => it.p !== "coffrets-bijoux").map((it) => ({ productId: it.p, quantity: it.q, variantId: it.v }))
+      (sharedCart ? sharedLines.filter(line => line.p !== "shared-custom") : parsed.filter(it => it.p !== "coffrets-bijoux"))
+        .map((it) => ({ productId: it.p, quantity: it.q, variantId: it.v }))
     );
 
     // E-mails non bloquants : un échec d'envoi ne doit pas faire

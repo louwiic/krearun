@@ -22,6 +22,7 @@ function setup() {
   getProductById:async()=>({id:productId,active:true,slug:'test',name:'Produit',priceCents:2000,stock:5,images:[],variants:[],weightGrams:100,namePersonalizationEnabled:true,namePersonalizationPriceCents:300,quantityDiscounts:[]}),
  };
  const mocks={
+  './public-copy':loadTs(new URL('../lib/public-copy.ts',import.meta.url)),
   "./monster-multicolor":loadTs(new URL("../lib/monster-multicolor.ts",import.meta.url)),
   './cart-reminders':policy, './store':store,
   './email':{sendCartReminderEmail:async(email,mode,urls)=>{deliveries.push({email,mode,urls});return true;}},

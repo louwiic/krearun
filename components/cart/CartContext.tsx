@@ -1,5 +1,6 @@
 "use client";
 
+import { publicProductName } from "@/lib/public-copy";
 import {
   createContext,
   useCallback,
@@ -88,7 +89,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         const saved = JSON.parse(raw) as CartItem[];
         // Le panier persistant est restauré une seule fois après l'hydratation client.
         setItems(
-          saved.map((item) =>
+          saved.map((item) => ({ ...item, name: publicProductName(item.slug, item.name) })).map((item) =>
             item.slug === "porte-canette-monster"
               ? {
                   ...item,

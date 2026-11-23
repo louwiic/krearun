@@ -26,7 +26,7 @@ export default function MonsterClawPreview({
         <svg
           viewBox="300 0 1680 1860"
           role="img"
-          aria-label={`Griffes Monster en coloris ${colorName}`}
+          aria-label={`Griffes en coloris ${colorName}`}
           className="h-20 w-24 shrink-0 drop-shadow-[0_4px_8px_rgba(0,0,0,0.45)] sm:h-20 sm:w-24"
         >
           <defs>

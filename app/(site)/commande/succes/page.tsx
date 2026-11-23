@@ -33,15 +33,15 @@ async function getStripeSessionSummary(sessionId: string) {
 export default async function SuccesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ session_id?: string; letter?: string }>;
+  searchParams: Promise<{ session_id?: string; letter?: string; partage?: string }>;
 }) {
-  const { session_id, letter } = await searchParams;
+  const { session_id, letter, partage } = await searchParams;
   const order = session_id ? await getOrderByStripeSession(session_id) : null;
   const stripeSummary = !order && session_id ? await getStripeSessionSummary(session_id) : null;
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-20 text-center sm:px-6">
-      {letter !== "1" && <ClearCart />}
+      {letter !== "1" && partage !== "1" && <ClearCart />}
       <div className="mx-auto flex h-24 w-24 animate-float items-center justify-center rounded-full bg-sage/25 text-5xl">
         ✿
       </div>

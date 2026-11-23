@@ -1,3 +1,4 @@
+import { withPublicProductName } from "./public-copy";
 import { MONSTER_MULTICOLOR_CENTS, parseMonsterColors } from "./monster-multicolor";
 import { variantQuantityDiscounts } from "./noel-kits";
 import { isPersonalizedLamp } from "./lamp-personalization";
@@ -111,7 +112,7 @@ export async function restoreReminderCart(token: string): Promise<CartItem[]> {
     const stock = product.slug === "lettre-de-naissance-personnalisee" ? 20 : variant?.stock ?? product.stock;
     if (!product.preorder && stock <= 0) continue;
     const personalizationPriceCents = (product.namePersonalizationEnabled && saved.customName && !isPersonalizedLamp(product.slug) ? product.namePersonalizationPriceCents : 0) + (product.slug === "porte-canette-monster" && parseMonsterColors(saved.color) ? MONSTER_MULTICOLOR_CENTS : 0);
-    result.push({ ...saved, slug: product.slug, name: product.name, priceCents: (variant?.priceCents || product.priceCents) + personalizationPriceCents,
+    result.push({ ...saved, slug: product.slug, name: withPublicProductName(product).name, priceCents: (variant?.priceCents || product.priceCents) + personalizationPriceCents,
       image: variant?.image || product.images[0] || "/products/hero.svg", stock, weightGrams: variant?.weightGrams || product.weightGrams,
       preorder: product.preorder, quantity: Math.min(saved.quantity, product.preorder ? 20 : stock),
       personalizationPriceCents,

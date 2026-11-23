@@ -1,5 +1,6 @@
 "use client";
 
+import { publicProductReferences } from "@/lib/public-copy";
 import dynamic from "next/dynamic";
 
 import { coffretDetails } from "@/lib/coffrets";
@@ -219,7 +220,7 @@ export default function CheckoutForm({
         image: GTA_GIFT_IMAGE, cta: "Je choisis mon prénom offert",
       } : blackFridayGiftEligible ? {
         ...nameGiftContent, title: "Ton porte-clés prénom offert",
-        description: "Avec BLACK20 et un porte-canette Monster dans le panier, choisis le prénom de ton porte-clés offert.",
+        description: "Avec BLACK20 et un porte-boisson Griffe dans le panier, choisis le prénom de ton porte-clés offert.",
       } : nameGiftContent)} gta={gtaGiftEligible} />}
       {gtaGiftEligible && <section aria-label="Cadeaux GTA inclus" className="rounded-2xl border-2 border-terra bg-cream p-5 lg:col-span-2"><h2 className="font-bold">Tes cadeaux GTA — 0 €</h2><p className="mt-2 text-sm">1 × {GTA_GIFT_NAME} offert</p><p className="mt-2 text-sm">{giftName ? `1 × Porte-clés « ${giftName} » en police GTA offert` : "Ajoute ton prénom avec le bouton cadeau pour recevoir aussi ton porte-clés prénom en police GTA."}</p></section>}
       <section className="space-y-6 bg-cream p-5 shadow-soft sm:p-8">
@@ -451,7 +452,7 @@ export default function CheckoutForm({
                   <div>
                     <p className="text-sm font-bold">{item.name}</p>
                     {item.color && (
-                      <p className="text-xs text-ink-soft">Coloris : {publicColorName(item.color)}</p>
+                      <p className="text-xs text-ink-soft">Coloris : {publicProductReferences(publicColorName(item.color))}</p>
                     )}
                     {item.coffretConfiguration && <dl className="mt-2 text-sm text-ink-soft">{coffretDetails(item.coffretConfiguration).map(d => <div key={d.label}><dt className="inline font-semibold">{d.label} : </dt><dd className="inline">{d.value}</dd></div>)}</dl>}
                         {item.variantName && (
@@ -459,7 +460,7 @@ export default function CheckoutForm({
                     )}
                     {item.keychainChoice && (
                       <p className="text-xs font-semibold text-terra-deep">
-                        Porte-clés offert : {monsterGiftLabel(item.keychainChoice, item.color)}
+                        Porte-clés offert : {publicProductReferences(monsterGiftLabel(item.keychainChoice, item.color))}
                       </p>
                     )}
                     {item.slug === "porte-canette-monster" && (
