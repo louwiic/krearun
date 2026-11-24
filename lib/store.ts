@@ -202,6 +202,20 @@ export async function saveHolderCheckout(id: string, stripeSessionId: string) {
   if(!/^[a-z0-9]{15}$/.test(id))throw new Error("Demande invalide.");
   await pb(`/collections/holder_requests/records/${id}`,{method:"PATCH",body:{stripeSessionId}});
 }
+export async function acquireHolderCheckoutLock(requestId: string): Promise<string> {
+  if (!/^[a-z0-9]{15}$/.test(requestId)) throw new Error("Demande invalide.");
+  const endpoint = "/collections/holder_checkout_locks/records";
+  const staleBefore = new Date(Date.now() - 15 * 60_000).toISOString().replace("T", " ");
+  const filter = encodeURIComponent(`requestId='${requestId}' && created<'${staleBefore}'`);
+  const stale = await pb<ListResult<{ id: string }>>(`${endpoint}?perPage=1&filter=${filter}`);
+  if (stale.items[0]) await releaseHolderCheckoutLock(stale.items[0].id).catch(() => undefined);
+  return (await pb<{ id: string }>(endpoint, { method: "POST", body: { requestId } })).id;
+}
+
+export async function releaseHolderCheckoutLock(id: string) {
+  if (!/^[a-z0-9]{15}$/.test(id)) throw new Error("Verrou invalide.");
+  await pb(`/collections/holder_checkout_locks/records/${id}`, { method: "DELETE" });
+}
 export async function markHolderPaid(id: string, orderId: string) {
   if(!/^[a-z0-9]{15}$/.test(id) || !/^[a-z0-9]{15}$/.test(orderId))throw new Error("Demande invalide.");
   await pb(`/collections/holder_requests/records/${id}`,{method:"PATCH",body:{orderId}});

@@ -21,10 +21,11 @@ export async function client() {
     throw new Error(`Authentification PocketBase : HTTP ${response.status}`);
   const { token } = await response.json();
   async function request(path, method = "GET", body) {
+    const multipart = body instanceof FormData;
     const response = await fetch(`${url}/api${path}`, {
       method,
-      headers: { Authorization: token, "Content-Type": "application/json" },
-      body: body === undefined ? undefined : JSON.stringify(body),
+      headers: { Authorization: token, ...(multipart ? {} : { "Content-Type": "application/json" }) },
+      body: multipart || body === undefined ? body : JSON.stringify(body),
       signal: AbortSignal.timeout(30000),
     });
     const data = response.status === 204 ? null : await response.json();

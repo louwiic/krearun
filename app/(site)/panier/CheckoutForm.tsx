@@ -14,6 +14,7 @@ import { parseMetropolitanShipping, shippingZone, metropolitanQuote } from "@/li
 import { monsterGiftLabel } from "@/lib/monster-gift";
 import { isBlackFridayCode } from "@/lib/black-friday";
 import { MONSTER_SLUG } from "@/lib/monster-preview";
+import { holderCartShipping, HOLDER_CART_PRODUCT_ID } from "@/lib/holder-cart";
 
 import Link from "next/link";
 import CartRewards from "@/components/cart/CartRewards";
@@ -98,6 +99,9 @@ export default function CheckoutForm({
   const [loading, setLoading] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [error, setError] = useState("");
+  const [simulationTotal, setSimulationTotal] = useState<number | null>(null);
+  const holderItems = items.filter(item => item.productId === HOLDER_CART_PRODUCT_ID);
+  const demoCart = holderItems.some(item => item.holderDemo);
   const promoCode = manualPromoCode || (rewardDiscount(rewardCode, subtotalCents) ? rewardCode : "");
   const blackFridayGiftEligible = isBlackFridayCode(promoCode) && items.some((item) => item.slug === MONSTER_SLUG);
   const giftEligible = nameGiftEnabled || gtaGiftEligible || blackFridayGiftEligible;
@@ -133,7 +137,7 @@ export default function CheckoutForm({
   try {
     if (!isPickup && shippingZone(customer.country, customer.postalCode) === "FR_METROPOLITAN") metropolitan = metropolitanQuote(billableWeightGrams, items.reduce((sum,item)=>sum+(item.weightGrams || 0)*item.quantity,0), missingBillableWeight, freeShipping, parseMetropolitanShipping(metropolitanShippingRatesJson));
   } catch (cause) { shippingError = cause instanceof Error ? cause.message : "Impossible de calculer la livraison."; }
-  const shippingCents = metropolitan ? metropolitan.priceCents :
+  const standardShippingCents = metropolitan ? metropolitan.priceCents :
     isPickup || freeShipping
       ? 0
       : missingBillableWeight
@@ -141,14 +145,16 @@ export default function CheckoutForm({
         : billableWeightGrams === 0
           ? 0
           : shippingEstimate.priceCents;
+  const shippingCents = holderCartShipping(standardShippingCents, holderItems.map(item => item.holderShippingCents ?? 0), holderItems.length < items.length, Boolean(isPickup));
   const totalCents = subtotalCents + shippingCents - rewardDiscountCents;
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (shippingError) { setError(shippingError); return; }
-    trackJourney("begin_checkout", items);
+    if (!demoCart) trackJourney("begin_checkout", items);
     setLoading(true);
     setError("");
+    setSimulationTotal(null);
     let diagnostic: CheckoutDiagnostic = { errorCode: "NETWORK_ERROR" };
     try {
       const res = await fetch("/api/checkout", {
@@ -183,13 +189,18 @@ export default function CheckoutForm({
         diagnostic = checkoutDiagnostic({ ...diagnostic, errorCode: data.code });
         throw new Error(data.error || "Impossible de préparer le paiement.");
       }
+      if (data.simulation === true && Number.isSafeInteger(data.totalCents)) {
+        setSimulationTotal(data.totalCents);
+        setLoading(false);
+        return;
+      }
       if (typeof data.url !== "string" || !data.url) {
         diagnostic = { ...diagnostic, errorCode: "MISSING_PAYMENT_URL" };
         throw new Error("Le service de paiement n'a pas renvoyé de lien.");
       }
       window.location.href = data.url;
     } catch (e) {
-      trackJourney("checkout_error", items, undefined, undefined, diagnostic);
+      if (!demoCart) trackJourney("checkout_error", items, undefined, undefined, diagnostic);
       setError(e instanceof Error ? e.message : "Une erreur est survenue.");
       setLoading(false);
     }
@@ -484,6 +495,7 @@ export default function CheckoutForm({
                   <div className="flex items-center rounded-full border border-sand">
                     <button
                       type="button"
+                      disabled={item.productId === HOLDER_CART_PRODUCT_ID}
                       onClick={() =>
                         setQuantity(
                           item.productId,
@@ -515,7 +527,7 @@ export default function CheckoutForm({
                           item.clickerConfiguration
                         )
                       }
-                      disabled={item.quantity >= (item.preorder ? 20 : item.stock)}
+                      disabled={item.productId === HOLDER_CART_PRODUCT_ID || item.quantity >= (item.preorder ? 20 : item.stock)}
                       className="px-3 py-1 text-ink-soft hover:text-ink disabled:opacity-30"
                     >
                       +
@@ -570,16 +582,18 @@ export default function CheckoutForm({
           </p>
         )}
 
-        <div className="mt-5"><TermsAcceptance checked={termsAccepted} onChange={setTermsAccepted} personalized={items.some(item => Boolean(item.customName || item.clickerConfiguration))} /></div>
+        {demoCart && <p className="mt-4 rounded-xl bg-sage/20 p-3 text-sm">Panier de démonstration. Retirez l’article de démonstration pour passer une vraie commande.</p>}
+        {simulationTotal !== null && demoCart && <p role="status" className="mt-4 font-bold text-sage-deep">Simulation validée · {formatPrice(simulationTotal)} avant éventuelle remise. Aucun paiement ni commande enregistrés.</p>}
+        {!demoCart && <div className="mt-5"><TermsAcceptance checked={termsAccepted} onChange={setTermsAccepted} personalized={Boolean(holderItems.length) || items.some(item => Boolean(item.customName || item.clickerConfiguration))} /></div>}
         <button
           type="submit"
-          disabled={loading || !termsAccepted || Boolean(shippingError)}
+          disabled={loading || (!demoCart && !termsAccepted) || Boolean(shippingError)}
           className="mt-5 w-full rounded-full bg-terra px-8 py-4 text-sm font-bold text-cream transition-colors hover:bg-terra-deep disabled:opacity-60"
         >
-          {loading ? "Préparation de la commande..." : "Continuer vers le paiement"}
+          {loading ? "Préparation de la commande..." : demoCart ? "Simuler le paiement" : "Continuer vers le paiement"}
         </button>
         <p className="mt-3 text-center text-[11px] text-ink-faint">
-          Le paiement sera confirmé sur la page sécurisée Stripe. La commande implique le paiement du total présenté.
+          {demoCart ? "La simulation vérifie le panier sans ouvrir Stripe." : "Le paiement sera confirmé sur la page sécurisée Stripe. La commande implique le paiement du total présenté."}
         </p>
       </aside>
       {nameGiftEnabled && <div aria-hidden="true" className="h-64 lg:col-span-2 sm:h-48" />}

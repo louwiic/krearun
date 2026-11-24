@@ -89,7 +89,10 @@ export async function POST(req: Request) {
     // Idempotence : ne pas recréer la commande si le webhook rejoue
     const existingOrder = await getOrderByStripeSession(session.id);
     if (existingOrder) {
-      try { await fulfillOrderKeychains(existingOrder); }
+      try {
+        if (session.metadata?.holderCart === "1") await (await import("@/lib/holder-cart-fulfillment")).linkHolderCartOrder(existingOrder);
+        await fulfillOrderKeychains(existingOrder);
+      }
       catch { return NextResponse.json({ error: "Fichier porte-clés à régénérer." }, { status: 500 }); }
       return NextResponse.json({ received: true });
     }
@@ -102,6 +105,7 @@ export async function POST(req: Request) {
       : [];
 
     const items: OrderItem[] = sharedCartOrderItems(sharedLines);
+    const mixedHolders = session.metadata?.holderCart === "1";
     if (session.metadata?.customLetter) {
       const configuration = parseLetterConfiguration(JSON.parse(session.metadata.customLetter));
       if (!configuration) return NextResponse.json({ error: "Configuration de lettre invalide." }, { status: 400 });
@@ -112,6 +116,14 @@ export async function POST(req: Request) {
       });
     }
     for (const it of parsed) {
+      if (mixedHolders && it.p === "custom-holder") {
+        try {
+          items.push(await (await import("@/lib/holder-cart-fulfillment")).paidHolderCartItem(session, it));
+        } catch {
+          return NextResponse.json({ error: "Lien de personnalisation à vérifier." }, { status: 500 });
+        }
+        continue;
+      }
       if (it.p === "coffrets-bijoux" && it.b) {
         const { coffretLabel, coffretImage } = await import("@/lib/coffrets");
         // The server-validated configuration in signed Stripe metadata is the workshop snapshot.
@@ -210,14 +222,16 @@ export async function POST(req: Request) {
       internalNote: sharedCart
         ? `Panier partagé. CGV ${session.metadata?.termsVersion ?? ""} présentées avant le paiement Stripe.`
         : session.metadata?.termsVersion ? `CGV ${session.metadata.termsVersion} acceptées le ${session.metadata.termsAcceptedAt || "date non transmise"}.` : "",
+      ...(mixedHolders ? { sourceId: `holder-cart:${session.id}` } : {}),
       note: orderNote,
       items,
     });
 
     await decrementStock(
-      (sharedCart ? sharedLines.filter(line => line.p !== "shared-custom") : parsed.filter(it => it.p !== "coffrets-bijoux"))
+      (sharedCart ? sharedLines.filter(line => line.p !== "shared-custom") : parsed.filter(it => it.p !== "coffrets-bijoux" && it.p !== "custom-holder"))
         .map((it) => ({ productId: it.p, quantity: it.q, variantId: it.v }))
     );
+    if (mixedHolders) await (await import("@/lib/holder-cart-fulfillment")).linkHolderCartOrder(order);
 
     // E-mails non bloquants : un échec d'envoi ne doit pas faire
     // rejouer le webhook (la commande est déjà enregistrée)

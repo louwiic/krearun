@@ -7,6 +7,7 @@ import sharp from 'sharp';
 import * as jose from 'jose';
 import * as holder from '../lib/custom-holder.ts';
 import * as palette from '../lib/logo-palette.ts';
+import {loadTs} from './load-ts.mjs';
 const require=createRequire(import.meta.url);
 function load(path,mocks={}) {
   const source=readFileSync(new URL(path,import.meta.url),'utf8');
@@ -39,6 +40,35 @@ test('webhook requires paid status and the exact stored session, owner and amoun
   const session={id:'cs_holder',metadata:{customHolderRequest:base.id,holderCustomerId:base.customerId},payment_status:'paid',currency:'eur',amount_total:4870,amount_subtotal:4380};
   assert.equal(payment.validHolderPayment(approved,session),true);
   for(const patch of [{payment_status:'unpaid'},{amount_total:1},{amount_subtotal:1},{currency:'usd'},{id:'other'},{metadata:{customHolderRequest:base.id,holderCustomerId:'other'}}])assert.equal(payment.validHolderPayment(approved,{...session,...patch}),false);
+});
+test('mixed checkout expires the old link, reserves the new one and can link its order again safely', async () => {
+  let request = approved;
+  const operations = [];
+  const store = {
+    getHolderRequest: async () => request,
+    saveHolderCheckout: async (id, stripeSessionId) => { operations.push(['save', id, stripeSessionId]); request = { ...request, stripeSessionId }; },
+    markHolderPaid: async (id, orderId) => { operations.push(['link', id, orderId]); request = { ...request, orderId }; },
+  };
+  const lock = loadTs(new URL('../lib/holder-checkout-lock.ts', import.meta.url), {
+    './store': { acquireHolderCheckoutLock: async id => { operations.push(['lock', id]); return 'lock'; }, releaseHolderCheckoutLock: async id => operations.push(['unlock', id]) },
+  });
+  const mixed = loadTs(new URL('../lib/holder-cart-payment.ts', import.meta.url), {'./store': store, './holder-checkout-lock': lock});
+  const fulfillment = loadTs(new URL('../lib/holder-cart-fulfillment.ts', import.meta.url), {'./store': store});
+  const stripe = { checkout: { sessions: {
+    retrieve: async id => ({ id, status: 'open' }),
+    expire: async id => operations.push(['expire', id]),
+    create: async () => ({ id: 'cs_mixed', url: 'https://checkout.invalid/mixed' }),
+  } } };
+  await mixed.openHolderCartCheckout(stripe, {}, [approved], base.customerId);
+  assert.deepEqual(operations, [['lock', base.id], ['expire', 'cs_holder'], ['save', base.id, 'cs_mixed'], ['unlock', 'lock']]);
+  const session = { id: 'cs_mixed', metadata: { holderCustomerId: base.customerId }, payment_status: 'paid', currency: 'eur' };
+  await assert.rejects(fulfillment.paidHolderCartItem({ ...session, id: 'cs_wrong' }, { v: base.id, q: 2, u: 2190 }));
+  const item = await fulfillment.paidHolderCartItem(session, { v: base.id, q: 2, u: 2190 });
+  assert.equal(item.holderRequestId, base.id);
+  const order = { id: 'ddddddddddddddd', items: [item], stripeSessionId: session.id };
+  await fulfillment.linkHolderCartOrder(order);
+  await fulfillment.linkHolderCartOrder(order);
+  assert.deepEqual(operations.filter(([step]) => step === 'link'), [['link', base.id, order.id]]);
 });
 test('configuration rejects malformed colors, ranges and nonfinite values',()=>{
   assert.deepEqual(holder.parseHolderConfiguration(base.configuration),base.configuration);
@@ -76,6 +106,8 @@ test('payment route rejects strangers and unapproved requests before calling Str
     '@/lib/customer-auth':{getCustomerSession:async()=>currentCustomer},
     '@/lib/store':{getHolderRequest:async()=>request,saveHolderCheckout:async()=>{}},
     '@/lib/custom-holder':holder,'@/lib/custom-holder-payment':payment,'@/lib/custom-holder-http':http,
+    '@/lib/holder-cart':loadTs(new URL('../lib/holder-cart.ts', import.meta.url)),
+    '@/lib/holder-checkout-lock':{withHolderCheckoutLocks:(_ids, operation)=>operation(),HolderCheckoutConflict:class extends Error{}},
     '@/lib/stripe':{stripeConfigured:()=>true,getStripe:()=>{stripeCalls++;throw new Error('Unexpected Stripe call');}},
   });
   const call=()=>route.POST(new Request('https://krearun.re/api/porte-boisson/demandes/x/paiement',{method:'POST'}),{params:Promise.resolve({id:base.id})});

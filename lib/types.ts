@@ -250,6 +250,8 @@ export interface Settings {
 }
 
 export interface CartItem {
+  holderShippingCents?: number;
+  holderDemo?: boolean;
   coffretConfiguration?: import("./coffrets").CoffretConfiguration;
   clickerConfiguration?: ClickerConfiguration;
   keychainConfiguration?: KeychainConfiguration;

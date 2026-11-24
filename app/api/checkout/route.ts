@@ -133,12 +133,16 @@ async function prepareCheckout(req: Request) {
   let journeyId: string | undefined;
   let orderNote = "";
   let giftName = "";
+  let termsAccepted = false;
   let fulfillmentMethod: FulfillmentMethod = "delivery";
   let pickupPointId = "";
   try {
     const body = (await req.json()) as CheckoutBody;
     validationCode = "TERMS_REQUIRED";
-    if (body.termsAccepted !== true || body.termsVersion !== LEGAL_VERSION) throw new Error("Acceptez les conditions générales de vente à jour avant de continuer.");
+    termsAccepted = body.termsAccepted === true && body.termsVersion === LEGAL_VERSION;
+    if (!termsAccepted && !(Array.isArray(body.items) && body.items.some(item => item?.productId === "custom-holder"))) {
+      throw new Error("Acceptez les conditions générales de vente à jour avant de continuer.");
+    }
     journeyId = typeof body.journeySessionId === "string" && UUID.test(body.journeySessionId) ? body.journeySessionId : undefined;
     validationCode = "INVALID_CART";
     items = body.items;
@@ -188,6 +192,32 @@ async function prepareCheckout(req: Request) {
     quantity: number;
   }[] = [];
   const metadataItems: { p: string; q: number; c: string; u: number; n?: string; v?: string; k?: string; d?: string; h?: KeychainConfiguration; b?: import("@/lib/coffrets").CoffretConfiguration }[] = [];
+  const holderSelections = items.filter(item => item?.productId === "custom-holder");
+  const holderRequests = new Map<string, import("@/lib/custom-holder").HolderRequest>();
+  let holderAccountId = "";
+  let holderDemo = false;
+  if (holderSelections.length) {
+    const { getCustomerSession } = await import("@/lib/customer-auth");
+    const { getHolderRequest } = await import("@/lib/store");
+    const { canAddHolderToCart, isHolderDemo } = await import("@/lib/holder-cart");
+    const account = await getCustomerSession();
+    if (!account || account.email.trim().toLowerCase() !== customer.email) {
+      return NextResponse.json({ code: "PERSONALIZATION_INVALID", error: "Connectez-vous avec l’adresse du compte qui a demandé la personnalisation et utilisez-la pour la commande." }, { status: 403 });
+    }
+    holderAccountId = account.id;
+    if (holderSelections.length > 10) return NextResponse.json({ code: "INVALID_CART", error: "Ajoutez au maximum 10 demandes personnalisées par commande." }, { status: 400 });
+    for (const item of holderSelections) {
+      const id = item.variantId ?? "";
+      if (!/^[a-z0-9]{15}$/.test(id) || holderRequests.has(id)) return NextResponse.json({ code: "INVALID_CART", error: "Une demande personnalisée ne peut figurer qu’une fois dans le panier." }, { status: 400 });
+      const holder = await getHolderRequest(id);
+      if (!holder || !canAddHolderToCart(holder, account.id) || holder.quantity !== item.quantity) {
+        return NextResponse.json({ code: "PERSONALIZATION_INVALID", error: "Une personnalisation a changé ou n’est plus disponible. Ouvrez votre espace client pour actualiser le panier." }, { status: 409 });
+      }
+      holderRequests.set(id, holder);
+      holderDemo ||= isHolderDemo(holder);
+    }
+  }
+  if (!termsAccepted && !holderDemo) return NextResponse.json({ code: "TERMS_REQUIRED", error: "Acceptez les conditions générales de vente à jour avant de continuer." }, { status: 400 });
   let gtaGiftEligible = false;
   let hasMonster = false;
   let subtotalCents = 0;
@@ -197,6 +227,17 @@ async function prepareCheckout(req: Request) {
 
   let inventory: ColorAvailability[] | undefined;
   for (const item of items) {
+    if (item.productId === "custom-holder") {
+      const { holderCartItem } = await import("@/lib/holder-cart");
+      const holder = holderRequests.get(item.variantId!)!;
+      const cart = holderCartItem(holder);
+      subtotalCents += cart.priceCents * cart.quantity;
+      totalWeightGrams += cart.weightGrams * cart.quantity;
+      physicalWeightGrams += cart.weightGrams * cart.quantity;
+      lineItems.push({ price_data: { currency: "eur", unit_amount: cart.priceCents, product_data: { name: cart.name, description: `${cart.variantName} · ${cart.color} · Demande validée` } }, quantity: cart.quantity });
+      metadataItems.push({ p: cart.productId, v: holder.id, q: cart.quantity, c: cart.color, u: cart.priceCents });
+      continue;
+    }
     if (item.productId === "coffrets-bijoux") {
       try {
         const { coffretQuote, coffretLineId, coffretLabel, coffretDetails } = await import("@/lib/coffrets");
@@ -354,13 +395,20 @@ async function prepareCheckout(req: Request) {
   try {
     if (!pickupPoint && shippingZone(customer.country, customer.postalCode) === "FR_METROPOLITAN") metropolitan = metropolitanQuote(totalWeightGrams, physicalWeightGrams, missingBillableWeight, freeShipping, parseMetropolitanShipping(settings.metropolitan_shipping_rates_json));
   } catch (cause) { return NextResponse.json({ code: "SHIPPING_UNAVAILABLE", error: cause instanceof Error ? cause.message : "Livraison indisponible." }, { status: 400 }); }
-  const shippingCents = metropolitan ? metropolitan.priceCents : pickupPoint || freeShipping
+  let shippingCents = metropolitan ? metropolitan.priceCents : pickupPoint || freeShipping
     ? 0
     : missingBillableWeight
       ? Math.max(settings.shipping_flat_cents, shipping.priceCents)
       : totalWeightGrams === 0
         ? 0
         : shipping.priceCents;
+
+  if (holderRequests.size) {
+    const { holderCartShipping } = await import("@/lib/holder-cart");
+    shippingCents = holderCartShipping(shippingCents, [...holderRequests.values()].map(holder => holder.decision!.shippingCents), holderRequests.size < items.length, Boolean(pickupPoint));
+    if (metropolitan) metropolitan = { ...metropolitan, priceCents: shippingCents };
+  }
+  if (holderDemo) return NextResponse.json({ simulation: true, subtotalCents, shippingCents, totalCents: subtotalCents + shippingCents });
 
   const stripe = getStripe();
   const discounts: NonNullable<Stripe.Checkout.SessionCreateParams["discounts"]> = [];
@@ -389,8 +437,9 @@ async function prepareCheckout(req: Request) {
       discounts.push({ promotion_code: promotionCode.id });
     }
 
-    const session = await stripe.checkout.sessions.create({
+    const params: Stripe.Checkout.SessionCreateParams = {
       mode: "payment",
+      ...(holderRequests.size ? { payment_method_types: ["card"] } : {}),
       line_items: lineItems,
       customer_email: customer.email,
       shipping_options: [
@@ -398,7 +447,7 @@ async function prepareCheckout(req: Request) {
           shipping_rate_data: {
             type: "fixed_amount",
             fixed_amount: { amount: shippingCents, currency: "eur" },
-            display_name: metropolitan ? (metropolitan.priceCents === 0 ? "Livraison offerte · métropole" : metropolitan.label) : pickupPoint
+            display_name: holderRequests.size && !pickupPoint ? (shippingCents === 0 ? "Livraison offerte" : "Livraison groupée") : metropolitan ? (metropolitan.priceCents === 0 ? "Livraison offerte · métropole" : metropolitan.label) : pickupPoint
               ? `Retrait · ${pickupPoint.name}`
               : freeShipping
                 ? "Envoi offert"
@@ -417,6 +466,7 @@ async function prepareCheckout(req: Request) {
       locale: "fr",
       metadata: {
         ...packCheckoutItems(metadataItems),
+        ...(holderRequests.size ? { holderCart: "1", holderCustomerId: holderAccountId } : {}),
         termsVersion: LEGAL_VERSION, termsAcceptedAt: new Date().toISOString(),
         ...(metropolitan ? shippingQuoteMetadata(metropolitan) : {}),
         customerEmail: customer.email,
@@ -440,7 +490,10 @@ async function prepareCheckout(req: Request) {
       discounts: discounts.length ? discounts : undefined,
       success_url: `${siteUrl}/commande/succes?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${siteUrl}/commande/annulee`,
-    });
+    };
+    const session = holderRequests.size
+      ? await (await import("@/lib/holder-cart-payment")).openHolderCartCheckout(stripe, params, [...holderRequests.values()], holderAccountId)
+      : await stripe.checkout.sessions.create(params);
 
     try {
       const { attachReminderCheckout } = await import("@/lib/cart-reminder-service");
@@ -458,6 +511,7 @@ async function prepareCheckout(req: Request) {
     }
     return NextResponse.json({ url: session.url });
   } catch (e) {
+    if (e instanceof Error && e.name === "HolderCheckoutConflict") return NextResponse.json({ code: "PERSONALIZATION_INVALID", error: e.message }, { status: 409 });
     const stripeType = e && typeof e === "object" && "type" in e ? e.type : "";
     const code: CheckoutErrorCode = stripeType === "StripeAuthenticationError" || stripeType === "StripePermissionError" ? "STRIPE_CONFIGURATION"
       : stripeType === "StripeConnectionError" || stripeType === "StripeAPIError" || stripeType === "StripeRateLimitError" ? "STRIPE_UNAVAILABLE"

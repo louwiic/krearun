@@ -1,6 +1,7 @@
 "use client";
 
 import { publicProductReferences } from "@/lib/public-copy";
+import { holderCartShipping, HOLDER_CART_PRODUCT_ID } from "@/lib/holder-cart";
 import dynamic from "next/dynamic";
 
 import { coffretDetails } from "@/lib/coffrets";
@@ -40,13 +41,15 @@ export default function CartDrawer({
   const shippingRates = parseShippingRates(shippingRatesJson);
   const shippingEstimate = calculateShippingCents(billableWeightGrams || 1, shippingRates);
   const freeShipping = freeShippingEnabled && subtotalCents >= freeShippingThresholdCents;
-  const shippingCents = freeShipping
+  const standardShippingCents = freeShipping
     ? 0
     : missingBillableWeight
       ? Math.max(shippingFlatCents, shippingEstimate.priceCents)
       : billableWeightGrams === 0
         ? 0
         : shippingEstimate.priceCents;
+  const holderItems = items.filter(item => item.productId === HOLDER_CART_PRODUCT_ID);
+  const shippingCents = holderCartShipping(standardShippingCents, holderItems.map(item => item.holderShippingCents ?? 0), holderItems.length < items.length);
   const totalCents = subtotalCents + shippingCents - rewardDiscountCents;
 
   return (
@@ -187,6 +190,7 @@ export default function CartDrawer({
                     <div className="mt-auto flex items-center justify-between pt-2">
                       <div className="flex items-center rounded-full border border-sand">
                         <button
+                          disabled={item.productId === HOLDER_CART_PRODUCT_ID}
                           onClick={() =>
                             setQuantity(
                               item.productId,
@@ -217,7 +221,7 @@ export default function CartDrawer({
                             )
                           }
                           className="px-3 py-1 text-ink-soft hover:text-ink disabled:opacity-30"
-                          disabled={item.quantity >= (item.preorder ? 20 : item.stock)}
+                          disabled={item.productId === HOLDER_CART_PRODUCT_ID || item.quantity >= (item.preorder ? 20 : item.stock)}
                           aria-label="Augmenter la quantité"
                         >
                           +

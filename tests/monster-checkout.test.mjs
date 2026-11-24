@@ -16,6 +16,7 @@ import * as quantityPricing from '../lib/quantity-discounts.ts';
 import * as noelKits from '../lib/noel-kits.ts';
 import * as metropolitan from '../lib/metropolitan-shipping.ts';
 const gift=loadTs(new URL('../lib/monster-gift.ts',import.meta.url));
+const holderCart=loadTs(new URL('../lib/holder-cart.ts',import.meta.url));
 const multicolor=loadTs(new URL('../lib/monster-multicolor.ts',import.meta.url));
 import * as metadata from '../lib/checkout-item-metadata.ts';
 import * as legal from '../lib/legal.ts';
@@ -41,8 +42,11 @@ function checkout(slug='porte-canette-monster',weightGrams=180, settings={}, pro
   '@/lib/promotion-details':promotionDetails,'@/lib/color-availability':availability,'@/lib/metropolitan-shipping':metropolitan,'@/lib/nos':nos,
   '@/lib/black-friday':{isBlackFridayCode:code=>blackFriday.isBlackFridayCode(code,failures.now)},
   '@/lib/public-copy':loadTs(new URL('../lib/public-copy.ts',import.meta.url)),
+  '@/lib/holder-cart':holderCart,
+  '@/lib/customer-auth':{getCustomerSession:async()=>failures.holderAccount},
+  '@/lib/holder-cart-payment':{openHolderCartCheckout:async(_stripe,params)=>{sessions.push(params);return {url:'https://checkout.invalid/test'};}},
   '@/lib/monster-gift':gift,'@/lib/legal':legal,'@/lib/checkout-item-metadata':metadata,
-  '@/lib/store':{getInventoryColors:async()=>inventory,getNosLogo:async id=>id==='abc123def456ghi'?{id}:null,getSettings:async()=>settings,getProductById:async()=>{if(failures.store)throw new Error('private@example.fr');return ({id:'monster',slug,name:'Produit',active:true,variants:[],stock:10,priceCents:1790,weightGrams,images:[],colors:slug===nos.NOS_SLUG?nos.NOS_COLORS:[],...productOverrides});}},
+  '@/lib/store':{getHolderRequest:async()=>failures.holderRequest,getInventoryColors:async()=>inventory,getNosLogo:async id=>id==='abc123def456ghi'?{id}:null,getSettings:async()=>settings,getProductById:async()=>{if(failures.store)throw new Error('private@example.fr');return ({id:'monster',slug,name:'Produit',active:true,variants:[],stock:10,priceCents:1790,weightGrams,images:[],colors:slug===nos.NOS_SLUG?nos.NOS_COLORS:[],...productOverrides});}},
   '@/lib/stripe':{stripeConfigured:()=>!failures.configuration,getStripe:()=>({coupons:{retrieve:async id=>({id,valid:true,amount_off:Number(id.split("-").at(-1)),currency:"eur",duration:"once"})},promotionCodes:{list:async()=>({data:promotion?[promotion]:[]})},checkout:{sessions:{create:async data=>{if(failures.stripe)throw {type:failures.stripe,message:"private@example.fr"};sessions.push(data);return {url:'https://checkout.invalid/test'};}}}})},
   '@/lib/colors':{publicColorName:v=>v},'@/lib/free-shipping':{billableProductWeight:product=>product.slug===keychains.KEYCHAIN_SLUG?0:weightGrams,hasMissingProductWeight:product=>product.slug===keychains.KEYCHAIN_SLUG?false:weightGrams<=0},
   '@/lib/shipping':{parseShippingRates:()=>[],calculateShippingCents:()=>({priceCents:577,label:'Test'})},
@@ -61,6 +65,26 @@ test('Monster gift is included without a selector and replaces stale cart choice
 });
 test('a gift cannot be added to another product by the browser',async()=>{const {sessions,post}=checkout('other');assert.equal((await post(request({keychainChoice:gift.MONSTER_GIFT}))).status,200);assert.equal(JSON.parse(metadata.readCheckoutItems(sessions[0].metadata))[0].k,undefined);});
 test('checkout rejects missing consent before creating a payment session',async()=>{const {sessions,post}=checkout();assert.equal((await post(request({},false))).status,400);assert.equal(sessions.length,0);});
+
+test('approved requests join regular products at the trusted quote and demo baskets never create a Stripe session', async () => {
+ const account={id:'bbbbbbbbbbbbbbb',email:'test@example.invalid'};
+ const holder={id:'aaaaaaaaaaaaaaa',customerId:account.id,quantity:1,configuration:{bodyColorName:'Noir'},decision:{id:'decision',status:'approved',unitPriceCents:2490,shippingCents:490}};
+ const items=[{productId:'monster',quantity:1,color:'Blanc'}, {productId:'custom-holder',variantId:holder.id,quantity:1,priceCents:1}];
+ const real=checkout(undefined,180,{}, {}, [], null,{holderAccount:account,holderRequest:holder});
+ assert.equal((await real.post(request({},true,{}, {items}))).status,200);
+ const [params]=real.sessions;
+ assert.deepEqual(params.line_items.map(line=>line.price_data.unit_amount),[1790,2490]);
+ assert.equal(params.metadata.holderCustomerId,account.id);
+ assert.equal(params.shipping_options[0].shipping_rate_data.fixed_amount.amount,577);
+ assert.equal((await real.post(request({},false,{}, {items}))).status,400);
+ assert.equal((await real.post(request({},true,{}, {items:[...items,items[1]]}))).status,400);
+ const stranger=checkout(undefined,180,{}, {}, [], null,{holderAccount:{...account,id:'ccccccccccccccc'},holderRequest:holder});
+ assert.equal((await stranger.post(request({},true,{}, {items}))).status,409);
+ const demo=checkout(undefined,180,{}, {}, [], null,{holderAccount:account,holderRequest:{...holder,submissionKey:holderCart.HOLDER_CART_DEMO_KEY,decision:{...holder.decision,unitPriceCents:0}}});
+ const response=await demo.post(request({},false,{}, {items}));
+ assert.deepEqual(await response.json(),{simulation:true,subtotalCents:4280,shippingCents:577,totalCents:4857});
+ assert.equal(demo.sessions.length,0);
+});
 
 test('mainland delivery uses the server parcel weight and preserves the quote in Stripe metadata',async()=>{
  const {sessions,post}=checkout('porte-canette-monster',501);
