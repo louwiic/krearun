@@ -44,7 +44,7 @@ function getTransporter() {
   return transporter;
 }
 
-async function sendEmail(to: string, subject: string, html: string, headers?: Record<string, string>) {
+async function sendEmail(to: string, subject: string, html: string, headers?: Record<string, string>, replyTo = BUSINESS.email) {
   if (!to) return false;
   const resendKey = process.env.RESEND_API_KEY;
   if (resendKey) {
@@ -52,7 +52,7 @@ async function sendEmail(to: string, subject: string, html: string, headers?: Re
       const result = await sendResend(resendKey, {
           from: FROM,
           to: [to],
-          reply_to: BUSINESS.email,
+          reply_to: replyTo,
           subject,
           html,
           ...(headers ? { headers } : {}),
@@ -75,7 +75,7 @@ async function sendEmail(to: string, subject: string, html: string, headers?: Re
     await smtp.sendMail({
       from: FROM,
       to,
-      replyTo: BUSINESS.email,
+      replyTo,
       subject,
       html,
       ...(headers ? { headers } : {}),
@@ -117,6 +117,15 @@ function escapeHtml(value: string): string {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
+}
+
+export async function sendProductQuestion(to: string, productName: string, productSlug: string, name: string, email: string, message: string) {
+  const url = `https://krearun.re/boutique/${encodeURIComponent(productSlug)}`;
+  const html = `<p><strong>Demande d’informations sur un produit</strong></p>
+<p><strong>Produit :</strong> <a href="${escapeHtml(url)}">${escapeHtml(productName)}</a><br/>
+<strong>Client :</strong> ${escapeHtml(name)}<br/><strong>E-mail :</strong> ${escapeHtml(email)}</p>
+<p style="white-space:pre-wrap;">${escapeHtml(message)}</p>`;
+  return sendEmail(to, `Question produit : ${productName}`, html, undefined, email);
 }
 
 export async function sendNewReviewNotification(review: Review): Promise<boolean> {

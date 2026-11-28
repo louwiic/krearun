@@ -80,7 +80,7 @@ function toMessage(uid: number, parsed: ParsedMail, flags?: Set<string>): Contac
     uid,
     subject: parsed.subject || "(Sans objet)",
     from: addresses(parsed.from),
-    fromEmail: addressEntries.find((entry) => entry.address)?.address || "",
+    fromEmail: parsed.replyTo?.value.find((entry) => entry.address)?.address || addressEntries.find((entry) => entry.address)?.address || "",
     to: addresses(parsed.to),
     date: (parsed.date || new Date()).toISOString(),
     text: (parsed.text || "").trim(),

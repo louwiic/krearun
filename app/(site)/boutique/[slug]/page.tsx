@@ -13,6 +13,7 @@ import { NOS_SLUG, NOS_COLORS } from "@/lib/nos";
 import Gallery from "@/components/product/Gallery";
 import AddToCart from "@/components/product/AddToCart";
 import ProductCard from "@/components/product/ProductCard";
+import ProductQuestion from "@/components/product/ProductQuestion";
 import ReviewForm from "@/components/product/ReviewForm";
 import { getInventoryColors, getApprovedReviews, getProductBySlug, getProducts, getSettings } from "@/lib/store";
 import { formatPrice } from "@/lib/format";
@@ -66,9 +67,9 @@ export default async function ProductPage({
     (!product.privateSale && !categories.some((category) => category.value === product.category))
   ) notFound();
 
-  if (slug === KEYCHAIN_SLUG) return <div className="mx-auto max-w-6xl px-5 py-10 sm:px-8"><Link href="/boutique" className="text-sm underline">Retour à la boutique</Link><h1 className="mt-6 font-display text-3xl font-bold sm:text-4xl">Porte-clés prénom personnalisé</h1><p className="mb-8 mt-3 max-w-2xl text-ink-soft">Chewy, lettres épaisses ou écriture cursive : choisissez votre style et les coloris disponibles à l’atelier.</p><KeychainConfigurator inventory={await getInventoryColors({ includeInactive: true })}/></div>;
+  if (slug === KEYCHAIN_SLUG) return <div className="mx-auto max-w-6xl px-5 py-10 sm:px-8"><Link href="/boutique" className="text-sm underline">Retour à la boutique</Link><h1 className="mt-6 font-display text-3xl font-bold sm:text-4xl">Porte-clés prénom personnalisé</h1><p className="mb-8 mt-3 max-w-2xl text-ink-soft">Chewy, lettres épaisses ou écriture cursive : choisissez votre style et les coloris disponibles à l’atelier.</p><KeychainConfigurator inventory={await getInventoryColors({ includeInactive: true })}/><ProductQuestion slug={product.slug} name={product.name}/></div>;
 
-  if (slug === HOLDER_SLUG) return <><div data-product-view={product.id} aria-hidden className="h-px"/><CustomHolderProduct /></>;
+  if (slug === HOLDER_SLUG) return <><div data-product-view={product.id} aria-hidden className="h-px"/><CustomHolderProduct /><div className="mx-auto max-w-5xl px-4 pb-10 sm:px-6"><ProductQuestion slug={product.slug} name={product.name}/></div></>;
 
   const [all, reviews] = await Promise.all([
     getProducts(),
@@ -157,6 +158,7 @@ export default async function ProductPage({
           <div className="mt-6 sm:mt-8">
             <AddToCart product={product} />
           </div>
+          <ProductQuestion slug={product.slug} name={product.name} />
           {product.category === "noel" && product.slug.startsWith("noel-thermoforme-") && <aside className="mt-6 rounded-2xl border border-sand p-5 text-sm leading-relaxed">
             <h2 className="font-display text-xl font-bold">Deux façons de créer Noël.</h2>
             <p className="mt-3"><strong>Kit complet :</strong> pièces plates, moules réutilisables, connecteurs et cordon. Sèche-cheveux non fourni.</p>
